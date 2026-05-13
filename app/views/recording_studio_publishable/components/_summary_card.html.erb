@@ -1,0 +1,18 @@
+<% publishable = recording.current_publishable %>
+<%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+  <% card.header do %>
+    <%= render FlatPack::PageTitle::Component.new(title: "Summary", subtitle: "Current public metadata for this recording.", variant: :h3, class: "mb-0 pb-0") %>
+  <% end %>
+  <% card.body do %>
+    <% if publishable.present? %>
+      <div class="space-y-3 text-sm leading-6">
+        <p><strong>Slug:</strong> <%= publishable.slug %></p>
+        <p><strong>Canonical path:</strong> <%= recording.publishable_public_path %></p>
+        <p><strong>Publish window:</strong> <%= [publishable.publish_at, publishable.unpublish_at].compact.map { |value| l(value, format: :long) rescue value }.join(" → ").presence || "Always available when published" %></p>
+        <p><strong>SEO title:</strong> <%= publishable.seo_title.presence || "Uses parent recording title" %></p>
+      </div>
+    <% else %>
+      <p class="text-sm text-[var(--surface-muted-content-color)]">A publishable child recording will be created the first time someone opens the edit screen.</p>
+    <% end %>
+  <% end %>
+<% end %>

@@ -1,0 +1,21 @@
+<%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+  <% card.header do %>
+    <%= render FlatPack::PageTitle::Component.new(title: "Quick actions", subtitle: "Common state changes for this publishable.", variant: :h3, class: "mb-0 pb-0") %>
+  <% end %>
+  <% card.body do %>
+    <div class="flex flex-wrap gap-2">
+      <%= button_to transition_recording_publishable_path(recording_id: recording.id, transition: :publish), method: :patch, class: "inline-flex" do %>
+        <%= render FlatPack::Button::Component.new(text: "Publish now", style: :primary, size: :sm) %>
+      <% end %>
+      <%= button_to transition_recording_publishable_path(recording_id: recording.id, transition: :schedule), method: :patch, class: "inline-flex" do %>
+        <%= render FlatPack::Button::Component.new(text: "Mark scheduled", style: :secondary, size: :sm) %>
+      <% end %>
+      <%= button_to transition_recording_publishable_path(recording_id: recording.id, transition: :draft), method: :patch, class: "inline-flex" do %>
+        <%= render FlatPack::Button::Component.new(text: "Back to draft", style: :ghost, size: :sm) %>
+      <% end %>
+      <%= button_to transition_recording_publishable_path(recording_id: recording.id, transition: :unpublish), method: :patch, class: "inline-flex" do %>
+        <%= render FlatPack::Button::Component.new(text: "Unpublish", style: :secondary, size: :sm) %>
+      <% end %>
+    </div>
+  <% end %>
+<% end %>

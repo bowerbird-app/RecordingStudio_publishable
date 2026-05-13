@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class DocsController < ApplicationController
-  def install
-  end
+  def install; end
 
   def configuration
     render :config
@@ -24,15 +23,14 @@ class DocsController < ApplicationController
   end
 
   def gem_views
-    prefix = "#{GemTemplate::Engine.root}/"
+    prefix = "#{RecordingStudioPublishable::Engine.root}/"
 
-    @engine_views = Dir.glob(GemTemplate::Engine.root.join("app/views/gem_template/**/*.erb").to_s)
+    @engine_views = Dir.glob(RecordingStudioPublishable::Engine.root.join("app/views/recording_studio_publishable/**/*.erb").to_s)
       .sort
       .map { |path| path.delete_prefix(prefix) }
   end
 
-  def methods
-  end
+  def methods; end
 
   private
 
@@ -92,9 +90,7 @@ class DocsController < ApplicationController
     end
 
     return recordable.role.to_s.humanize if recordable.respond_to?(:role) && recordable.role.present?
-
-    return recordable.minimum_role.to_s.humanize if recordable.respond_to?(:minimum_role) &&
-      recordable.minimum_role.present?
+    return recordable.minimum_role.to_s.humanize if recordable.respond_to?(:minimum_role) && recordable.minimum_role.present?
 
     "##{recordable.id}"
   end

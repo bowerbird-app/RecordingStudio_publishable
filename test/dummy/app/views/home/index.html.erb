@@ -1,7 +1,60 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
-    title: "Demo",
-    subtitle: "Provide a simple demo below",
+    title: "Recording Studio Publishable demo",
+    subtitle: "The dummy app shows a parent page recording, its publishable child recording, and the default public route.",
     variant: :h1
   ) %>
+
+  <% if @page_recording.present? %>
+    <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
+      <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+        <% card.header do %>
+          <%= render FlatPack::PageTitle::Component.new(
+            title: @page_recording.recordable.title,
+            subtitle: "Parent recording ##{@page_recording.id}",
+            variant: :h3,
+            class: "mb-0 pb-0"
+          ) %>
+        <% end %>
+        <% card.body do %>
+          <div class="space-y-3 text-sm leading-6">
+            <p>This page recording owns at most one publishable child recording.</p>
+            <p><strong>Current public path:</strong> <%= @page_recording.publishable_public_path || "Create the publishable to get a path" %></p>
+          </div>
+        <% end %>
+        <% card.footer do %>
+          <div class="flex flex-wrap gap-2">
+            <%= link_to recording_studio_publishable.edit_recording_publishable_path(recording_id: @page_recording.id), class: "inline-flex" do %>
+              <%= render FlatPack::Button::Component.new(text: "Edit publishable info", style: :primary, size: :md) %>
+            <% end %>
+            <% if @publishable_recording.present? && @publishable&.currently_published? %>
+              <%= link_to @page_recording.publishable_public_path, class: "inline-flex" do %>
+                <%= render FlatPack::Button::Component.new(text: "View public route", style: :secondary, size: :md) %>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+
+      <div class="space-y-6">
+        <% if @publishable.present? %>
+          <%= render "recording_studio_publishable/components/status_badge", publishable: @publishable %>
+          <%= render "recording_studio_publishable/components/summary_card", recording: @page_recording %>
+          <%= render "recording_studio_publishable/components/quick_actions", recording: @page_recording %>
+        <% else %>
+          <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+            <% card.body do %>
+              <p class="text-sm text-[var(--surface-muted-content-color)]">Open the edit flow to create the publishable child recording automatically.</p>
+            <% end %>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% else %>
+    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+      <% card.body do %>
+        <p class="text-sm text-[var(--surface-muted-content-color)]">Seed data has not been loaded yet.</p>
+      <% end %>
+    <% end %>
+  <% end %>
 </div>
