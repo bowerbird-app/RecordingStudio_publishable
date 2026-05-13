@@ -11,7 +11,7 @@ class RecordingStudioPublishableTest < Minitest::Test
     readme_path = File.expand_path("../README.md", __dir__)
     readme_source = File.read(readme_path)
 
-    assert_includes readme_source, "RecordingStudio_publishable"
+    assert_includes readme_source, "recording_studio_publishable"
     assert_includes readme_source, "publishable child recording"
   end
 
