@@ -2,7 +2,6 @@
 
 module RecordingStudioPublishable
   class PublicationsController < ApplicationController
-    skip_forgery_protection
     skip_before_action :authenticate_user!, raise: false
 
     def show
