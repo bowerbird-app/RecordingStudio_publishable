@@ -22,7 +22,7 @@ publishable_recording = RecordingStudioPublishable::Services::Publishables::Upda
     slug: "launch-checklist",
     status: "published",
     seo_title: "Launch Checklist",
-    seo_description: "A demo page published through the RecordingStudio_publishable addon.",
+    seo_description: "A demo page published through the RecordingStudioPublishable addon.",
     social_title: "Launch Checklist",
     social_description: "Dummy app publishable state",
     meta_robots: "index,follow"

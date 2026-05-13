@@ -1,6 +1,6 @@
 # Dummy App
 
-This Rails app validates `RecordingStudio_publishable` inside a host application.
+This Rails app validates `recording_studio_publishable` inside a host application.
 
 ## What it demonstrates
 
