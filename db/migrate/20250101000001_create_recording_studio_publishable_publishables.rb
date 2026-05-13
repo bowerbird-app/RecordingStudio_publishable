@@ -2,6 +2,7 @@
 
 class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1]
   UNIQUE_CHILD_INDEX = "index_rs_publishable_child_per_parent"
+  RECORDABLE_TYPE = "RecordingStudioPublishable::Publishable"
 
   def change
     create_table :recording_studio_publishable_publishables, id: :uuid do |t|
@@ -27,6 +28,6 @@ class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1
               :parent_recording_id,
               unique: true,
               name: UNIQUE_CHILD_INDEX,
-              where: "recordable_type = 'RecordingStudioPublishable::Publishable' AND trashed_at IS NULL"
+              where: "recordable_type = '#{RECORDABLE_TYPE}' AND trashed_at IS NULL"
   end
 end

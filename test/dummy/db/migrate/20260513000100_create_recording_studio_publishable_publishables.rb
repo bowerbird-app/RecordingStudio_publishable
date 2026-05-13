@@ -1,4 +1,6 @@
 class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1]
+  RECORDABLE_TYPE = "RecordingStudioPublishable::Publishable"
+
   def change
     create_table :recording_studio_publishable_publishables, id: :uuid, default: -> { "gen_random_uuid()" } do |t|
       t.string :slug, null: false
@@ -26,6 +28,6 @@ class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1
               :parent_recording_id,
               unique: true,
               name: "index_rs_publishable_child_per_parent",
-              where: "recordable_type = 'RecordingStudioPublishable::Publishable' AND trashed_at IS NULL"
+              where: "recordable_type = '#{RECORDABLE_TYPE}' AND trashed_at IS NULL"
   end
 end
