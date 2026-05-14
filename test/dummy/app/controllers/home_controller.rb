@@ -1,7 +1,11 @@
 class HomeController < ApplicationController
   def index
-    @page_recording = RecordingStudio::Recording.where(recordable_type: "Page").includes(:recordable).order(:created_at).first
-    @publishable_recording = @page_recording&.publishable_child_recording
-    @publishable = @publishable_recording&.recordable
+    @page_recordings = page_recordings
+  end
+
+  private
+
+  def page_recordings
+    RecordingStudio::Recording.where(recordable_type: "Page").includes(:recordable, :parent_recording).order(:created_at, :id)
   end
 end

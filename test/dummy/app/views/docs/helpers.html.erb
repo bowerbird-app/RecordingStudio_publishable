@@ -1,16 +1,16 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
-    title: "Methods",
-    subtitle: "Document the public methods your addon exposes.",
+    title: "Helpers",
+    subtitle: "Document the view helpers your addon exposes.",
     variant: :h1
   ) %>
 
-  <% @method_sections.each do |section| %>
+  <% @helper_sections.each do |section| %>
     <%= render FlatPack::SectionTitle::Component.new(
       title: section[:title],
       subtitle: section[:subtitle]
     ) %>
 
-    <%= render FlatPack::CodeBlock::Component.new(language: :ruby, code: section[:code]) %>
+    <%= render FlatPack::CodeBlock::Component.new(language: :erb, code: section[:code]) %>
   <% end %>
 </div>

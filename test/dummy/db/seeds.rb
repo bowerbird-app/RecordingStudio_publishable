@@ -12,6 +12,7 @@ folder_recording = RecordingStudio::Recording.unscoped.find_or_create_by!(root_r
 page_recording = RecordingStudio::Recording.unscoped.find_or_create_by!(root_recording_id: root_recording.id, parent_recording_id: folder_recording.id, recordable: page)
 
 Current.actor = user
+Current.impersonator = nil
 access = RecordingStudio::Access.find_or_create_by!(actor: user, role: :admin)
 RecordingStudio::Recording.unscoped.find_or_create_by!(root_recording_id: root_recording.id, parent_recording_id: root_recording.id, recordable: access)
 
@@ -27,7 +28,7 @@ publishable_recording = RecordingStudioPublishable::Services::Publishables::Upda
     social_description: "Dummy app publishable state",
     meta_robots: "index,follow"
   }
-).value
+).value!
 
 puts "Seeded: admin@admin.com / Password"
 puts "Seeded: Workspace '#{workspace.name}' with root recording ##{root_recording.id}"

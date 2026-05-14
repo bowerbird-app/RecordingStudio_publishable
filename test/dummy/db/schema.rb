@@ -41,8 +41,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_13_000100) do
     t.string "time_zone"
     t.datetime "unpublish_at"
     t.datetime "updated_at", null: false
-    t.index ["canonical_url"], name: "index_recording_studio_publishable_publishables_on_canonical_url"
-    t.index ["slug"], name: "index_recording_studio_publishable_publishables_on_slug"
+    t.index ["canonical_url"], name: "index_rs_publishables_on_canonical_url"
+    t.index ["slug"], name: "index_rs_publishables_on_slug"
     t.index ["status", "publish_at", "unpublish_at"], name: "index_rs_publishables_on_state_window"
   end
 

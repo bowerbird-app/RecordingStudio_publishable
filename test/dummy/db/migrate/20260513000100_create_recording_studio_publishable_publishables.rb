@@ -1,5 +1,7 @@
 class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1]
+  CANONICAL_URL_INDEX = "index_rs_publishables_on_canonical_url"
   RECORDABLE_TYPE = "RecordingStudioPublishable::Publishable"
+  SLUG_INDEX = "index_rs_publishables_on_slug"
 
   def change
     create_table :recording_studio_publishable_publishables, id: :uuid, default: -> { "gen_random_uuid()" } do |t|
@@ -18,8 +20,8 @@ class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1
       t.datetime :updated_at, null: false
     end
 
-    add_index :recording_studio_publishable_publishables, :canonical_url
-    add_index :recording_studio_publishable_publishables, :slug
+    add_index :recording_studio_publishable_publishables, :canonical_url, name: CANONICAL_URL_INDEX
+    add_index :recording_studio_publishable_publishables, :slug, name: SLUG_INDEX
     add_index :recording_studio_publishable_publishables,
               %i[status publish_at unpublish_at],
               name: "index_rs_publishables_on_state_window"

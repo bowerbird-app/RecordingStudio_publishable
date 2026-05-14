@@ -1,0 +1,19 @@
+<div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Add Page",
+    subtitle: "Create a new dummy page and send it back to the root index.",
+    variant: :h1
+  ) %>
+
+  <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+    <% card.body do %>
+      <div class="space-y-4">
+        <p class="text-sm text-(--surface-muted-content-color)">The next page will be named <%= @next_page_title %>.</p>
+
+        <%= button_to dummy_pages_path, method: :post, class: "inline-flex" do %>
+          <%= render FlatPack::Button::Component.new(text: "Create page", style: :primary, size: :md) %>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

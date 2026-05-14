@@ -1,59 +1,49 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
-    title: "Recording Studio Publishable demo",
-    subtitle: "The dummy app shows a parent page recording, its publishable child recording, and the default public route.",
+    title: "Dummy pages",
+    subtitle: "Create a new page, review its recording, and jump straight to the publishable edit screen.",
     variant: :h1
   ) %>
 
-  <% if @page_recording.present? %>
-    <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
-      <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
-        <% card.header do %>
-          <%= render FlatPack::PageTitle::Component.new(
-            title: @page_recording.recordable.title,
-            subtitle: "Parent recording ##{@page_recording.id}",
-            variant: :h3,
-            class: "mb-0 pb-0"
-          ) %>
-        <% end %>
-        <% card.body do %>
-          <div class="space-y-3 text-sm leading-6">
-            <p>This page recording owns at most one publishable child recording.</p>
-            <p><strong>Current public path:</strong> <%= @page_recording.publishable_public_path || "Create the publishable to get a path" %></p>
-          </div>
-        <% end %>
-        <% card.footer do %>
-          <div class="flex flex-wrap gap-2">
-            <%= link_to recording_studio_publishable.edit_recording_publishable_path(recording_id: @page_recording.id), class: "inline-flex" do %>
-              <%= render FlatPack::Button::Component.new(text: "Edit publishable info", style: :primary, size: :md) %>
-            <% end %>
-            <% if @publishable_recording.present? && @publishable&.currently_published? %>
-              <%= link_to @page_recording.publishable_public_path, class: "inline-flex" do %>
-                <%= render FlatPack::Button::Component.new(text: "View public route", style: :secondary, size: :md) %>
-              <% end %>
-            <% end %>
-          </div>
-        <% end %>
-      <% end %>
+  <div class="flex flex-wrap items-center gap-3">
+    <%= link_to new_dummy_page_path, class: "inline-flex" do %>
+      <%= render FlatPack::Button::Component.new(text: "Add Page", style: :primary, size: :md) %>
+    <% end %>
+  </div>
 
-      <div class="space-y-6">
-        <% if @publishable.present? %>
-          <%= render "recording_studio_publishable/components/status_badge", publishable: @publishable %>
-          <%= render "recording_studio_publishable/components/summary_card", recording: @page_recording %>
-          <%= render "recording_studio_publishable/components/quick_actions", recording: @page_recording %>
-        <% else %>
-          <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
-            <% card.body do %>
-              <p class="text-sm text-[var(--surface-muted-content-color)]">Open the edit flow to create the publishable child recording automatically.</p>
-            <% end %>
-          <% end %>
-        <% end %>
-      </div>
-    </div>
-  <% else %>
-    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
-      <% card.body do %>
-        <p class="text-sm text-[var(--surface-muted-content-color)]">Seed data has not been loaded yet.</p>
+  <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+    <% card.body do %>
+      <% if @page_recordings.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-(--surface-border-color) text-left text-sm">
+            <thead>
+              <tr class="text-(--surface-muted-content-color)">
+                <th class="px-4 py-3 font-medium">Page</th>
+                <th class="px-4 py-3 font-medium">Recording</th>
+                <th class="px-4 py-3 font-medium">Parent</th>
+                <th class="px-4 py-3 font-medium">Public path</th>
+                <th class="px-4 py-3 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-(--surface-border-color)">
+              <% @page_recordings.each do |recording| %>
+                <tr>
+                  <td class="px-4 py-3 font-medium"><%= recording.recordable.title %></td>
+                  <td class="px-4 py-3"><%= recording.id %></td>
+                  <td class="px-4 py-3"><%= recording.parent_recording&.recordable_type.to_s.demodulize.underscore.humanize.presence || "Root" %></td>
+                  <td class="px-4 py-3"><%= recording.publishable_public_path.presence || "Not published yet" %></td>
+                  <td class="px-4 py-3">
+                    <%= link_to recording_studio_publishable.edit_recording_publishable_path(recording_id: recording.id), class: "inline-flex" do %>
+                      <%= render FlatPack::Button::Component.new(text: "Edit", style: :secondary, size: :sm) %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-sm text-(--surface-muted-content-color)">No pages exist yet. Click Add Page to create the first dummy page.</p>
       <% end %>
     <% end %>
   <% end %>

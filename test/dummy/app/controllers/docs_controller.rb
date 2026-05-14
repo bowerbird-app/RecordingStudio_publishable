@@ -30,9 +30,146 @@ class DocsController < ApplicationController
       .map { |path| path.delete_prefix(prefix) }
   end
 
-  def methods; end
+  def methods
+    @method_sections = method_sections
+  end
+
+  def helpers
+    @helper_sections = helper_sections
+  end
 
   private
+
+  def method_sections
+    [
+      {
+        title: "RecordingStudioPublishable::ParentRecordable",
+        subtitle: "Query helpers for parent recordable models that include the addon concern.",
+        code: <<~RUBY
+          class Page < ApplicationRecord
+            include RecordingStudioPublishable::ParentRecordable
+
+            recording_studio_publishable
+
+            # Class query helpers:
+            # - currently_published
+            # - scheduled
+            # - draft
+            # - unpublished
+          end
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable::RecordingExtensions",
+        subtitle: "Instance helpers added to RecordingStudio::Recording.",
+        code: <<~RUBY
+          recording = RecordingStudio::Recording.find(recording_id)
+
+          recording.publishable_child_recording
+          recording.current_publishable
+          recording.currently_published?
+          recording.publishable_public_path
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable::Publishable",
+        subtitle: "Scopes and predicates that describe the publishable child state.",
+        code: <<~RUBY
+          publishable = RecordingStudioPublishable::Publishable.find(publishable_id)
+
+          RecordingStudioPublishable::Publishable.currently_published
+          RecordingStudioPublishable::Publishable.currently_live
+          RecordingStudioPublishable::Publishable.scheduled
+          RecordingStudioPublishable::Publishable.draft
+          RecordingStudioPublishable::Publishable.unpublished
+
+          publishable.currently_published?
+          publishable.published?
+          publishable.scheduled_for_future?
+          publishable.previously_published?
+          publishable.unpublished?
+          publishable.effective_time_zone
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable::Routing",
+        subtitle: "Build the canonical public path for a publishable child recording.",
+        code: <<~RUBY
+          RecordingStudioPublishable::Routing.path_for(
+            publishable_recording: publishable_recording,
+            publishable: publishable_recording.recordable,
+            parent_recordable_type: publishable_recording.parent_recording&.recordable_type
+          )
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable::Configuration",
+        subtitle: "Configure routes, actor lookup, authorization, and the default time zone.",
+        code: <<~RUBY
+          RecordingStudioPublishable.configuration.register_public_path("Page", path: "/published/:uuid/:slug")
+          RecordingStudioPublishable.configuration.public_path_for("Page")
+          RecordingStudioPublishable.configuration.authorize_management?(recording: recording, actor: actor)
+          RecordingStudioPublishable.configuration.actor_for(controller: controller)
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable::Services::BaseService",
+        subtitle: "Common service object entry point and result wrapper.",
+        code: <<~RUBY
+          result = RecordingStudioPublishable::Services::ExampleService.call(name: "World")
+
+          result.success?
+          result.failure?
+          result.on_success { |value| puts value }
+          result.on_failure { |error| warn error }
+          result.value!
+        RUBY
+      },
+      {
+        title: "Publishable services",
+        subtitle: "Core service entry points for child creation, updates, transitions, and resolution.",
+        code: <<~RUBY
+          RecordingStudioPublishable::Services::Publishables::EnsureChild.call(parent_recording: parent_recording, actor: actor)
+          RecordingStudioPublishable::Services::Publishables::Update.call(parent_recording: parent_recording, attributes: attributes, actor: actor)
+          RecordingStudioPublishable::Services::Publishables::Transition.call(parent_recording: parent_recording, transition: "publish", actor: actor)
+          RecordingStudioPublishable::Services::Publishables::Resolve.call(uuid: uuid, slug: slug)
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable::Services::ExampleService",
+        subtitle: "A small example of the service-object pattern shipped with the addon.",
+        code: <<~RUBY
+          RecordingStudioPublishable::Services::ExampleService.call(name: "World")
+        RUBY
+      }
+    ]
+  end
+
+  def helper_sections
+    [
+      {
+        title: "render_publishable_status_badge",
+        subtitle: "Render the current publishable state badge in a template.",
+        code: <<~RUBY
+          <%= render_publishable_status_badge(@publishable) %>
+        RUBY
+      },
+      {
+        title: "render_publishable_quick_actions",
+        subtitle: "Render the management action buttons for a parent recording.",
+        code: <<~RUBY
+          <%= render_publishable_quick_actions(@page_recording) %>
+        RUBY
+      },
+      {
+        title: "render_publishable_summary_card",
+        subtitle: "Render the current publishable summary for a parent recording.",
+        code: <<~RUBY
+          <%= render_publishable_summary_card(@page_recording) %>
+        RUBY
+      }
+    ]
+  end
 
   def normalize_recordable_type(recordable_type)
     type_name = recordable_type.is_a?(Class) ? recordable_type.name : recordable_type.to_s

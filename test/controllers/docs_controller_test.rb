@@ -47,4 +47,22 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "app/views/recording_studio_publishable/publishables/edit.html.erb"
   end
+
+  test "methods page lists addon method families" do
+    get docs_methods_path
+
+    assert_response :success
+    assert_includes response.body, "RecordingStudioPublishable::ParentRecordable"
+    assert_includes response.body, "RecordingStudioPublishable::Publishable"
+    assert_includes response.body, "RecordingStudioPublishable::Services::Publishables::Update"
+  end
+
+  test "helpers page lists addon view helpers" do
+    get docs_helpers_path
+
+    assert_response :success
+    assert_includes response.body, "render_publishable_status_badge"
+    assert_includes response.body, "render_publishable_quick_actions"
+    assert_includes response.body, "render_publishable_summary_card"
+  end
 end
