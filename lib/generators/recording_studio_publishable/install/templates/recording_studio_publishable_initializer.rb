@@ -13,8 +13,15 @@ RecordingStudioPublishable.configure do |config|
   # Use the host app's preferred default time zone for schedule editing.
   # config.default_time_zone = "UTC"
 
-  # Override the engine layout used by the edit publishable screen.
+  # Override the engine layout used by all gem-managed screens.
   # config.default_layout = "application"
+
+  # Optionally override just the edit screen layout.
+  # config.edit_layout = "flat_pack_sidebar"
+
+  # Override the public renderer for a parent recordable type.
+  # The default convention resolves Page -> pages#show, Article -> articles#show.
+  # config.register_public_renderer("Page", controller: "pages", action: :show, layout: "application")
 
   # Change the redirect status used when a stale slug is requested.
   # config.canonical_redirect_status = :moved_permanently

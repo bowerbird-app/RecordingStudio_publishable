@@ -8,7 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors     = ["Bowerbird"]
   spec.homepage    = "https://github.com/bowerbird-app/RecordingStudio_publishable"
   spec.summary     = "Reusable publishable child recordings for RecordingStudio"
-  spec.description = "Adds publishable child recordings, current-state helpers, public routing, and FlatPack management UI for RecordingStudio-backed content."
+  spec.description = "Adds publishable child recordings, current-state helpers, " \
+                     "public routing, and FlatPack management UI for RecordingStudio-backed content."
   spec.license     = "MIT"
   spec.required_ruby_version = ">= 3.3.0"
 

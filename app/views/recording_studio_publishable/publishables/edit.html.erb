@@ -23,7 +23,7 @@
   <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
     <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
       <% card.body do %>
-        <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "space-y-4" do |form| %>
+        <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "space-y-4", multipart: true do |form| %>
           <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
           <div class="grid gap-4 md:grid-cols-2">
             <%= render FlatPack::TextInput::Component.new(name: "publishable[seo_title]", label: "SEO title", value: @publishable.seo_title) %>
@@ -51,6 +51,17 @@
           <div class="grid gap-4 md:grid-cols-2">
             <%= render FlatPack::TextInput::Component.new(name: "publishable[social_title]", label: "Social title", value: @publishable.social_title) %>
             <%= render FlatPack::TextInput::Component.new(name: "publishable[social_description]", label: "Social description", value: @publishable.social_description) %>
+          </div>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_social_image">Social image</label>
+            <% if @publishable.social_image_supported? %>
+              <%= form.file_field :social_image, id: "publishable_social_image", class: "block w-full text-sm text-[var(--surface-content-color)] file:mr-4 file:rounded-md file:border-0 file:bg-[var(--surface-raised-background-color)] file:px-3 file:py-2 file:text-sm file:font-medium file:text-[var(--surface-content-color)]" %>
+            <% else %>
+              <p class="text-sm text-(--surface-muted-content-color)">Install Active Storage in the host app to upload a social image.</p>
+            <% end %>
+            <% if @publishable.social_image_attached? %>
+              <p class="text-sm text-[var(--surface-muted-content-color)]">Current image attached: <%= @publishable.social_image.filename %></p>
+            <% end %>
           </div>
           <%= render FlatPack::Button::Component.new(text: "Save changes", style: :primary, size: :md, type: "submit") %>
         <% end %>

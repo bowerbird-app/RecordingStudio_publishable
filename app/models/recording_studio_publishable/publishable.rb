@@ -3,6 +3,7 @@
 module RecordingStudioPublishable
   class Publishable < ApplicationRecord
     self.table_name = "recording_studio_publishable_publishables"
+    has_one_attached :social_image
 
     enum :status, {
       draft: "draft",
@@ -12,7 +13,8 @@ module RecordingStudioPublishable
     }, default: :draft, validate: true
 
     validates :slug, presence: true
-    validates :slug, format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/, message: "must use URL-safe lowercase slug segments" }
+    validates :slug,
+              format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/, message: "must use URL-safe lowercase slug segments" }
     validate :publish_window_is_valid
     validate :scheduled_status_requires_future_publish_at
 
@@ -43,7 +45,8 @@ module RecordingStudioPublishable
     end
 
     def previously_published?(now = Time.current)
-      status_unpublished? || (status_published? && (publish_at.present? || unpublish_at.present?) && !currently_published?(now))
+      status_unpublished? ||
+        (status_published? && (publish_at.present? || unpublish_at.present?) && !currently_published?(now))
     end
 
     def unpublished?(now = Time.current)
@@ -52,6 +55,17 @@ module RecordingStudioPublishable
 
     def effective_time_zone
       time_zone.presence || RecordingStudioPublishable.configuration.default_time_zone || "UTC"
+    end
+
+    def social_image_supported?
+      self.class.connection.data_source_exists?("active_storage_attachments") &&
+        self.class.connection.data_source_exists?("active_storage_blobs")
+    rescue ActiveRecord::ActiveRecordError, ActiveRecord::NoDatabaseError
+      false
+    end
+
+    def social_image_attached?
+      social_image_supported? && social_image.attached?
     end
 
     private

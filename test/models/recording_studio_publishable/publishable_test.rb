@@ -8,7 +8,8 @@ require "rails/test_help"
 module RecordingStudioPublishable
   class PublishableTest < ActiveSupport::TestCase
     test "currently_published? respects publish and unpublish timestamps" do
-      publishable = Publishable.new(status: :published, publish_at: 1.hour.ago, unpublish_at: 1.hour.from_now, slug: "demo")
+      publishable = Publishable.new(status: :published, publish_at: 1.hour.ago, unpublish_at: 1.hour.from_now,
+                                    slug: "demo")
 
       assert publishable.currently_published?
       assert publishable.published?
@@ -16,7 +17,8 @@ module RecordingStudioPublishable
     end
 
     test "published? is false outside the live window and unpublished? tracks prior live content" do
-      publishable = Publishable.new(status: :unpublished, publish_at: 2.hours.ago, unpublish_at: 1.hour.ago, slug: "demo")
+      publishable = Publishable.new(status: :unpublished, publish_at: 2.hours.ago, unpublish_at: 1.hour.ago,
+                                    slug: "demo")
 
       refute publishable.currently_published?
       refute publishable.published?
@@ -32,12 +34,12 @@ module RecordingStudioPublishable
     end
 
     test "publish window validation rejects inverted windows" do
-      publishable = Publishable.new(slug: "demo", status: :scheduled, publish_at: 2.hours.from_now, unpublish_at: 1.hour.from_now)
+      publishable = Publishable.new(slug: "demo", status: :scheduled, publish_at: 2.hours.from_now,
+                                    unpublish_at: 1.hour.from_now)
 
       refute publishable.valid?
       assert_includes publishable.errors[:unpublish_at], "must be later than publish at"
     end
-
 
     test "slug rejects unsafe characters" do
       publishable = Publishable.new(status: :draft, slug: "bad/slug")
@@ -55,6 +57,20 @@ module RecordingStudioPublishable
       assert_equal "Pacific Time (US & Canada)", publishable.effective_time_zone
     ensure
       RecordingStudioPublishable.configuration.default_time_zone = original_time_zone
+    end
+
+    test "social image attachment api is available" do
+      publishable = Publishable.new(status: :draft, slug: "demo")
+
+      assert_respond_to publishable, :social_image
+      assert_respond_to publishable, :social_image_attachment
+    end
+
+    test "social image helpers are safe when active storage tables are unavailable" do
+      publishable = Publishable.new(status: :draft, slug: "demo")
+
+      refute publishable.social_image_supported?
+      refute publishable.social_image_attached?
     end
   end
 end

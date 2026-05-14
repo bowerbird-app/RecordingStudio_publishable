@@ -8,6 +8,8 @@ Recording Studio Publishable adds a reusable **publishable child recording** to 
 - one publishable child recording per parent recording
 - current-state helpers for draft, scheduled, published, and unpublished content
 - a default public route at `/published/:uuid/:slug`
+- conventional public rendering for parent types such as `Page -> pages#show`, with override hooks
+- canonical public path and URL helpers for publishable child recordings
 - a FlatPack-based **Edit publishable info** screen
 - reusable publishable UI partials for a status badge, quick actions, and a summary card
 - a dummy app that demonstrates a `Page` recording with a publishable child recording
@@ -19,6 +21,8 @@ Public rendering always uses the parent recording's latest/current recordable. T
 - **parent recording** - the real content item
 - **publishable child recording** - the child `RecordingStudio::Recording` whose recordable is `RecordingStudioPublishable::Publishable`
 - **publishable recordable** - slug, status, schedule, and SEO/social fields for the current public state
+
+`social_image` uses Active Storage when the host app has Active Storage installed.
 
 ## Dummy app demo
 
@@ -48,6 +52,17 @@ The install generator will:
 - optionally add `config/recording_studio_publishable.yml`
 
 After that, run `bin/rails db:migrate`, review the generated `db/seeds.rb` snippet, and either replace the example parent-recording lookup or set `RECORDING_STUDIO_PUBLISHABLE_PARENT_ID` before `bin/rails db:seed`.
+
+If you want to upload `social_image`, also run:
+
+```bash
+bin/rails active_storage:install
+bin/rails db:migrate
+```
+
+Public rendering defaults to the parent recordable type convention, for example `Page -> pages#show`. You can override that per type in the generated initializer with `config.register_public_renderer(...)`.
+
+The edit screen uses `config.edit_layout` when set; otherwise it falls back to `config.default_layout`.
 
 ## Running tests
 

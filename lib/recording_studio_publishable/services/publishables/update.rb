@@ -44,17 +44,19 @@ module RecordingStudioPublishable
         def assign_attributes(publishable, validated_attributes)
           permitted_attributes.each do |attribute|
             next unless validated_attributes.key?(attribute)
+            next if attribute == :social_image && !publishable.social_image_supported?
 
             publishable.public_send("#{attribute}=", validated_attributes[attribute])
           end
 
-          publishable.slug = publishable.slug.to_s.parameterize.presence || "recording-#{parent_recording.id.to_s.first(8)}"
+          publishable.slug = publishable.slug.to_s.parameterize.presence ||
+                             "recording-#{parent_recording.id.to_s.first(8)}"
         end
 
         def permitted_attributes
           %i[
             slug status publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
-            social_title social_description
+            social_title social_description social_image
           ]
         end
 
@@ -70,12 +72,17 @@ module RecordingStudioPublishable
             validated[attribute] = normalized
           end
 
+          if validated.key?(:social_image) && !RecordingStudioPublishable::Publishable.new.social_image_supported?
+            return failure("Active Storage must be installed before using social images")
+          end
+
           success(validated)
         end
 
         def normalized_value(attribute, value)
           return parsed_time(value, attributes[:time_zone]) if %i[publish_at unpublish_at].include?(attribute)
-          return value.presence if %i[seo_description social_description canonical_url meta_robots social_title].include?(attribute)
+          return value.presence if %i[seo_description social_description canonical_url meta_robots
+                                      social_title].include?(attribute)
 
           value.presence || value
         end
@@ -84,7 +91,7 @@ module RecordingStudioPublishable
           return nil if value.blank?
 
           zone_name = time_zone.presence || parent_recording.current_publishable&.time_zone.presence ||
-            RecordingStudioPublishable.configuration.default_time_zone
+                      RecordingStudioPublishable.configuration.default_time_zone
           zone = ActiveSupport::TimeZone[zone_name] || ActiveSupport::TimeZone["UTC"]
           parsed = zone.parse(value.to_s)
           parsed ? parsed.utc : :invalid

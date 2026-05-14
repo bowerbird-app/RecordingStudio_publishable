@@ -59,8 +59,8 @@ class InstallGeneratorTest < Minitest::Test
 
       seeds = File.read(File.join(dir, "db/seeds.rb"))
       assert_includes seeds, "# BEGIN RecordingStudioPublishable seeds"
-      assert_includes seeds, 'ENV["RECORDING_STUDIO_PUBLISHABLE_PARENT_ID"]'
-      assert_includes seeds, 'RecordingStudioPublishable::Services::Publishables::Update.call'
+      assert_includes seeds, 'ENV.fetch("RECORDING_STUDIO_PUBLISHABLE_PARENT_ID", nil)'
+      assert_includes seeds, "RecordingStudioPublishable::Services::Publishables::Update.call"
     end
   end
 
@@ -210,7 +210,8 @@ class InstallGeneratorTest < Minitest::Test
   def tailwind_source_lines
     [
       '@source "../../vendor/bundle/**/recording_studio_publishable/app/views/**/*.erb";',
-      '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/recording_studio_publishable-*/app/views/**/*.erb";',
+      '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/' \
+      'recording_studio_publishable-*/app/views/**/*.erb";',
       '@source "../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}";',
       '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";'
     ]

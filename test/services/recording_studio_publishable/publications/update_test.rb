@@ -11,7 +11,8 @@ module RecordingStudioPublishable
       class UpdateTest < ActiveSupport::TestCase
         setup do
           @root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Workspace"))
-          @parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Landing"), parent_recording: @root)
+          @parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Landing"),
+                                                                 parent_recording: @root)
         end
 
         test "creates a revised publishable recordable with provided attributes" do
@@ -57,7 +58,6 @@ module RecordingStudioPublishable
           RecordingStudioPublishable.configuration.default_time_zone = original_time_zone
         end
 
-
         test "returns a failure when publish_at is invalid" do
           result = Update.call(
             parent_recording: @parent_recording,
@@ -66,6 +66,16 @@ module RecordingStudioPublishable
 
           assert result.failure?
           assert_equal "Publish at is invalid", result.error
+        end
+
+        test "returns a failure when social image upload is attempted without active storage tables" do
+          result = Update.call(
+            parent_recording: @parent_recording,
+            attributes: { slug: "landing-page", social_image: StringIO.new("image") }
+          )
+
+          assert result.failure?
+          assert_equal "Active Storage must be installed before using social images", result.error
         end
       end
     end
