@@ -13,7 +13,7 @@
   <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
     <% card.body do %>
       <div class="space-y-4 text-sm leading-7">
-        <p><strong>Parent recordable:</strong> <%= @parent_recording.type_label %></p>
+        <p><strong>Parent recordable:</strong> <%= @parent_recording.recordable_type.to_s.demodulize.underscore.humanize %></p>
         <% if @parent_recordable.respond_to?(:title) %>
           <p><strong>Current title:</strong> <%= @parent_recordable.title %></p>
         <% end %>

@@ -37,6 +37,54 @@ class InstallGeneratorTest < Minitest::Test
     assert_equal ["mount RecordingStudioPublishable::Engine, at: \"/addons/recording\""], routes
   end
 
+  def test_install_migrations_invokes_migrations_generator
+    generator = build_generator("/tmp")
+    commands = []
+
+    generator.stub(:generate, ->(command) { commands << command }) do
+      generator.install_migrations
+    end
+
+    assert_equal ["recording_studio_publishable:migrations"], commands
+  end
+
+  def test_add_seed_template_creates_seed_file_when_missing
+    with_temp_app do |dir|
+      FileUtils.mkdir_p(File.join(dir, "db"))
+      generator = build_generator(dir)
+
+      generator.stub(:say, nil) do
+        generator.add_seed_template
+      end
+
+      seeds = File.read(File.join(dir, "db/seeds.rb"))
+      assert_includes seeds, "# BEGIN RecordingStudioPublishable seeds"
+      assert_includes seeds, 'ENV["RECORDING_STUDIO_PUBLISHABLE_PARENT_ID"]'
+      assert_includes seeds, 'RecordingStudioPublishable::Services::Publishables::Update.call'
+    end
+  end
+
+  def test_add_seed_template_does_not_duplicate_existing_block
+    with_temp_app do |dir|
+      FileUtils.mkdir_p(File.join(dir, "db"))
+      seeds_path = File.join(dir, "db/seeds.rb")
+      File.write(seeds_path, <<~RUBY)
+        # BEGIN RecordingStudioPublishable seeds
+        # Existing snippet
+        # END RecordingStudioPublishable seeds
+      RUBY
+
+      generator = build_generator(dir)
+
+      generator.stub(:say, nil) do
+        generator.add_seed_template
+      end
+
+      seeds = File.read(seeds_path)
+      assert_equal 1, seeds.scan("# BEGIN RecordingStudioPublishable seeds").size
+    end
+  end
+
   def test_add_tailwind_source_injects_engine_and_flatpack_sources
     with_temp_app do |dir|
       css_path = File.join(dir, "app/assets/tailwind/application.css")
@@ -138,8 +186,9 @@ class InstallGeneratorTest < Minitest::Test
   def test_install_guide_includes_migration_and_host_setup_steps
     install_guide = File.read(INSTALL_TEMPLATE_PATH)
 
-    assert_includes install_guide, "bin/rails generate recording_studio_publishable:migrations"
     assert_includes install_guide, "bin/rails db:migrate"
+    assert_includes install_guide, "db/seeds.rb"
+    assert_includes install_guide, "RECORDING_STUDIO_PUBLISHABLE_PARENT_ID"
     assert_includes install_guide, "wire the current actor plus parent-recording authorization"
     assert_includes install_guide, "default public route"
   end

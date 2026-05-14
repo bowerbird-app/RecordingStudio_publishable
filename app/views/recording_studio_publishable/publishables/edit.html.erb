@@ -1,8 +1,8 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::Breadcrumb::Component.new(items: [
-    { label: "Home", href: main_app.root_path },
-    { label: @parent_recording.type_label, href: main_app.root_path },
-    { label: "Publishable" }
+    { text: "Home", href: main_app.root_path },
+    { text: @parent_recording.recordable_type.to_s.demodulize.underscore.humanize, href: main_app.root_path },
+    { text: "Publishable" }
   ]) %>
 
   <%= render FlatPack::PageTitle::Component.new(
@@ -30,12 +30,12 @@
             <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
           </div>
           <div class="space-y-2">
-            <label class="text-sm font-medium text-[var(--surface-content-color)]" for="publishable_seo_description">SEO description</label>
+            <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_seo_description">SEO description</label>
             <%= form.text_area :seo_description, value: @publishable.seo_description, class: "min-h-28 w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
           </div>
           <div class="grid gap-4 md:grid-cols-2">
             <div class="space-y-2">
-              <label class="text-sm font-medium text-[var(--surface-content-color)]" for="publishable_status">Status</label>
+              <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_status">Status</label>
               <%= form.select :status, RecordingStudioPublishable::Publishable.statuses.keys.map { |status| [status.humanize, status] }, {}, class: "w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
             </div>
             <%= render FlatPack::TextInput::Component.new(name: "publishable[meta_robots]", label: "Meta robots", value: @publishable.meta_robots, placeholder: "index,follow") %>
@@ -44,7 +44,7 @@
             <%= render FlatPack::TextInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone)&.strftime("%Y-%m-%d %H:%M"), placeholder: "2026-05-13 09:00") %>
             <%= render FlatPack::TextInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone)&.strftime("%Y-%m-%d %H:%M"), placeholder: "2026-05-20 09:00") %>
             <div class="space-y-2">
-              <label class="text-sm font-medium text-[var(--surface-content-color)]" for="publishable_time_zone">Time zone</label>
+              <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_time_zone">Time zone</label>
               <%= form.select :time_zone, @time_zones, { include_blank: false }, class: "w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
             </div>
           </div>

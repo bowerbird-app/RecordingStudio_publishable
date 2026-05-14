@@ -22,6 +22,7 @@ module RecordingStudioPublishable
         .where("publish_at IS NULL OR publish_at <= ?", now)
         .where("unpublish_at IS NULL OR unpublish_at > ?", now)
     }
+    scope :currently_live, -> { currently_published }
     scope :scheduled, lambda {
       now = Time.current
       where(status: statuses[:scheduled]).where("publish_at > ?", now)
@@ -30,15 +31,23 @@ module RecordingStudioPublishable
     scope :unpublished, -> { where(status: statuses[:unpublished]) }
 
     def currently_published?(now = Time.current)
-      published? && (publish_at.blank? || publish_at <= now) && (unpublish_at.blank? || unpublish_at > now)
+      status_published? && (publish_at.blank? || publish_at <= now) && (unpublish_at.blank? || unpublish_at > now)
+    end
+
+    def published?(now = Time.current)
+      currently_published?(now)
     end
 
     def scheduled_for_future?(now = Time.current)
       scheduled? && publish_at.present? && publish_at > now
     end
 
-    def previously_published?
-      unpublished? || publish_at.present?
+    def previously_published?(now = Time.current)
+      status_unpublished? || (status_published? && (publish_at.present? || unpublish_at.present?) && !currently_published?(now))
+    end
+
+    def unpublished?(now = Time.current)
+      !currently_published?(now) && previously_published?(now)
     end
 
     def effective_time_zone
@@ -58,6 +67,14 @@ module RecordingStudioPublishable
       return if publish_at.present? && publish_at.future?
 
       errors.add(:publish_at, "must be in the future when status is scheduled")
+    end
+
+    def status_published?
+      self[:status] == self.class.statuses[:published]
+    end
+
+    def status_unpublished?
+      self[:status] == self.class.statuses[:unpublished]
     end
   end
 end

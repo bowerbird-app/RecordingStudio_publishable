@@ -36,6 +36,19 @@ Useful routes:
 - `/published/:uuid/:slug` - default public route
 - `/docs/*` - dummy app supporting docs
 
+## Host app setup
+
+Run `bin/rails generate recording_studio_publishable:install` in the host app.
+
+The install generator will:
+
+- mount the engine and add the initializer
+- copy the engine migrations into `db/migrate`
+- append a publishable seed template to `db/seeds.rb`
+- optionally add `config/recording_studio_publishable.yml`
+
+After that, run `bin/rails db:migrate`, review the generated `db/seeds.rb` snippet, and either replace the example parent-recording lookup or set `RECORDING_STUDIO_PUBLISHABLE_PARENT_ID` before `bin/rails db:seed`.
+
 ## Running tests
 
 From the repository root:

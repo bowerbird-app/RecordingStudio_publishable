@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module RecordingStudioPublishable
-  class PublicationsController < ApplicationController
+  class PublishedController < ApplicationController
     skip_before_action :authenticate_user!, raise: false
 
     def show

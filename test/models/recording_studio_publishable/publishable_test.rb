@@ -11,6 +11,17 @@ module RecordingStudioPublishable
       publishable = Publishable.new(status: :published, publish_at: 1.hour.ago, unpublish_at: 1.hour.from_now, slug: "demo")
 
       assert publishable.currently_published?
+      assert publishable.published?
+      refute publishable.unpublished?
+    end
+
+    test "published? is false outside the live window and unpublished? tracks prior live content" do
+      publishable = Publishable.new(status: :unpublished, publish_at: 2.hours.ago, unpublish_at: 1.hour.ago, slug: "demo")
+
+      refute publishable.currently_published?
+      refute publishable.published?
+      assert publishable.unpublished?
+      assert publishable.previously_published?
     end
 
     test "scheduled_for_future? is true only for scheduled future records" do
@@ -33,6 +44,17 @@ module RecordingStudioPublishable
 
       refute publishable.valid?
       assert_includes publishable.errors[:slug], "must use URL-safe lowercase slug segments"
+    end
+
+    test "effective time zone falls back to the configured default" do
+      original_time_zone = RecordingStudioPublishable.configuration.default_time_zone
+      RecordingStudioPublishable.configuration.default_time_zone = "Pacific Time (US & Canada)"
+
+      publishable = Publishable.new(status: :draft, slug: "demo")
+
+      assert_equal "Pacific Time (US & Canada)", publishable.effective_time_zone
+    ensure
+      RecordingStudioPublishable.configuration.default_time_zone = original_time_zone
     end
   end
 end

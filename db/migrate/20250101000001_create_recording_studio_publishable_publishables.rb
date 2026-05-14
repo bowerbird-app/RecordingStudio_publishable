@@ -2,6 +2,8 @@
 
 class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1]
   UNIQUE_CHILD_INDEX = "index_rs_publishable_child_per_parent"
+  CANONICAL_URL_INDEX = "index_rs_publishables_on_canonical_url"
+  SLUG_INDEX = "index_rs_publishables_on_slug"
   RECORDABLE_TYPE = "RecordingStudioPublishable::Publishable"
 
   def change
@@ -20,9 +22,9 @@ class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1
       t.timestamps
     end
 
-    add_index :recording_studio_publishable_publishables, :slug
+    add_index :recording_studio_publishable_publishables, :slug, name: SLUG_INDEX
     add_index :recording_studio_publishable_publishables, %i[status publish_at unpublish_at], name: "index_rs_publishables_on_state_window"
-    add_index :recording_studio_publishable_publishables, :canonical_url
+    add_index :recording_studio_publishable_publishables, :canonical_url, name: CANONICAL_URL_INDEX
 
     add_index :recording_studio_recordings,
               :parent_recording_id,

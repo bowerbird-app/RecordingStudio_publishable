@@ -31,6 +31,30 @@ module RecordingStudioPublishable
           assert_equal "published", publishable.status
           assert_equal "Landing page", publishable.seo_title
           assert_equal "https://example.test/landing-page", publishable.canonical_url
+          assert publishable.published?
+        end
+
+        test "stores publish timestamps in utc and respects the configured display zone" do
+          original_time_zone = RecordingStudioPublishable.configuration.default_time_zone
+          RecordingStudioPublishable.configuration.default_time_zone = "Pacific Time (US & Canada)"
+
+          result = Update.call(
+            parent_recording: @parent_recording,
+            attributes: {
+              slug: "landing-page",
+              status: "scheduled",
+              publish_at: "2026-05-20 09:00",
+              time_zone: "Pacific Time (US & Canada)"
+            }
+          )
+
+          assert result.success?
+          publishable = result.value.recordable
+
+          assert_equal "Pacific Time (US & Canada)", publishable.effective_time_zone
+          assert_equal "UTC", publishable.publish_at.time_zone.name
+        ensure
+          RecordingStudioPublishable.configuration.default_time_zone = original_time_zone
         end
 
 

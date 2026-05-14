@@ -29,9 +29,11 @@ module RecordingStudioPublishable
     end
 
     initializer "recording_studio_publishable.extensions" do
+      engine = self
+
       config.to_prepare do
-        register_publishable_recordable_type
-        extend_recording_model
+        engine.send(:register_publishable_recordable_type)
+        engine.send(:extend_recording_model)
       end
     end
 

@@ -16,12 +16,35 @@ module RecordingStudioPublishable
         desc: "Route prefix used when mounting the engine (use '/' for the default public route)"
       )
 
+      def install_migrations
+        generate "recording_studio_publishable:migrations"
+      end
+
       def mount_engine
         route %(mount RecordingStudioPublishable::Engine, at: "#{options[:mount_path]}")
       end
 
       def copy_initializer
         template "recording_studio_publishable_initializer.rb", "config/initializers/recording_studio_publishable.rb"
+      end
+
+      def add_seed_template
+        seed_path = "db/seeds.rb"
+        full_seed_path = destination_path(seed_path)
+
+        if File.exist?(full_seed_path) && File.read(full_seed_path).include?(seed_snippet_marker)
+          say "RecordingStudioPublishable seed template already present in db/seeds.rb.", :green
+          return
+        end
+
+        create_file(seed_path, "") unless File.exist?(full_seed_path)
+
+        append_to_file seed_path do
+          prefix = File.zero?(full_seed_path) ? "" : "\n"
+          "#{prefix}#{seed_template_content}"
+        end
+
+        say "Added RecordingStudioPublishable seed template to db/seeds.rb.", :green
       end
 
       def add_yaml_config
@@ -100,6 +123,18 @@ module RecordingStudioPublishable
           '@source "../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}";',
           '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";'
         ]
+      end
+
+      def destination_path(relative_path)
+        File.join(destination_root, relative_path)
+      end
+
+      def seed_template_content
+        File.read(find_in_source_paths("recording_studio_publishable_seeds.rb"))
+      end
+
+      def seed_snippet_marker
+        "# BEGIN RecordingStudioPublishable seeds"
       end
     end
   end
