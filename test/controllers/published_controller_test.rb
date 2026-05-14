@@ -8,7 +8,8 @@ require "rails/test_help"
 class PublishedControllerTest < ActionDispatch::IntegrationTest
   test "published content is reachable without signing in" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
-    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"), parent_recording: root)
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"),
+                                                          parent_recording: root)
     publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,
       attributes: { slug: "public-page", status: "published" }
@@ -22,7 +23,8 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
 
   test "published page shows parent recordable details" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
-    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"), parent_recording: root)
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"),
+                                                          parent_recording: root)
     publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,
       attributes: { slug: "public-page", status: "published" }
@@ -31,14 +33,30 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     get "/published/#{publishable_recording.id}/public-page"
 
     assert_response :success
+    assert_includes response.body, "Rendered through the parent type&#39;s conventional public template."
+    assert_includes response.body, "Page title:"
+    assert_includes response.body, "Public page"
+  end
+
+  test "published page falls back to the gem template when the conventional template is missing" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    folder_recording = RecordingStudio::Recording.create!(recordable: Folder.create!, parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: folder_recording,
+      attributes: { slug: "folder-public", status: "published" }
+    ).value
+
+    get "/published/#{publishable_recording.id}/folder-public"
+
+    assert_response :success
     assert_includes response.body, "Parent recordable"
-    assert_includes response.body, "Page"
-    assert_includes response.body, "Current title"
+    assert_includes response.body, "Folder"
   end
 
   test "stale slugs redirect to the canonical path" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
-    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"), parent_recording: root)
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"),
+                                                          parent_recording: root)
     publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,
       attributes: { slug: "public-page", status: "published" }

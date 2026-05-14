@@ -13,9 +13,20 @@ module RecordingStudioPublishable
     end
 
     class_methods do
-      def recording_studio_publishable(path: RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH)
+      def recording_studio_publishable(
+        path: RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH,
+        public_controller: nil,
+        public_action: nil,
+        public_layout: nil
+      )
         self.recording_studio_publishable_path_template = path
         RecordingStudioPublishable.configuration.register_public_path(name, path: path)
+        RecordingStudioPublishable.configuration.register_public_renderer(
+          name,
+          controller: public_controller,
+          action: public_action,
+          layout: public_layout
+        )
       end
 
       def currently_published
@@ -39,7 +50,11 @@ module RecordingStudioPublishable
       def joins_publishable_scope
         quoted_recordable_type = connection.quote(name)
 
-        joins(<<~SQL.squish)
+        joins(publishable_scope_join_sql(quoted_recordable_type))
+      end
+
+      def publishable_scope_join_sql(quoted_recordable_type)
+        <<~SQL.squish
           INNER JOIN recording_studio_recordings parent_recordings
             ON parent_recordings.recordable_type = #{quoted_recordable_type}
            AND parent_recordings.recordable_id = #{table_name}.id

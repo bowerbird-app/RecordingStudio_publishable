@@ -2,6 +2,8 @@
 
 module RecordingStudioPublishable
   class PublishablesController < ApplicationController
+    layout :publishable_layout
+
     before_action :load_parent_recording
     before_action -> { authorize_publishable_management!(@parent_recording) }
     before_action :ensure_publishable_child
@@ -21,9 +23,7 @@ module RecordingStudioPublishable
 
       return redirect_to_edit(notice: "Publishable info saved") if result.success?
 
-      @publishable_recording = @parent_recording.publishable_child_recording
-      @publishable = @publishable_recording.recordable
-      @time_zones = ActiveSupport::TimeZone.all.map(&:name)
+      assign_publishable_form_state
       flash.now[:alert] = result.error
       render :edit, status: :unprocessable_entity
     end
@@ -56,19 +56,25 @@ module RecordingStudioPublishable
     end
 
     def publishable_params
-      params.require(:publishable).permit(
-        :slug,
-        :status,
-        :publish_at,
-        :unpublish_at,
-        :time_zone,
-        :seo_title,
-        :seo_description,
-        :canonical_url,
-        :meta_robots,
-        :social_title,
-        :social_description
-      )
+      params.require(:publishable).permit(*permitted_publishable_attributes)
+    end
+
+    def permitted_publishable_attributes
+      %i[
+        slug status publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
+        social_title social_description social_image
+      ]
+    end
+
+    def publishable_layout
+      RecordingStudioPublishable.configuration.edit_layout.presence ||
+        RecordingStudioPublishable.configuration.default_layout
+    end
+
+    def assign_publishable_form_state
+      @publishable_recording = @parent_recording.publishable_child_recording
+      @publishable = @publishable_recording.recordable
+      @time_zones = ActiveSupport::TimeZone.all.map(&:name)
     end
 
     def redirect_to_edit(notice: nil, alert: nil)

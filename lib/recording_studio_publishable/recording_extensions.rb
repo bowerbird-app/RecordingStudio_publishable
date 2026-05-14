@@ -45,5 +45,17 @@ module RecordingStudioPublishable
         parent_recordable_type: recordable_type
       )
     end
+
+    def publishable_public_url(host: nil, protocol: nil)
+      return unless publishable_child_recording && current_publishable
+
+      RecordingStudioPublishable::Routing.url_for(
+        publishable_recording: publishable_child_recording,
+        publishable: current_publishable,
+        parent_recordable_type: recordable_type,
+        host: host,
+        protocol: protocol
+      )
+    end
   end
 end
