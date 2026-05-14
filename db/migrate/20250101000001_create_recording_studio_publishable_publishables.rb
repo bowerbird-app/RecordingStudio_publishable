@@ -23,7 +23,8 @@ class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1
     end
 
     add_index :recording_studio_publishable_publishables, :slug, name: SLUG_INDEX
-    add_index :recording_studio_publishable_publishables, %i[status publish_at unpublish_at], name: "index_rs_publishables_on_state_window"
+    add_index :recording_studio_publishable_publishables, %i[status publish_at unpublish_at],
+              name: "index_rs_publishables_on_state_window"
     add_index :recording_studio_publishable_publishables, :canonical_url, name: CANONICAL_URL_INDEX
 
     add_index :recording_studio_recordings,

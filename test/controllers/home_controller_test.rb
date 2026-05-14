@@ -19,8 +19,10 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     end
 
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Home workspace"))
-    @page_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Home page"), parent_recording: root)
-    @second_page_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Second page"), parent_recording: root)
+    @page_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Home page"),
+                                                         parent_recording: root)
+    @second_page_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Second page"),
+                                                                parent_recording: root)
 
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: @page_recording,
@@ -39,7 +41,8 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Add Page"
     assert_includes response.body, "Home page"
     assert_includes response.body, "Second page"
-    assert_includes response.body, recording_studio_publishable.edit_recording_publishable_path(recording_id: @page_recording.id)
+    assert_includes response.body,
+                    recording_studio_publishable.edit_recording_publishable_path(recording_id: @page_recording.id)
   end
 
   test "add page page renders and creates a new page recording" do

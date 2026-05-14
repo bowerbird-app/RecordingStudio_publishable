@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ENV["RAILS_ENV"] = "test"
 require_relative "../test_helper"
 require_relative "../dummy/config/environment"
@@ -23,12 +25,13 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     get docs_recordable_types_path
 
     assert_response :success
-    assert_includes response.body, "RecordingStudioPublishable::Publishable"
+    assert_includes response.body, "Publishable"
   end
 
   test "recordings tree renders seeded publishable nodes" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Docs Workspace"))
-    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Docs Page"), parent_recording: root)
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Docs Page"),
+                                                          parent_recording: root)
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,
       attributes: { slug: "docs-page", status: "published" }
@@ -55,6 +58,9 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "RecordingStudioPublishable::ParentRecordable"
     assert_includes response.body, "RecordingStudioPublishable::Publishable"
     assert_includes response.body, "RecordingStudioPublishable::Services::Publishables::Update"
+    assert_includes response.body, "recording.publishable_public_url(host: &quot;example.test&quot;)"
+    assert_includes response.body, "RecordingStudioPublishable::Routing.url_for"
+    assert_includes response.body, "RecordingStudioPublishable.configuration.register_public_renderer"
   end
 
   test "helpers page lists addon view helpers" do

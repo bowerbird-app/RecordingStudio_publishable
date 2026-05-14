@@ -11,7 +11,8 @@ module RecordingStudioPublishable
       class ResolveTest < ActiveSupport::TestCase
         setup do
           @root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Workspace"))
-          @parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Published"), parent_recording: @root)
+          @parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Published"),
+                                                                 parent_recording: @root)
           @publishable_recording = Update.call(
             parent_recording: @parent_recording,
             attributes: { slug: "published", status: "published" }

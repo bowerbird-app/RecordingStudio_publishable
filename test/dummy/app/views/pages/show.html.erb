@@ -1,0 +1,24 @@
+<div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: @page.title,
+    subtitle: @publishable.seo_description.presence || "Rendered through the parent type's conventional public template.",
+    variant: :h1
+  ) %>
+
+  <div class="flex flex-wrap gap-2">
+    <%= render_publishable_status_badge(@publishable) %>
+    <%= render FlatPack::Badge::Component.new(text: @recording.id, style: :info, size: :sm) %>
+  </div>
+
+  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <% card.body do %>
+      <div class="space-y-4 text-sm leading-7">
+        <p><strong>Page title:</strong> <%= @page.title %></p>
+        <p><strong>Public path:</strong> <%= @recording.publishable_public_path %></p>
+        <% if @publishable.canonical_url.present? %>
+          <p><strong>Canonical URL:</strong> <%= @publishable.canonical_url %></p>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

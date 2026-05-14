@@ -69,6 +69,7 @@ class DocsController < ApplicationController
           recording.current_publishable
           recording.currently_published?
           recording.publishable_public_path
+          recording.publishable_public_url(host: "example.test")
         RUBY
       },
       {
@@ -93,21 +94,33 @@ class DocsController < ApplicationController
       },
       {
         title: "RecordingStudioPublishable::Routing",
-        subtitle: "Build the canonical public path for a publishable child recording.",
+        subtitle: "Build the canonical public path and URL for a publishable child recording.",
         code: <<~RUBY
           RecordingStudioPublishable::Routing.path_for(
             publishable_recording: publishable_recording,
             publishable: publishable_recording.recordable,
             parent_recordable_type: publishable_recording.parent_recording&.recordable_type
           )
+
+          RecordingStudioPublishable::Routing.url_for(
+            publishable_recording: publishable_recording,
+            publishable: publishable_recording.recordable,
+            parent_recordable_type: publishable_recording.parent_recording&.recordable_type,
+            host: "example.test",
+            protocol: "https"
+          )
         RUBY
       },
       {
         title: "RecordingStudioPublishable::Configuration",
-        subtitle: "Configure routes, actor lookup, authorization, and the default time zone.",
+        subtitle: "Configure routes, renderer overrides, actor lookup, authorization, and the default time zone.",
         code: <<~RUBY
           RecordingStudioPublishable.configuration.register_public_path("Page", path: "/published/:uuid/:slug")
+          RecordingStudioPublishable.configuration.register_public_renderer("Page", controller: "pages", action: :show)
           RecordingStudioPublishable.configuration.public_path_for("Page")
+          RecordingStudioPublishable.configuration.public_template_for("Page")
+          RecordingStudioPublishable.configuration.public_controller_for("Page")
+          RecordingStudioPublishable.configuration.public_action_for("Page")
           RecordingStudioPublishable.configuration.authorize_management?(recording: recording, actor: actor)
           RecordingStudioPublishable.configuration.actor_for(controller: controller)
         RUBY

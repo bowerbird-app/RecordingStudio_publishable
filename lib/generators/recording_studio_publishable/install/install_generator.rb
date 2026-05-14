@@ -40,7 +40,7 @@ module RecordingStudioPublishable
         create_file(seed_path, "") unless File.exist?(full_seed_path)
 
         append_to_file seed_path do
-          prefix = File.zero?(full_seed_path) ? "" : "\n"
+          prefix = File.empty?(full_seed_path) ? "" : "\n"
           "#{prefix}#{seed_template_content}"
         end
 
@@ -48,7 +48,10 @@ module RecordingStudioPublishable
       end
 
       def add_yaml_config
-        return unless yes?("Would you like to add `config/recording_studio_publishable.yml` for environment-specific settings? [y/N]")
+        prompt = "Would you like to add `config/recording_studio_publishable.yml` " \
+                 "for environment-specific settings? [y/N]"
+
+        return unless yes?(prompt)
 
         template "recording_studio_publishable.yml", "config/recording_studio_publishable.yml"
       end
@@ -119,7 +122,8 @@ module RecordingStudioPublishable
       def tailwind_source_lines
         [
           '@source "../../vendor/bundle/**/recording_studio_publishable/app/views/**/*.erb";',
-          '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/recording_studio_publishable-*/app/views/**/*.erb";',
+          '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/' \
+          'recording_studio_publishable-*/app/views/**/*.erb";',
           '@source "../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}";',
           '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";'
         ]
