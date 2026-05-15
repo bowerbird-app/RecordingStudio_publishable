@@ -38,6 +38,15 @@ class DocsController < ApplicationController
     @helper_sections = helper_sections
   end
 
+  def components
+    require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/status_badge/component").to_s
+    require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/quick_actions/component").to_s
+
+    @component_demo_recording = component_demo_recording
+    @component_demo_publishable = @component_demo_recording&.current_publishable
+    @component_sections = component_sections
+  end
+
   private
 
   def method_sections
@@ -162,26 +171,62 @@ class DocsController < ApplicationController
     [
       {
         title: "render_publishable_status_badge",
-        subtitle: "Render the current publishable state badge in a template.",
+        subtitle: "Legacy helper wrapper for the publishable status badge component.",
         code: <<~RUBY
           <%= render_publishable_status_badge(@publishable) %>
         RUBY
       },
       {
         title: "render_publishable_quick_actions",
-        subtitle: "Render the management action buttons for a parent recording.",
+        subtitle: "Legacy helper wrapper for the publishable quick actions component.",
         code: <<~RUBY
           <%= render_publishable_quick_actions(@page_recording) %>
         RUBY
       },
-      {
-        title: "render_publishable_summary_card",
-        subtitle: "Render the current publishable summary for a parent recording.",
-        code: <<~RUBY
-          <%= render_publishable_summary_card(@page_recording) %>
-        RUBY
-      }
     ]
+  end
+
+  def component_sections
+    [
+      {
+        title: "RecordingStudioPublishable::StatusBadge::Component",
+        subtitle: "Shows the current publishable state for a publishable recordable.",
+        entrypoint: "app/components/recording_studio_publishable/status_badge/component.rb",
+        params: [
+          {
+            name: "publishable:",
+            type: "RecordingStudioPublishable::Publishable",
+            required: true,
+            description: "The publishable recordable whose current state should be displayed."
+          }
+        ],
+        preview: :status_badge,
+        code: <<~ERB
+          <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
+        ERB
+      },
+      {
+        title: "RecordingStudioPublishable::QuickActions::Component",
+        subtitle: "Renders the primary publishable management actions for a parent recording.",
+        entrypoint: "app/components/recording_studio_publishable/quick_actions/component.rb",
+        params: [
+          {
+            name: "recording:",
+            type: "RecordingStudio::Recording",
+            required: true,
+            description: "The parent recording that owns the publishable child and transition routes."
+          }
+        ],
+        preview: :quick_actions,
+        code: <<~ERB
+          <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @page_recording) %>
+        ERB
+      },
+    ]
+  end
+
+  def component_demo_recording
+    RecordingStudio::Recording.where(recordable_type: "Page").includes(:recordable).order(:created_at, :id).first
   end
 
   def normalize_recordable_type(recordable_type)
