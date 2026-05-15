@@ -25,13 +25,17 @@
         <% when :quick_actions %>
           <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @component_demo_recording) %>
         <% when :edit_button %>
-          <%= render RecordingStudioPublishable::EditButton::Component.new(publishable: @component_demo_publishable, status: @component_demo_publishable.status) %>
+          <div class="flex flex-wrap gap-3">
+            <% @component_demo_edit_button_recordings.each do |recording| %>
+              <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording) %>
+            <% end %>
+          </div>
         <% end %>
         </div>
     <% else %>
       <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
         <% card.body do %>
-          <p class="text-sm text-[var(--surface-muted-content-color)]">No seeded page recording is available right now.</p>
+          <p class="text-sm text-(--surface-muted-content-color)">No seeded page recording is available right now.</p>
         <% end %>
       <% end %>
     <% end %>
@@ -47,8 +51,8 @@
       <% section[:params].each do |param| %>
         <%= render FlatPack::List::Item.new(icon: :code_bracket) do %>
           <div class="space-y-1">
-            <p class="font-medium text-[var(--surface-content-color)]"><%= param[:name] %> <span class="font-normal text-[var(--surface-muted-content-color)]"><%= param[:type] %></span></p>
-            <p class="text-sm text-[var(--surface-muted-content-color)]"><%= param[:description] %> <%= param[:required] ? "Required." : "Optional." %></p>
+            <p class="font-medium text-(--surface-content-color)"><%= param[:name] %> <span class="font-normal text-(--surface-muted-content-color)"><%= param[:type] %></span></p>
+            <p class="text-sm text-(--surface-muted-content-color)"><%= param[:description] %> <%= param[:required] ? "Required." : "Optional." %></p>
           </div>
         <% end %>
       <% end %>

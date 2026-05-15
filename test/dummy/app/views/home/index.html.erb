@@ -1,7 +1,7 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
-    title: "Dummy pages",
-    subtitle: "Create a new page, review its recording, and jump straight to the publishable edit screen.",
+    title: "Dummy publishables",
+    subtitle: "Review seeded pages and articles, then jump straight to each publishable edit screen and public route.",
     variant: :h1
   ) %>
 
@@ -13,12 +13,13 @@
 
   <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
     <% card.body do %>
-      <% if @page_recordings.any? %>
+      <% if @publishable_parent_recordings.any? %>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-(--surface-border-color) text-left text-sm">
             <thead>
               <tr class="text-(--surface-muted-content-color)">
-                <th class="px-4 py-3 font-medium">Page</th>
+                <th class="px-4 py-3 font-medium">Type</th>
+                <th class="px-4 py-3 font-medium">Title</th>
                 <th class="px-4 py-3 font-medium">Recording</th>
                 <th class="px-4 py-3 font-medium">Parent</th>
                 <th class="px-4 py-3 font-medium">Public path</th>
@@ -26,14 +27,21 @@
               </tr>
             </thead>
             <tbody class="divide-y divide-(--surface-border-color)">
-              <% @page_recordings.each do |recording| %>
+              <% @publishable_parent_recordings.each do |recording| %>
                 <tr>
-                  <td class="px-4 py-3 font-medium"><%= recording.recordable.title %></td>
+                  <td class="px-4 py-3"><%= recording.recordable_type.to_s.demodulize %></td>
+                  <td class="px-4 py-3 font-medium"><%= recording.recordable.try(:title).presence || recording.recordable.to_s %></td>
                   <td class="px-4 py-3"><%= recording.id %></td>
                   <td class="px-4 py-3"><%= recording.parent_recording&.recordable_type.to_s.demodulize.underscore.humanize.presence || "Root" %></td>
-                  <td class="px-4 py-3"><%= recording.publishable_public_path.presence || "Not published yet" %></td>
                   <td class="px-4 py-3">
-                    <%= render RecordingStudioPublishable::EditButton::Component.new(publishable: recording.current_publishable, status: recording.current_publishable&.status, label: "Edit") %>
+                    <% if recording.publishable_public_path.present? %>
+                      <%= link_to recording.publishable_public_path, recording.publishable_public_path, class: "text-(--surface-primary-content-color) underline underline-offset-2" %>
+                    <% else %>
+                      Not published yet
+                    <% end %>
+                  </td>
+                  <td class="px-4 py-3">
+                    <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording, label: "Edit") %>
                   </td>
                 </tr>
               <% end %>
@@ -41,7 +49,7 @@
           </table>
         </div>
       <% else %>
-        <p class="text-sm text-(--surface-muted-content-color)">No pages exist yet. Click Add Page to create the first dummy page.</p>
+        <p class="text-sm text-(--surface-muted-content-color)">No publishable parent records exist yet.</p>
       <% end %>
     <% end %>
   <% end %>

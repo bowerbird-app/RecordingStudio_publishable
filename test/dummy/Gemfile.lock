@@ -29,6 +29,7 @@ PATH
   specs:
     recording_studio_publishable (0.1.1)
       rails (~> 8.1.0)
+      view_component (~> 3.0)
 
 GEM
   remote: https://rubygems.org/

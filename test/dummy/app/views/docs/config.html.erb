@@ -1,7 +1,7 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Config",
-    subtitle: "Tune the host-app actor lookup, layouts, public renderer overrides, and redirect behavior.",
+    subtitle: "Tune the host-app actor lookup, layouts, public controller overrides, and redirect behavior.",
     variant: :h1
   ) %>
 
@@ -16,8 +16,8 @@
         <p><strong>current_actor_resolver</strong> resolves the actor used to authorize management actions.</p>
         <p><strong>management_authorizer</strong> decides whether a user may edit publishable content.</p>
         <p><strong>default_time_zone</strong> sets the schedule-editing time zone used by the publishable form.</p>
-        <p><strong>default_layout</strong> controls gem-managed screens, and <strong>edit_layout</strong> can override only the edit page.</p>
-        <p><strong>register_public_renderer</strong> overrides the public controller, action, and layout for a parent type.</p>
+        <p><strong>layout</strong> controls gem-managed screens, and <strong>edit_layout</strong> can override only the edit page.</p>
+        <p><strong>register_public_renderer</strong> chooses the host controller, action, and optional layout used for a parent type on the published route.</p>
         <p><strong>canonical_redirect_status</strong> changes the status code used for stale slug redirects.</p>
       </div>
     </section>
@@ -33,9 +33,10 @@
         code: <<~RUBY
           RecordingStudioPublishable.configure do |config|
             config.current_actor_resolver = ->(controller:) { Current.actor || controller.current_user }
-            config.default_layout = "application"
+            config.layout = "application"
             config.edit_layout = "flat_pack_sidebar"
             config.register_public_renderer("Page", controller: "pages", action: :show, layout: "application")
+            config.register_public_renderer("Article", controller: "articles", action: :show, layout: "application")
             config.canonical_redirect_status = :moved_permanently
           end
         RUBY
@@ -49,8 +50,8 @@
       ) %>
 
       <div class="space-y-3 text-sm leading-7 text-[var(--surface-muted-content-color)]">
-        <p>Use the host app initializer to tailor auth and layouts before wiring the public rendering convention.</p>
-        <p>If you need a custom public route template, register it in the same initializer instead of changing the engine code.</p>
+        <p>Use the host app initializer to tailor auth, layouts, and the backend controller/action that each published recordable type should resolve through.</p>
+        <p>The published URL stays the same; the controller mapping only changes which host controller/action prepares the page.</p>
       </div>
     </section>
   </div>

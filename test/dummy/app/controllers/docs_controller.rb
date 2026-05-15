@@ -41,10 +41,11 @@ class DocsController < ApplicationController
   def components
     require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/status_badge/component").to_s
     require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/quick_actions/component").to_s
-    require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/edit_button/component").to_s
+    require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/edit_button_component").to_s
 
     @component_demo_recording = component_demo_recording
     @component_demo_publishable = @component_demo_recording&.current_publishable
+    @component_demo_edit_button_recordings = component_demo_edit_button_recordings
     @component_sections = component_sections
   end
 
@@ -190,15 +191,15 @@ class DocsController < ApplicationController
   def component_sections
     [
       {
-        title: "RecordingStudioPublishable::EditButton::Component",
-        subtitle: "Edit button with status badge, links to the edit route for a publishable.",
-        entrypoint: "app/components/recording_studio_publishable/edit_button/component.rb",
+        title: "RecordingStudioPublishable::EditButtonComponent",
+        subtitle: "Status-aware edit button preview showing published, scheduled, draft, and unpublished states.",
+        entrypoint: "app/components/recording_studio_publishable/edit_button_component.rb",
         params: [
           {
-            name: "publishable:",
-            type: "RecordingStudioPublishable::Publishable",
+            name: "recording:",
+            type: "RecordingStudio::Recording",
             required: true,
-            description: "The publishable recordable to edit."
+            description: "The parent recording whose publishable child should be edited."
           },
           {
             name: "label:",
@@ -206,16 +207,10 @@ class DocsController < ApplicationController
             required: false,
             description: "Button label text (default: 'Edit')."
           },
-          {
-            name: "status:",
-            type: "String",
-            required: false,
-            description: "Status to show in the badge (optional)."
-          }
         ],
         preview: :edit_button,
         code: <<~ERB
-          <%= render RecordingStudioPublishable::EditButton::Component.new(publishable: @component_demo_publishable, status: @component_demo_publishable.status) %>
+          <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: @component_demo_recording) %>
         ERB
       },
       {
@@ -257,6 +252,22 @@ class DocsController < ApplicationController
 
   def component_demo_recording
     RecordingStudio::Recording.where(recordable_type: "Page").includes(:recordable).order(:created_at, :id).first
+  end
+
+  def component_demo_edit_button_recordings
+    @component_demo_edit_button_recordings ||= begin
+      demo_recording = Struct.new(:id, :current_publishable)
+      statuses = [
+        [:published, RecordingStudioPublishable::Publishable.new(status: :published, slug: "published-demo")],
+        [:scheduled, RecordingStudioPublishable::Publishable.new(status: :scheduled, slug: "scheduled-demo", publish_at: 1.day.from_now)],
+        [:draft, RecordingStudioPublishable::Publishable.new(status: :draft, slug: "draft-demo")],
+        [:unpublished, RecordingStudioPublishable::Publishable.new(status: :unpublished, slug: "unpublished-demo")]
+      ]
+
+      statuses.map.with_index(1) do |(name, publishable), index|
+        demo_recording.new("demo-#{name}-#{index}", publishable)
+      end
+    end
   end
 
   def normalize_recordable_type(recordable_type)
