@@ -2,8 +2,16 @@
 
 module RecordingStudioPublishable
   class Publishable < ApplicationRecord
+    include RecordingStudio::Capabilities::Attachable.to(
+      allowed_content_types: ["image/*"],
+      enabled_attachment_kinds: %i[image],
+      max_file_count: 10
+    )
+
     self.table_name = "recording_studio_publishable_publishables"
-    has_one_attached :social_image
+    belongs_to :social_image_attachment_recording,
+               class_name: "RecordingStudio::Recording",
+               optional: true
 
     enum :status, {
       draft: "draft",
@@ -58,14 +66,21 @@ module RecordingStudioPublishable
     end
 
     def social_image_supported?
-      self.class.connection.data_source_exists?("active_storage_attachments") &&
+      self.class.connection.data_source_exists?("recording_studio_attachable_attachments") &&
+        self.class.connection.data_source_exists?("recording_studio_recordings") &&
+        self.class.column_names.include?("social_image_attachment_recording_id") &&
+        self.class.connection.data_source_exists?("active_storage_attachments") &&
         self.class.connection.data_source_exists?("active_storage_blobs")
     rescue ActiveRecord::ActiveRecordError, ActiveRecord::NoDatabaseError
       false
     end
 
+    def social_image_attachment
+      social_image_attachment_recording&.recordable
+    end
+
     def social_image_attached?
-      social_image_supported? && social_image.attached?
+      social_image_attachment_recording.present?
     end
 
     private

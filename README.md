@@ -11,7 +11,7 @@ Recording Studio Publishable adds a reusable **publishable child recording** to 
 - conventional public rendering for parent types such as `Page -> pages#show`, with override hooks
 - canonical public path and URL helpers for publishable child recordings
 - a FlatPack-based **Edit publishable info** screen
-- reusable publishable UI partials for a status badge, quick actions, and a summary card
+- reusable publishable ViewComponents for a status badge, quick actions, and a summary card
 - a dummy app that demonstrates a `Page` recording with a publishable child recording
 
 Public rendering always uses the parent recording's latest/current recordable. The publishable recordable stores the current public configuration only; audit history belongs in RecordingStudio events.
@@ -22,7 +22,7 @@ Public rendering always uses the parent recording's latest/current recordable. T
 - **publishable child recording** - the child `RecordingStudio::Recording` whose recordable is `RecordingStudioPublishable::Publishable`
 - **publishable recordable** - slug, status, schedule, and SEO/social fields for the current public state
 
-`social_image` uses Active Storage when the host app has Active Storage installed.
+`social_image` is selected from images uploaded through RecordingStudio Attachable.
 
 ## Dummy app demo
 
@@ -53,10 +53,13 @@ The install generator will:
 
 After that, run `bin/rails db:migrate`, review the generated `db/seeds.rb` snippet, and either replace the example parent-recording lookup or set `RECORDING_STUDIO_PUBLISHABLE_PARENT_ID` before `bin/rails db:seed`.
 
-If you want to upload `social_image`, also run:
+If you want to upload `social_image`, also install and wire RecordingStudio Attachable in the host app:
 
 ```bash
+bundle add recording_studio_attachable --git https://github.com/bowerbird-app/RecordingStudio_attachable.git
 bin/rails active_storage:install
+bin/rails generate recording_studio_attachable:install
+bin/rails generate recording_studio_attachable:migrations
 bin/rails db:migrate
 ```
 

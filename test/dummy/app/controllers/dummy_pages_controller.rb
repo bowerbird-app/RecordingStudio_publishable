@@ -6,7 +6,7 @@ class DummyPagesController < ApplicationController
   end
 
   def create
-    page = Page.create!(title: next_page_title)
+    page = Page.create!(title: page_title_param.presence || next_page_title)
     RecordingStudio::Recording.create!(recordable: page, parent_recording: workspace_root_recording)
 
     redirect_to root_path, notice: "Added #{page.title}"
@@ -21,5 +21,9 @@ class DummyPagesController < ApplicationController
 
   def next_page_title
     "Dummy Page #{Page.count + 1}"
+  end
+
+  def page_title_param
+    params.fetch(:title, "").to_s.strip
   end
 end

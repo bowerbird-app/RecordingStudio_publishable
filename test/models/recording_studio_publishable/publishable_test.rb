@@ -59,18 +59,19 @@ module RecordingStudioPublishable
       RecordingStudioPublishable.configuration.default_time_zone = original_time_zone
     end
 
-    test "social image attachment api is available" do
+    test "social image selection api is available" do
       publishable = Publishable.new(status: :draft, slug: "demo")
 
-      assert_respond_to publishable, :social_image
+      assert_respond_to publishable, :social_image_attachment_recording
       assert_respond_to publishable, :social_image_attachment
     end
 
-    test "social image helpers are safe when active storage tables are unavailable" do
+    test "social image helpers reflect attachment selection state" do
       publishable = Publishable.new(status: :draft, slug: "demo")
 
-      refute publishable.social_image_supported?
+      assert publishable.social_image_supported?
       refute publishable.social_image_attached?
+      assert_nil publishable.social_image_attachment
     end
   end
 end

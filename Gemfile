@@ -9,6 +9,8 @@ gemspec
 gem "puma"
 gem "sprockets-rails"
 
+gem "recording_studio_attachable", git: "https://github.com/bowerbird-app/RecordingStudio_attachable.git"
+
 group :development, :test do
   gem "debug"
   gem "simplecov", require: false

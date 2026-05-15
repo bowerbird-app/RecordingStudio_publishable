@@ -68,14 +68,49 @@ module RecordingStudioPublishable
           assert_equal "Publish at is invalid", result.error
         end
 
-        test "returns a failure when social image upload is attempted without active storage tables" do
+        test "stores the selected social image attachment recording" do
+          publishable_recording = Update.call(
+            parent_recording: @parent_recording,
+            attributes: { slug: "landing-page" }
+          ).value!
+          attachment_recording = create_attachment_recording(parent_recording: publishable_recording)
+
           result = Update.call(
             parent_recording: @parent_recording,
-            attributes: { slug: "landing-page", social_image: StringIO.new("image") }
+            attributes: {
+              slug: "landing-page",
+              social_image_attachment_recording_id: attachment_recording.id
+            }
+          )
+
+          assert result.success?
+          assert_equal attachment_recording.id, result.value.recordable.social_image_attachment_recording_id
+        end
+
+        test "returns a failure when the selected social image is not a direct attachment child" do
+          Update.call(parent_recording: @parent_recording, attributes: { slug: "landing-page" }).value!
+
+          result = Update.call(
+            parent_recording: @parent_recording,
+            attributes: { slug: "landing-page", social_image_attachment_recording_id: SecureRandom.uuid }
           )
 
           assert result.failure?
-          assert_equal "Active Storage must be installed before using social images", result.error
+          assert_equal "Social image is invalid", result.error
+        end
+
+        private
+
+        def create_attachment_recording(parent_recording:)
+          blob = ActiveStorage::Blob.create_and_upload!(
+            io: StringIO.new("image-bytes"),
+            filename: "hero.png",
+            content_type: "image/png"
+          )
+          attachment = RecordingStudioAttachable::Attachment.build_from_blob(blob: blob, name: "Hero image")
+          attachment.save!
+
+          RecordingStudio::Recording.create!(recordable: attachment, parent_recording: parent_recording)
         end
       end
     end

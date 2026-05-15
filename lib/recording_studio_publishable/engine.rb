@@ -3,6 +3,7 @@
 module RecordingStudioPublishable
   class Engine < ::Rails::Engine
     isolate_namespace RecordingStudioPublishable
+    paths.add "app/components", eager_load: true
 
     initializer "recording_studio_publishable.before_initialize",
                 before: "recording_studio_publishable.load_config" do |_app|

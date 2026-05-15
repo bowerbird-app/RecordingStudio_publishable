@@ -1,14 +1,57 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Config",
-    subtitle: "Replace this placeholder with the configuration settings your generated gem exposes.",
+    subtitle: "Tune the host-app actor lookup, layouts, public renderer overrides, and redirect behavior.",
     variant: :h1
   ) %>
 
-  <%= render FlatPack::CodeBlock::Component.new(
-    language: :ruby,
-    code: <<~'CODE'
-      # Add the config settings for the gem here.
-    CODE
-  ) %>
+  <div class="space-y-8">
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Available settings",
+        subtitle: "These are the primary configuration points exposed by the addon."
+      ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-[var(--surface-muted-content-color)]">
+        <p><strong>current_actor_resolver</strong> resolves the actor used to authorize management actions.</p>
+        <p><strong>management_authorizer</strong> decides whether a user may edit publishable content.</p>
+        <p><strong>default_time_zone</strong> sets the schedule-editing time zone used by the publishable form.</p>
+        <p><strong>default_layout</strong> controls gem-managed screens, and <strong>edit_layout</strong> can override only the edit page.</p>
+        <p><strong>register_public_renderer</strong> overrides the public controller, action, and layout for a parent type.</p>
+        <p><strong>canonical_redirect_status</strong> changes the status code used for stale slug redirects.</p>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Initializer example",
+        subtitle: "The generated initializer shows the intended extension points."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :ruby,
+        code: <<~RUBY
+          RecordingStudioPublishable.configure do |config|
+            config.current_actor_resolver = ->(controller:) { Current.actor || controller.current_user }
+            config.default_layout = "application"
+            config.edit_layout = "flat_pack_sidebar"
+            config.register_public_renderer("Page", controller: "pages", action: :show, layout: "application")
+            config.canonical_redirect_status = :moved_permanently
+          end
+        RUBY
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Related guidance",
+        subtitle: "These settings work together with the install generator and the public route helpers."
+      ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-[var(--surface-muted-content-color)]">
+        <p>Use the host app initializer to tailor auth and layouts before wiring the public rendering convention.</p>
+        <p>If you need a custom public route template, register it in the same initializer instead of changing the engine code.</p>
+      </div>
+    </section>
+  </div>
 </div>

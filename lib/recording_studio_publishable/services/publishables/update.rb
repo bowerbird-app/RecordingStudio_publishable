@@ -15,13 +15,13 @@ module RecordingStudioPublishable
         attr_reader :parent_recording, :attributes, :actor
 
         def perform
-          validated_attributes = validated_attributes_result
-          return validated_attributes if validated_attributes.failure?
-
           ensure_result = EnsureChild.call(parent_recording: parent_recording, actor: actor)
           return ensure_result if ensure_result.failure?
 
           publishable_recording = ensure_result.value
+          validated_attributes = validated_attributes_result(publishable_recording)
+          return validated_attributes if validated_attributes.failure?
+
           root_recording = publishable_recording.root_recording || parent_recording.root_recording || parent_recording
 
           updated_recording = root_recording.revise(
@@ -44,7 +44,6 @@ module RecordingStudioPublishable
         def assign_attributes(publishable, validated_attributes)
           permitted_attributes.each do |attribute|
             next unless validated_attributes.key?(attribute)
-            next if attribute == :social_image && !publishable.social_image_supported?
 
             publishable.public_send("#{attribute}=", validated_attributes[attribute])
           end
@@ -56,11 +55,11 @@ module RecordingStudioPublishable
         def permitted_attributes
           %i[
             slug status publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
-            social_title social_description social_image
+            social_title social_description social_image_attachment_recording_id
           ]
         end
 
-        def validated_attributes_result
+        def validated_attributes_result(publishable_recording)
           validated = {}
 
           permitted_attributes.each do |attribute|
@@ -72,8 +71,14 @@ module RecordingStudioPublishable
             validated[attribute] = normalized
           end
 
-          if validated.key?(:social_image) && !RecordingStudioPublishable::Publishable.new.social_image_supported?
-            return failure("Active Storage must be installed before using social images")
+          if validated.key?(:social_image_attachment_recording_id)
+            social_image_recording = validated_social_image_recording(
+              validated[:social_image_attachment_recording_id],
+              publishable_recording
+            )
+            return failure("Social image is invalid") if social_image_recording == :invalid
+
+            validated[:social_image_attachment_recording_id] = social_image_recording&.id
           end
 
           success(validated)
@@ -83,8 +88,26 @@ module RecordingStudioPublishable
           return parsed_time(value, attributes[:time_zone]) if %i[publish_at unpublish_at].include?(attribute)
           return value.presence if %i[seo_description social_description canonical_url meta_robots
                                       social_title].include?(attribute)
+          return value.presence if attribute == :social_image_attachment_recording_id
 
           value.presence || value
+        end
+
+        def validated_social_image_recording(value, publishable_recording)
+          return nil if value.blank?
+
+          direct_image_attachments_for(publishable_recording).find_by(id: value) || :invalid
+        rescue StandardError
+          :invalid
+        end
+
+        def direct_image_attachments_for(publishable_recording)
+          publishable_recording.recordings_query(
+            include_children: true,
+            type: "RecordingStudioAttachable::Attachment",
+            parent_id: publishable_recording.id,
+            recordable_filters: { attachment_kind: "image" }
+          )
         end
 
         def parsed_time(value, time_zone)

@@ -1,4 +1,5 @@
 Rails.application.routes.draw do
+  mount RecordingStudioAttachable::Engine, at: "/recording_studio_attachable"
   devise_for :users
 
   get "/recording_studio", to: redirect("/"), as: nil
@@ -14,6 +15,7 @@ Rails.application.routes.draw do
   get "docs/gem_views", to: "docs#gem_views", as: :docs_gem_views
   get "docs/methods", to: "docs#methods", as: :docs_methods
   get "docs/helpers", to: "docs#helpers", as: :docs_helpers
+  get "docs/components", to: "docs#components", as: :docs_components
 
   get "/dummy/pages/new", to: "dummy_pages#new", as: :new_dummy_page
   post "/dummy/pages", to: "dummy_pages#create", as: :dummy_pages

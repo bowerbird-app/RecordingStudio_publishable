@@ -52,11 +52,13 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Create page"
+    assert_includes response.body, 'name="title"'
+    assert_includes response.body, expected_title
     assert_includes response.body.force_encoding("UTF-8"), expected_title
 
     assert_difference -> { Page.count }, 1 do
       assert_difference -> { RecordingStudio::Recording.where(recordable_type: "Page").count }, 1 do
-        post dummy_pages_path
+        post dummy_pages_path, params: { title: "Custom Page Name" }
       end
     end
 
@@ -83,5 +85,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Edit publishable info"
     assert_includes response.body, "Page"
+    assert_includes response.body, "Upload image"
+    assert_includes response.body, "Browse library"
   end
 end

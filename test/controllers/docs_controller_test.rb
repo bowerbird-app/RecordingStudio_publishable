@@ -28,6 +28,27 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Publishable"
   end
 
+  test "install page uses the title subtitle content layout" do
+    get docs_install_path
+
+    assert_response :success
+    assert_includes response.body, "Install"
+    assert_includes response.body, "Set up the host app, migrations, seeds, and optional Active Storage support"
+    assert_includes response.body, "What the generator does"
+    refute_includes response.body, "FlatPack::Card"
+  end
+
+  test "config page uses the title subtitle content layout" do
+    get docs_config_path
+
+    assert_response :success
+    assert_includes response.body, "Config"
+    assert_includes response.body,
+                    "Tune the host-app actor lookup, layouts, public renderer overrides, and redirect behavior."
+    assert_includes response.body, "Available settings"
+    refute_includes response.body, "FlatPack::Card"
+  end
+
   test "recordings tree renders seeded publishable nodes" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Docs Workspace"))
     parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Docs Page"),
@@ -69,6 +90,19 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "render_publishable_status_badge"
     assert_includes response.body, "render_publishable_quick_actions"
-    assert_includes response.body, "render_publishable_summary_card"
+  end
+
+  test "components page lists addon partial entry points" do
+    get docs_components_path
+
+    assert_response :success
+    assert_includes response.body, "Components"
+    assert_includes response.body, "app/components/recording_studio_publishable/status_badge/component.rb"
+    assert_includes response.body, "app/components/recording_studio_publishable/quick_actions/component.rb"
+    assert_includes response.body, "RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable)"
+    assert_includes response.body, "Required initializer arguments for this component"
+    assert_includes response.body, "RecordingStudioPublishable::Publishable"
+    assert_includes response.body, "RecordingStudio::Recording"
+    assert_includes response.body, "Live rendering from the dummy app seed data"
   end
 end

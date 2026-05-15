@@ -5,6 +5,7 @@ gem "recording_studio_publishable", path: "../.."
 
 # RecordingStudio engine
 gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v0.1.0-alpha"
+gem "recording_studio_attachable", git: "https://github.com/bowerbird-app/RecordingStudio_attachable.git"
 
 # Devise authentication
 gem "devise"

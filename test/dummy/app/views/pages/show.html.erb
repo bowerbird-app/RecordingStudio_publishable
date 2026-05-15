@@ -6,7 +6,7 @@
   ) %>
 
   <div class="flex flex-wrap gap-2">
-    <%= render_publishable_status_badge(@publishable) %>
+    <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
     <%= render FlatPack::Badge::Component.new(text: @recording.id, style: :info, size: :sm) %>
   </div>
 

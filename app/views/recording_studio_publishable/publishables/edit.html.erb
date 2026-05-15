@@ -12,7 +12,7 @@
   ) %>
 
   <div class="flex flex-wrap items-center gap-3">
-    <%= render_publishable_status_badge(@publishable) %>
+    <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
     <% if @parent_recording.publishable_public_path.present? %>
       <%= link_to @parent_recording.publishable_public_path, class: "inline-flex" do %>
         <%= render FlatPack::Button::Component.new(text: "Open public route", style: :secondary, size: :md) %>
@@ -20,57 +20,67 @@
     <% end %>
   </div>
 
-  <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
-    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
-      <% card.body do %>
-        <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "space-y-4", multipart: true do |form| %>
-          <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
-          <div class="grid gap-4 md:grid-cols-2">
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[seo_title]", label: "SEO title", value: @publishable.seo_title) %>
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
-          </div>
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_seo_description">SEO description</label>
-            <%= form.text_area :seo_description, value: @publishable.seo_description, class: "min-h-28 w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
-          </div>
-          <div class="grid gap-4 md:grid-cols-2">
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_status">Status</label>
-              <%= form.select :status, RecordingStudioPublishable::Publishable.statuses.keys.map { |status| [status.humanize, status] }, {}, class: "w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
-            </div>
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[meta_robots]", label: "Meta robots", value: @publishable.meta_robots, placeholder: "index,follow") %>
-          </div>
-          <div class="grid gap-4 md:grid-cols-3">
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone)&.strftime("%Y-%m-%d %H:%M"), placeholder: "2026-05-13 09:00") %>
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone)&.strftime("%Y-%m-%d %H:%M"), placeholder: "2026-05-20 09:00") %>
-            <div class="space-y-2">
-              <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_time_zone">Time zone</label>
-              <%= form.select :time_zone, @time_zones, { include_blank: false }, class: "w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
-            </div>
-          </div>
-          <div class="grid gap-4 md:grid-cols-2">
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[social_title]", label: "Social title", value: @publishable.social_title) %>
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[social_description]", label: "Social description", value: @publishable.social_description) %>
-          </div>
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_social_image">Social image</label>
-            <% if @publishable.social_image_supported? %>
-              <%= form.file_field :social_image, id: "publishable_social_image", class: "block w-full text-sm text-[var(--surface-content-color)] file:mr-4 file:rounded-md file:border-0 file:bg-[var(--surface-raised-background-color)] file:px-3 file:py-2 file:text-sm file:font-medium file:text-[var(--surface-content-color)]" %>
-            <% else %>
-              <p class="text-sm text-(--surface-muted-content-color)">Install Active Storage in the host app to upload a social image.</p>
-            <% end %>
-            <% if @publishable.social_image_attached? %>
-              <p class="text-sm text-[var(--surface-muted-content-color)]">Current image attached: <%= @publishable.social_image.filename %></p>
-            <% end %>
-          </div>
-          <%= render FlatPack::Button::Component.new(text: "Save changes", style: :primary, size: :md, type: "submit") %>
-        <% end %>
-      <% end %>
-    <% end %>
-
-    <div class="space-y-6">
-      <%= render_publishable_summary_card(@parent_recording) %>
-      <%= render_publishable_quick_actions(@parent_recording) %>
+  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "space-y-4", multipart: true do |form| %>
+    <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
+    <div class="grid gap-4 md:grid-cols-2">
+      <%= render FlatPack::TextInput::Component.new(name: "publishable[seo_title]", label: "SEO title", value: @publishable.seo_title) %>
+      <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
     </div>
-  </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_seo_description">SEO description</label>
+      <%= form.text_area :seo_description, value: @publishable.seo_description, class: "min-h-28 w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
+    </div>
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_status">Status</label>
+        <%= form.select :status, RecordingStudioPublishable::Publishable.statuses.keys.map { |status| [status.humanize, status] }, {}, class: "w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
+      </div>
+      <%= render FlatPack::TextInput::Component.new(name: "publishable[meta_robots]", label: "Meta robots", value: @publishable.meta_robots, placeholder: "index,follow") %>
+    </div>
+    <div class="grid gap-4 md:grid-cols-3">
+      <%= render FlatPack::TextInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone)&.strftime("%Y-%m-%d %H:%M"), placeholder: "2026-05-13 09:00") %>
+      <%= render FlatPack::TextInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone)&.strftime("%Y-%m-%d %H:%M"), placeholder: "2026-05-20 09:00") %>
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_time_zone">Time zone</label>
+        <%= form.select :time_zone, @time_zones, { include_blank: false }, class: "w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
+      </div>
+    </div>
+    <div class="grid gap-4 md:grid-cols-2">
+      <%= render FlatPack::TextInput::Component.new(name: "publishable[social_title]", label: "Social title", value: @publishable.social_title) %>
+      <%= render FlatPack::TextInput::Component.new(name: "publishable[social_description]", label: "Social description", value: @publishable.social_description) %>
+    </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_social_image_attachment_recording_id">Social image</label>
+      <% if @publishable.social_image_supported? %>
+        <% if @publishable.social_image_attached? %>
+          <div class="flex items-center gap-3 rounded-md border border-(--surface-border-color) bg-(--surface-raised-background-color) p-3">
+            <% preview_path = recording_studio_attachable.attachment_preview_file_path(@publishable.social_image_attachment_recording, variant_name: :square_small) %>
+            <%= image_tag preview_path, alt: @publishable.social_image_attachment.name, class: "h-16 w-16 rounded-md object-cover" %>
+            <div class="space-y-1 text-sm">
+              <p class="font-medium text-(--surface-content-color)"><%= @publishable.social_image_attachment.name %></p>
+              <p class="text-(--surface-muted-content-color)">Used for link previews and shared cards.</p>
+            </div>
+          </div>
+        <% end %>
+
+        <%= form.select :social_image_attachment_recording_id,
+                        options_for_select([["No social image", ""]] + @social_image_options, @publishable.social_image_attachment_recording_id),
+                        {},
+                        class: "w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
+
+        <div class="flex flex-wrap gap-2">
+          <%= link_to recording_studio_attachable.recording_attachment_upload_path(@publishable_recording, redirect_mode: :return_to, return_to: request.fullpath), class: "inline-flex" do %>
+            <%= render FlatPack::Button::Component.new(text: "Upload image", style: :secondary, size: :md) %>
+          <% end %>
+          <%= link_to recording_studio_attachable.recording_attachments_path(@publishable_recording, kind: :images), class: "inline-flex" do %>
+            <%= render FlatPack::Button::Component.new(text: "Browse library", style: :secondary, size: :md) %>
+          <% end %>
+        </div>
+        <p class="text-sm text-(--surface-muted-content-color)">Upload images into the publishable attachment library, then choose which one should appear when the page is shared.</p>
+      <% else %>
+        <p class="text-sm text-(--surface-muted-content-color)">Install Active Storage and Recording Studio Attachable in the host app to upload a social image.</p>
+      <% end %>
+    </div>
+    <%= render FlatPack::Button::Component.new(text: "Save changes", style: :primary, size: :md, type: "submit") %>
+  <% end %>
 </div>

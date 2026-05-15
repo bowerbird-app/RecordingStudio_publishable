@@ -6,6 +6,15 @@ require_relative "../dummy/config/environment"
 require "rails/test_help"
 
 class PublishedControllerTest < ActionDispatch::IntegrationTest
+  test "publishables layout falls back when edit_layout is unavailable" do
+    controller = RecordingStudioPublishable::PublishablesController.new
+    config = Struct.new(:default_layout).new("application")
+
+    RecordingStudioPublishable.stub(:configuration, config) do
+      assert_equal "application", controller.send(:publishable_layout)
+    end
+  end
+
   test "published content is reachable without signing in" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
     parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"),

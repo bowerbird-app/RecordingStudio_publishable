@@ -5,15 +5,14 @@
     variant: :h1
   ) %>
 
-  <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
-    <% card.body do %>
-      <div class="space-y-4">
-        <p class="text-sm text-(--surface-muted-content-color)">The next page will be named <%= @next_page_title %>.</p>
+  <%= form_with url: dummy_pages_path, method: :post, class: "space-y-4" do %>
+    <%= render FlatPack::TextInput::Component.new(
+      name: "title",
+      label: "Page name",
+      value: @next_page_title,
+      placeholder: "Enter a page name"
+    ) %>
 
-        <%= button_to dummy_pages_path, method: :post, class: "inline-flex" do %>
-          <%= render FlatPack::Button::Component.new(text: "Create page", style: :primary, size: :md) %>
-        <% end %>
-      </div>
-    <% end %>
+    <%= render FlatPack::Button::Component.new(text: "Create page", style: :primary, size: :md, type: "submit") %>
   <% end %>
 </div>

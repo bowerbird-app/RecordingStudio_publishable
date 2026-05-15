@@ -9,9 +9,7 @@ module RecordingStudioPublishable
     before_action :ensure_publishable_child
 
     def edit
-      @publishable_recording = @parent_recording.publishable_child_recording
-      @publishable = @publishable_recording.recordable
-      @time_zones = ActiveSupport::TimeZone.all.map(&:name)
+      assign_publishable_form_state
     end
 
     def update
@@ -62,19 +60,39 @@ module RecordingStudioPublishable
     def permitted_publishable_attributes
       %i[
         slug status publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
-        social_title social_description social_image
+        social_title social_description social_image_attachment_recording_id
       ]
     end
 
     def publishable_layout
-      RecordingStudioPublishable.configuration.edit_layout.presence ||
-        RecordingStudioPublishable.configuration.default_layout
+      config = RecordingStudioPublishable.configuration
+      return config.default_layout unless config.respond_to?(:edit_layout)
+
+      config.edit_layout.presence || config.default_layout
     end
 
     def assign_publishable_form_state
       @publishable_recording = @parent_recording.publishable_child_recording
       @publishable = @publishable_recording.recordable
       @time_zones = ActiveSupport::TimeZone.all.map(&:name)
+      @social_image_options = social_image_options_for(@publishable_recording)
+    end
+
+    def social_image_options_for(publishable_recording)
+      direct_image_attachments_for(publishable_recording).map do |attachment_recording|
+        [attachment_recording.recordable.name, attachment_recording.id]
+      end
+    rescue StandardError
+      []
+    end
+
+    def direct_image_attachments_for(publishable_recording)
+      publishable_recording.recordings_query(
+        include_children: true,
+        type: "RecordingStudioAttachable::Attachment",
+        parent_id: publishable_recording.id,
+        recordable_filters: { attachment_kind: "image" }
+      ).includes(recordable: [{ file_attachment: :blob }])
     end
 
     def redirect_to_edit(notice: nil, alert: nil)

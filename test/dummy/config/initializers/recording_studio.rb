@@ -1,7 +1,15 @@
 # frozen_string_literal: true
 
+return unless defined?(RecordingStudio) && RecordingStudio.respond_to?(:configure)
+
 RecordingStudio.configure do |config|
-  config.recordable_types = ["Workspace", "Folder", "Page", "RecordingStudioPublishable::Publishable"]
+  config.recordable_types = [
+    "Workspace",
+    "Folder",
+    "Page",
+    "RecordingStudioPublishable::Publishable",
+    "RecordingStudioAttachable::Attachment"
+  ]
   config.actor = -> { Current.actor }
   config.event_notifications_enabled = true
   config.idempotency_mode = :return_existing

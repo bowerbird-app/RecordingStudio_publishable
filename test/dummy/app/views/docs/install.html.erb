@@ -1,19 +1,64 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Install",
-    subtitle: "Host-app setup for the mounted GemTemplate engine and its sample migrations.",
+    subtitle: "Set up the host app, migrations, seeds, and optional Active Storage support for RecordingStudio Publishable.",
     variant: :h1
   ) %>
 
-  <%= render FlatPack::SectionTitle::Component.new(
-    title: "Step 1",
-    subtitle: "Provide one section title for each step",
-  ) %>
+  <div class="space-y-8">
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "What the generator does",
+        subtitle: "The install generator prepares the host app for publishable child recordings."
+      ) %>
 
-  <%= render FlatPack::CodeBlock::Component.new(
-    language: :bash,
-    code: <<~CODE
-      # Put the step instruction here.
-    CODE
-  ) %>
+      <div class="space-y-3 text-sm leading-7 text-[var(--surface-muted-content-color)]">
+        <p>Run the generator from the host app to mount the engine, copy the migrations, and add the initializer.</p>
+        <p>It also appends a seed snippet, and can create an environment-specific config file when you want one.</p>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Typical install flow",
+        subtitle: "Use the generated initializer and migrations as the base for the addon."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :bash,
+        code: <<~CODE
+          bin/rails generate recording_studio_publishable:install
+          bin/rails db:migrate
+          bin/rails db:seed
+        CODE
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Optional Active Storage support",
+        subtitle: "Install Active Storage before using the social_image attachment field."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :bash,
+        code: <<~CODE
+          bin/rails active_storage:install
+          bin/rails db:migrate
+        CODE
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Review the seed snippet",
+        subtitle: "Replace the example lookup or provide the parent recording id before seeding."
+      ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-[var(--surface-muted-content-color)]">
+        <p>The generated seed block uses <%= link_to "ENV.fetch", "https://ruby-doc.org/core-3.3.0/ENV.html#method-c-fetch" %> for the parent recording id, so you can safely provide it in the shell or update the lookup for your app.</p>
+        <p>If you use Tailwind CSS, keep the engine and FlatPack source paths in your Tailwind config before rebuilding assets.</p>
+      </div>
+    </section>
+  </div>
 </div>
