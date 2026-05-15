@@ -78,6 +78,9 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "RecordingStudioPublishable::ParentRecordable"
     assert_includes response.body, "RecordingStudioPublishable::Publishable"
+    assert_includes response.body, "Returns Page records."
+    assert_includes response.body, "Page.currently_live"
+    assert_includes response.body, "Returns RecordingStudioPublishable::Publishable records."
     assert_includes response.body, "RecordingStudioPublishable::Services::Publishables::Update"
     assert_includes response.body, "recording.publishable_public_url(host: &quot;example.test&quot;)"
     assert_includes response.body, "RecordingStudioPublishable::Routing.url_for"

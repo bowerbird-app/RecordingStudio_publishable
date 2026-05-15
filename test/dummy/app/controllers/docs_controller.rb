@@ -55,19 +55,24 @@ class DocsController < ApplicationController
     [
       {
         title: "RecordingStudioPublishable::ParentRecordable",
-        subtitle: "Query helpers for parent recordable models that include the addon concern.",
+        subtitle: "Query helpers that return the parent recordables, not the publishable child records.",
         code: <<~RUBY
           class Page < ApplicationRecord
             include RecordingStudioPublishable::ParentRecordable
 
             recording_studio_publishable
-
-            # Class query helpers:
-            # - currently_published
-            # - scheduled
-            # - draft
-            # - unpublished
           end
+
+          # Returns Page records.
+          Page.currently_published
+          Page.currently_live
+          Page.scheduled
+          Page.draft
+          Page.unpublished
+
+          # Same query helpers are available on any model that includes
+          # RecordingStudioPublishable::ParentRecordable.
+          Article.currently_published
         RUBY
       },
       {
@@ -85,10 +90,11 @@ class DocsController < ApplicationController
       },
       {
         title: "RecordingStudioPublishable::Publishable",
-        subtitle: "Scopes and predicates that describe the publishable child state.",
+        subtitle: "Scopes and predicates for the publishable child records themselves.",
         code: <<~RUBY
           publishable = RecordingStudioPublishable::Publishable.find(publishable_id)
 
+          # Returns RecordingStudioPublishable::Publishable records.
           RecordingStudioPublishable::Publishable.currently_published
           RecordingStudioPublishable::Publishable.currently_live
           RecordingStudioPublishable::Publishable.scheduled

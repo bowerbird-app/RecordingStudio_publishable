@@ -33,6 +33,10 @@ module RecordingStudioPublishable
         joins_publishable_scope.merge(RecordingStudioPublishable::Publishable.currently_published).distinct
       end
 
+      def currently_live
+        currently_published
+      end
+
       def scheduled
         joins_publishable_scope.merge(RecordingStudioPublishable::Publishable.scheduled).distinct
       end
