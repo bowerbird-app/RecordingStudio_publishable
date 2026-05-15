@@ -41,6 +41,7 @@ class DocsController < ApplicationController
   def components
     require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/status_badge/component").to_s
     require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/quick_actions/component").to_s
+    require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/edit_button/component").to_s
 
     @component_demo_recording = component_demo_recording
     @component_demo_publishable = @component_demo_recording&.current_publishable
@@ -188,6 +189,35 @@ class DocsController < ApplicationController
 
   def component_sections
     [
+      {
+        title: "RecordingStudioPublishable::EditButton::Component",
+        subtitle: "Edit button with status badge, links to the edit route for a publishable.",
+        entrypoint: "app/components/recording_studio_publishable/edit_button/component.rb",
+        params: [
+          {
+            name: "publishable:",
+            type: "RecordingStudioPublishable::Publishable",
+            required: true,
+            description: "The publishable recordable to edit."
+          },
+          {
+            name: "label:",
+            type: "String",
+            required: false,
+            description: "Button label text (default: 'Edit')."
+          },
+          {
+            name: "status:",
+            type: "String",
+            required: false,
+            description: "Status to show in the badge (optional)."
+          }
+        ],
+        preview: :edit_button,
+        code: <<~ERB
+          <%= render RecordingStudioPublishable::EditButton::Component.new(publishable: @component_demo_publishable, status: @component_demo_publishable.status) %>
+        ERB
+      },
       {
         title: "RecordingStudioPublishable::StatusBadge::Component",
         subtitle: "Shows the current publishable state for a publishable recordable.",

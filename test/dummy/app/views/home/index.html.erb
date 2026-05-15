@@ -33,9 +33,7 @@
                   <td class="px-4 py-3"><%= recording.parent_recording&.recordable_type.to_s.demodulize.underscore.humanize.presence || "Root" %></td>
                   <td class="px-4 py-3"><%= recording.publishable_public_path.presence || "Not published yet" %></td>
                   <td class="px-4 py-3">
-                    <%= link_to recording_studio_publishable.edit_recording_publishable_path(recording_id: recording.id), class: "inline-flex" do %>
-                      <%= render FlatPack::Button::Component.new(text: "Edit", style: :secondary, size: :sm) %>
-                    <% end %>
+                    <%= render RecordingStudioPublishable::EditButton::Component.new(publishable: recording.current_publishable, status: recording.current_publishable&.status, label: "Edit") %>
                   </td>
                 </tr>
               <% end %>

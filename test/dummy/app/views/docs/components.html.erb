@@ -23,7 +23,9 @@
         <% when :status_badge %>
             <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @component_demo_publishable) %>
         <% when :quick_actions %>
-            <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @component_demo_recording) %>
+          <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @component_demo_recording) %>
+        <% when :edit_button %>
+          <%= render RecordingStudioPublishable::EditButton::Component.new(publishable: @component_demo_publishable, status: @component_demo_publishable.status) %>
         <% end %>
         </div>
     <% else %>
