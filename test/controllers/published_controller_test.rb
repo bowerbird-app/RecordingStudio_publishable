@@ -8,11 +8,27 @@ require "rails/test_help"
 class PublishedControllerTest < ActionDispatch::IntegrationTest
   test "publishables layout falls back when edit_layout is unavailable" do
     controller = RecordingStudioPublishable::PublishablesController.new
-    config = Struct.new(:default_layout).new("application")
+    config = Struct.new(:layout).new("application")
 
     RecordingStudioPublishable.stub(:configuration, config) do
       assert_equal "application", controller.send(:publishable_layout)
     end
+  end
+
+  test "published routes use the blank engine layout by default" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"),
+                                                          parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: { slug: "public-page", status: "published" }
+    ).value
+
+    get "/published/#{publishable_recording.id}/public-page"
+
+    assert_response :success
+    assert_includes response.body, "recording_studio-publishable-layout"
+    refute_includes response.body, "flat-pack-sidebar-layout"
   end
 
   test "published content is reachable without signing in" do

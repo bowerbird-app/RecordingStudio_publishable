@@ -66,24 +66,16 @@ module RecordingStudioPublishable
 
     def publishable_layout
       config = RecordingStudioPublishable.configuration
-      return config.default_layout unless config.respond_to?(:edit_layout)
+      return config.layout unless config.respond_to?(:edit_layout)
 
-      config.edit_layout.presence || config.default_layout
+      config.edit_layout.presence || config.layout
     end
 
     def assign_publishable_form_state
       @publishable_recording = @parent_recording.publishable_child_recording
       @publishable = @publishable_recording.recordable
       @time_zones = ActiveSupport::TimeZone.all.map(&:name)
-      @social_image_options = social_image_options_for(@publishable_recording)
-    end
-
-    def social_image_options_for(publishable_recording)
-      direct_image_attachments_for(publishable_recording).map do |attachment_recording|
-        [attachment_recording.recordable.name, attachment_recording.id]
-      end
-    rescue StandardError
-      []
+      @social_image_attachments = direct_image_attachments_for(@publishable_recording)
     end
 
     def direct_image_attachments_for(publishable_recording)
@@ -93,6 +85,8 @@ module RecordingStudioPublishable
         parent_id: publishable_recording.id,
         recordable_filters: { attachment_kind: "image" }
       ).includes(recordable: [{ file_attachment: :blob }])
+    rescue StandardError
+      []
     end
 
     def redirect_to_edit(notice: nil, alert: nil)

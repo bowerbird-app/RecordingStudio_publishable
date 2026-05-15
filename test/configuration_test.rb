@@ -33,7 +33,23 @@ class ConfigurationTest < Minitest::Test
     assert_equal "pages/show", RecordingStudioPublishable.configuration.public_template_for("Page")
   end
 
-  def test_edit_layout_defaults_to_the_active_default_layout
+  def test_layout_defaults_to_the_blank_engine_layout
+    assert_equal "recording_studio_publishable/application", RecordingStudioPublishable.configuration.layout
+  end
+
+  def test_default_layout_alias_reads_from_layout
+    RecordingStudioPublishable.configuration.layout = "application"
+
+    assert_equal "application", RecordingStudioPublishable.configuration.default_layout
+  end
+
+  def test_default_layout_alias_writes_to_layout
+    RecordingStudioPublishable.configuration.default_layout = "application"
+
+    assert_equal "application", RecordingStudioPublishable.configuration.layout
+  end
+
+  def test_edit_layout_defaults_to_the_active_layout
     assert_nil RecordingStudioPublishable.configuration.edit_layout
   end
 
@@ -46,10 +62,12 @@ class ConfigurationTest < Minitest::Test
   def test_merge_updates_known_attributes
     RecordingStudioPublishable.configuration.merge!(
       default_time_zone: "Pacific Time (US & Canada)",
+      layout: "application",
       canonical_redirect_status: :moved_permanently
     )
 
     assert_equal "Pacific Time (US & Canada)", RecordingStudioPublishable.configuration.default_time_zone
+    assert_equal "application", RecordingStudioPublishable.configuration.layout
     assert_equal :moved_permanently, RecordingStudioPublishable.configuration.canonical_redirect_status
   end
 

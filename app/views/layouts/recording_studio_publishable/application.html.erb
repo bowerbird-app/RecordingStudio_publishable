@@ -1,14 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html data-theme="rounded" class="h-full overflow-hidden overscroll-none">
   <head>
     <title><%= content_for(:title) || "Recording Studio Publishable" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="Recording Studio Publishable">
+    <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
     <%= stylesheet_link_tag "application", "data-turbo-track": "reload" if respond_to?(:stylesheet_link_tag) %>
+    <%= stylesheet_link_tag "flat_pack/variables", "data-turbo-track": "reload" if respond_to?(:stylesheet_link_tag) %>
+    <%= stylesheet_link_tag "flat_pack/application", "data-turbo-track": "reload" if respond_to?(:stylesheet_link_tag) %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" if respond_to?(:stylesheet_link_tag) %>
     <%= javascript_importmap_tags if respond_to?(:javascript_importmap_tags) %>
   </head>
-  <body>
-    <%= yield %>
+
+  <body class="recording_studio-publishable-layout m-0 h-full overflow-hidden overscroll-none bg-(--surface-page-background-color) text-(--surface-content-color)">
+    <%= render "layouts/icon_sprite" if lookup_context.exists?("layouts/_icon_sprite") %>
+
+    <div class="flex h-full min-h-screen flex-col">
+      <%= render FlatPack::TopNav::Component.new do |nav| %>
+        <% nav.left do %>
+          <span aria-hidden="true"></span>
+        <% end %>
+
+        <% nav.center do %>
+          <span aria-hidden="true"></span>
+        <% end %>
+
+        <% nav.right do %>
+          <% if respond_to?(:user_signed_in?) && user_signed_in? && respond_to?(:current_user) %>
+            <%= render FlatPack::Avatar::Component.new(
+              name: current_user.try(:name).presence || current_user.email,
+              size: :sm
+            ) %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <main class="flex-1 overflow-auto p-6">
+        <%= yield %>
+      </main>
+    </div>
   </body>
 </html>

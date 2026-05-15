@@ -16,8 +16,8 @@ module RecordingStudioPublishable
     attr_accessor :current_actor_resolver,
                   :management_authorizer,
                   :default_time_zone,
+                  :layout,
                   :edit_layout,
-                  :default_layout,
                   :canonical_redirect_status
     attr_reader :hooks, :public_path_configs, :public_renderer_configs
 
@@ -25,7 +25,7 @@ module RecordingStudioPublishable
       @current_actor_resolver = method(:default_current_actor_resolver)
       @management_authorizer = method(:default_management_authorizer)
       @default_time_zone = default_rails_time_zone
-      @default_layout = "recording_studio_publishable/application"
+      @layout = "recording_studio_publishable/application"
       @edit_layout = nil
       @canonical_redirect_status = :found
       @public_path_configs = {}
@@ -36,8 +36,8 @@ module RecordingStudioPublishable
     def to_h
       {
         default_time_zone: default_time_zone,
+        layout: layout,
         edit_layout: edit_layout,
-        default_layout: default_layout,
         canonical_redirect_status: canonical_redirect_status,
         public_path_configs: public_path_configs.dup,
         public_renderer_configs: public_renderer_configs.transform_values(&:to_h),
@@ -88,6 +88,14 @@ module RecordingStudioPublishable
 
     def public_layout_for(recordable_type)
       public_renderer_for(recordable_type).layout
+    end
+
+    def default_layout
+      layout
+    end
+
+    def default_layout=(value)
+      self.layout = value
     end
 
     def public_template_for(recordable_type)
