@@ -1,27 +1,34 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Install",
-    subtitle: "Set up the host app, migrations, seeds, and optional Active Storage support for RecordingStudio Publishable.",
+    subtitle: "Install the gem, mount the engine, and wire the optional addons needed for publishable child recordings.",
     variant: :h1
   ) %>
 
   <div class="space-y-8">
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
-        title: "What the generator does",
-        subtitle: "The install generator prepares the host app for publishable child recordings."
+        title: "Add the gem",
+        subtitle: "Install the publishable engine in your host app before running the generator."
       ) %>
 
-      <div class="space-y-3 text-sm leading-7 text-[var(--surface-muted-content-color)]">
-        <p>Run the generator from the host app to mount the engine, copy the migrations, and add the initializer.</p>
-        <p>It also appends a seed snippet, and can create an environment-specific config file when you want one.</p>
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
+        <p>Add the gem source, then bundle install so Rails can load the engine and its generators.</p>
       </div>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :bash,
+        code: <<~CODE
+          bundle add recording_studio_publishable --git https://github.com/bowerbird-app/RecordingStudio_publishable.git
+          bundle install
+        CODE
+      ) %>
     </section>
 
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
-        title: "Typical install flow",
-        subtitle: "Use the generated initializer and migrations as the base for the addon."
+        title: "Run the install generator",
+        subtitle: "The generator mounts the engine, copies migrations, and adds the initializer and seed snippet."
       ) %>
 
       <%= render FlatPack::CodeBlock::Component.new(
@@ -36,14 +43,39 @@
 
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
+        title: "Mounted routes",
+        subtitle: "The install flow mounts the engine at the host root so the edit screen and public route helpers work."
+      ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
+        <p>The generated route entry should look like this in your host app.</p>
+      </div>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :ruby,
+        code: <<~CODE
+          mount RecordingStudioPublishable::Engine, at: "/"
+        CODE
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
         title: "Optional Active Storage support",
         subtitle: "Install Active Storage before using the social_image attachment field."
       ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
+        <p>If you want social image uploads, install Active Storage and the attachable addon before migrating again.</p>
+      </div>
 
       <%= render FlatPack::CodeBlock::Component.new(
         language: :bash,
         code: <<~CODE
           bin/rails active_storage:install
+          bundle add recording_studio_attachable --git https://github.com/bowerbird-app/RecordingStudio_attachable.git
+          bin/rails generate recording_studio_attachable:install
+          bin/rails generate recording_studio_attachable:migrations
           bin/rails db:migrate
         CODE
       ) %>
@@ -51,11 +83,30 @@
 
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
-        title: "Review the seed snippet",
-        subtitle: "Replace the example lookup or provide the parent recording id before seeding."
+        title: "Optional access control",
+        subtitle: "Install RecordingStudio Accessible if you want parent-recording edit checks in the publishable flow."
       ) %>
 
-      <div class="space-y-3 text-sm leading-7 text-[var(--surface-muted-content-color)]">
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
+        <p>This addon plugs into the management authorizer and checks the parent recording, not the publishable child.</p>
+      </div>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :bash,
+        code: <<~CODE
+          bundle add recording_studio_accessible --git https://github.com/bowerbird-app/RecordingStudio_accessible.git
+          bundle install
+        CODE
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Review the generated files",
+        subtitle: "Check the initializer and seed snippet after running the generator."
+      ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
         <p>The generated seed block uses <%= link_to "ENV.fetch", "https://ruby-doc.org/core-3.3.0/ENV.html#method-c-fetch" %> for the parent recording id, so you can safely provide it in the shell or update the lookup for your app.</p>
         <p>If you use Tailwind CSS, keep the engine and FlatPack source paths in your Tailwind config before rebuilding assets.</p>
       </div>
