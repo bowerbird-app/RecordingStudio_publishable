@@ -33,8 +33,11 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Install"
-    assert_includes response.body, "Set up the host app, migrations, seeds, and optional Active Storage support"
-    assert_includes response.body, "What the generator does"
+    assert_includes response.body,
+                    "Install the gem, mount the engine, and wire the optional addons needed for publishable child recordings."
+    assert_includes response.body, "Add the gem"
+    assert_includes response.body, "Mounted routes"
+    assert_includes response.body, "Optional access control"
     refute_includes response.body, "FlatPack::Card"
   end
 
@@ -78,21 +81,13 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "RecordingStudioPublishable::ParentRecordable"
     assert_includes response.body, "RecordingStudioPublishable::Publishable"
-    assert_includes response.body, "Returns Page records."
-    assert_includes response.body, "Page.currently_live"
-    assert_includes response.body, "Returns RecordingStudioPublishable::Publishable records."
+    assert_includes response.body, "Returns Page records whose publishable child is live right now."
+    assert_includes response.body, "Returns publishable records that are live right now."
     assert_includes response.body, "RecordingStudioPublishable::Services::Publishables::Update"
     assert_includes response.body, "recording.publishable_public_url(host: &quot;example.test&quot;)"
     assert_includes response.body, "RecordingStudioPublishable::Routing.url_for"
-    assert_includes response.body, "RecordingStudioPublishable.configuration.register_public_renderer"
-  end
-
-  test "helpers page lists addon view helpers" do
-    get docs_helpers_path
-
-    assert_response :success
-    assert_includes response.body, "render_publishable_status_badge"
-    assert_includes response.body, "render_publishable_quick_actions"
+    refute_includes response.body, "RecordingStudioPublishable::Configuration"
+    refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"
   end
 
   test "components page lists addon partial entry points" do

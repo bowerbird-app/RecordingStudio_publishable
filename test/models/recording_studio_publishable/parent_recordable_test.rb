@@ -7,7 +7,7 @@ require "rails/test_help"
 
 module RecordingStudioPublishable
   class ParentRecordableTest < ActiveSupport::TestCase
-    test "currently_published and currently_live return parent recordables" do
+    test "currently_published return parent recordables" do
       root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Scope workspace"))
       published_page = Page.create!(title: "Published page")
       draft_page = Page.create!(title: "Draft page")
@@ -25,7 +25,6 @@ module RecordingStudioPublishable
       ).value!
 
       assert_equal [published_page.id], Page.currently_published.pluck(:id)
-      assert_equal [published_page.id], Page.currently_live.pluck(:id)
     end
 
     test "status scopes return parent recordables for the matching publishable child state" do

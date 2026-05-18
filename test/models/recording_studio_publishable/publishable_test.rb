@@ -33,6 +33,14 @@ module RecordingStudioPublishable
       refute publishable.currently_published?
     end
 
+    test "scheduled records become currently published once publish_at has passed" do
+      publishable = Publishable.new(status: :scheduled, publish_at: 10.minutes.ago, slug: "demo")
+
+      assert publishable.currently_published?
+      assert publishable.published?
+      refute publishable.scheduled_for_future?
+    end
+
     test "publish window validation rejects inverted windows" do
       publishable = Publishable.new(slug: "demo", status: :scheduled, publish_at: 2.hours.from_now,
                                     unpublish_at: 1.hour.from_now)
