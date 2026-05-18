@@ -28,11 +28,10 @@ module RecordingStudioPublishable
 
     scope :currently_published, lambda {
       now = Time.current
-      where(status: statuses[:published])
+      where(status: [statuses[:published], statuses[:scheduled]])
         .where("publish_at IS NULL OR publish_at <= ?", now)
         .where("unpublish_at IS NULL OR unpublish_at > ?", now)
     }
-    scope :currently_live, -> { currently_published }
     scope :scheduled, lambda {
       now = Time.current
       where(status: statuses[:scheduled]).where("publish_at > ?", now)
@@ -41,7 +40,7 @@ module RecordingStudioPublishable
     scope :unpublished, -> { where(status: statuses[:unpublished]) }
 
     def currently_published?(now = Time.current)
-      status_published? && (publish_at.blank? || publish_at <= now) && (unpublish_at.blank? || unpublish_at > now)
+      publish_status_live? && (publish_at.blank? || publish_at <= now) && (unpublish_at.blank? || unpublish_at > now)
     end
 
     def published?(now = Time.current)
@@ -100,6 +99,10 @@ module RecordingStudioPublishable
 
     def status_published?
       self[:status] == self.class.statuses[:published]
+    end
+
+    def publish_status_live?
+      status_published? || scheduled?
     end
 
     def status_unpublished?
