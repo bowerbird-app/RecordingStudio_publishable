@@ -155,31 +155,6 @@ class DocsController < ApplicationController
             protocol: "https"
           )
         RUBY
-      },
-      {
-        title: "Publishable services",
-        subtitle: "Core service entry points for child creation, updates, transitions, and resolution.",
-        code: <<~RUBY
-          # Returns a Result whose value is the publishable child recording.
-          RecordingStudioPublishable::Services::Publishables::EnsureChild.call(parent_recording: parent_recording, actor: actor)
-
-          # Returns a Result whose value is the updated publishable child recording.
-          RecordingStudioPublishable::Services::Publishables::Update.call(parent_recording: parent_recording, attributes: attributes, actor: actor)
-
-          # Returns a Result whose value is the transitioned publishable child recording.
-          RecordingStudioPublishable::Services::Publishables::Transition.call(parent_recording: parent_recording, transition: "publish", actor: actor)
-
-          # Returns a Result whose value is a hash of the resolved recording, publishable, and parent objects.
-          RecordingStudioPublishable::Services::Publishables::Resolve.call(uuid: uuid, slug: slug)
-        RUBY
-      },
-      {
-        title: "RecordingStudioPublishable::Services::ExampleService",
-        subtitle: "A small example of the service-object pattern shipped with the addon.",
-        code: <<~RUBY
-          # Returns a Result whose value is the greeting string "Hello, World!".
-          RecordingStudioPublishable::Services::ExampleService.call(name: "World")
-        RUBY
       }
     ]
   end
