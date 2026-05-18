@@ -34,10 +34,6 @@ class DocsController < ApplicationController
     @method_sections = method_sections
   end
 
-  def helpers
-    @helper_sections = helper_sections
-  end
-
   def components
     require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/status_badge/component").to_s
     require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/quick_actions/component").to_s
@@ -63,14 +59,19 @@ class DocsController < ApplicationController
             recording_studio_publishable
           end
 
-          # Returns Page records.
+          # Returns Page records whose publishable child is live right now.
           Page.currently_published
-          Page.currently_live
+
+          # Returns Page records whose publishable child is scheduled for the future.
           Page.scheduled
+
+          # Returns Page records whose publishable child is still a draft.
           Page.draft
+
+          # Returns Page records whose publishable child has been explicitly unpublished.
           Page.unpublished
 
-          # Same query helpers are available on any model that includes
+          # Same query helpers return Article records for any model that includes
           # RecordingStudioPublishable::ParentRecordable.
           Article.currently_published
         RUBY
@@ -81,10 +82,19 @@ class DocsController < ApplicationController
         code: <<~RUBY
           recording = RecordingStudio::Recording.find(recording_id)
 
+          # Returns the publishable child recording (RecordingStudio::Recording).
           recording.publishable_child_recording
+
+          # Returns the current publishable recordable (e.g., Publishable).
           recording.current_publishable
+
+          # Returns true if the recording is currently published.
           recording.currently_published?
+
+          # Returns the public path for the publishable recording.
           recording.publishable_public_path
+
+          # Returns the public URL for the publishable recording, given a host.
           recording.publishable_public_url(host: "example.test")
         RUBY
       },
@@ -94,18 +104,34 @@ class DocsController < ApplicationController
         code: <<~RUBY
           publishable = RecordingStudioPublishable::Publishable.find(publishable_id)
 
-          # Returns RecordingStudioPublishable::Publishable records.
+          # Returns publishable records that are live right now.
           RecordingStudioPublishable::Publishable.currently_published
-          RecordingStudioPublishable::Publishable.currently_live
+
+          # Returns publishable records scheduled for a future publish_at time.
           RecordingStudioPublishable::Publishable.scheduled
+
+          # Returns publishable records with draft status.
           RecordingStudioPublishable::Publishable.draft
+
+          # Returns publishable records with unpublished status.
           RecordingStudioPublishable::Publishable.unpublished
 
+          # Returns true when this publishable is currently live.
           publishable.currently_published?
+
+          # Returns the same boolean as currently_published?.
           publishable.published?
+
+          # Returns true when status is scheduled and publish_at is in the future.
           publishable.scheduled_for_future?
+
+          # Returns true when this record was published before and is no longer live.
           publishable.previously_published?
+
+          # Returns true when this record is no longer live and counts as unpublished.
           publishable.unpublished?
+
+          # Returns the configured time zone for this publishable, or the addon default.
           publishable.effective_time_zone
         RUBY
       },
@@ -113,12 +139,14 @@ class DocsController < ApplicationController
         title: "RecordingStudioPublishable::Routing",
         subtitle: "Build the canonical public path and URL for a publishable child recording.",
         code: <<~RUBY
+          # Returns a path like /published/:uuid/:slug with placeholders filled in.
           RecordingStudioPublishable::Routing.path_for(
             publishable_recording: publishable_recording,
             publishable: publishable_recording.recordable,
             parent_recordable_type: publishable_recording.parent_recording&.recordable_type
           )
 
+          # Returns a full URL string when host is present, otherwise just the path.
           RecordingStudioPublishable::Routing.url_for(
             publishable_recording: publishable_recording,
             publishable: publishable_recording.recordable,
@@ -129,39 +157,19 @@ class DocsController < ApplicationController
         RUBY
       },
       {
-        title: "RecordingStudioPublishable::Configuration",
-        subtitle: "Configure routes, renderer overrides, actor lookup, authorization, and the default time zone.",
-        code: <<~RUBY
-          RecordingStudioPublishable.configuration.register_public_path("Page", path: "/published/:uuid/:slug")
-          RecordingStudioPublishable.configuration.register_public_renderer("Page", controller: "pages", action: :show)
-          RecordingStudioPublishable.configuration.public_path_for("Page")
-          RecordingStudioPublishable.configuration.public_template_for("Page")
-          RecordingStudioPublishable.configuration.public_controller_for("Page")
-          RecordingStudioPublishable.configuration.public_action_for("Page")
-          RecordingStudioPublishable.configuration.authorize_management?(recording: recording, actor: actor)
-          RecordingStudioPublishable.configuration.actor_for(controller: controller)
-        RUBY
-      },
-      {
-        title: "RecordingStudioPublishable::Services::BaseService",
-        subtitle: "Common service object entry point and result wrapper.",
-        code: <<~RUBY
-          result = RecordingStudioPublishable::Services::ExampleService.call(name: "World")
-
-          result.success?
-          result.failure?
-          result.on_success { |value| puts value }
-          result.on_failure { |error| warn error }
-          result.value!
-        RUBY
-      },
-      {
         title: "Publishable services",
         subtitle: "Core service entry points for child creation, updates, transitions, and resolution.",
         code: <<~RUBY
+          # Returns a Result whose value is the publishable child recording.
           RecordingStudioPublishable::Services::Publishables::EnsureChild.call(parent_recording: parent_recording, actor: actor)
+
+          # Returns a Result whose value is the updated publishable child recording.
           RecordingStudioPublishable::Services::Publishables::Update.call(parent_recording: parent_recording, attributes: attributes, actor: actor)
+
+          # Returns a Result whose value is the transitioned publishable child recording.
           RecordingStudioPublishable::Services::Publishables::Transition.call(parent_recording: parent_recording, transition: "publish", actor: actor)
+
+          # Returns a Result whose value is a hash of the resolved recording, publishable, and parent objects.
           RecordingStudioPublishable::Services::Publishables::Resolve.call(uuid: uuid, slug: slug)
         RUBY
       },
@@ -169,28 +177,10 @@ class DocsController < ApplicationController
         title: "RecordingStudioPublishable::Services::ExampleService",
         subtitle: "A small example of the service-object pattern shipped with the addon.",
         code: <<~RUBY
+          # Returns a Result whose value is the greeting string "Hello, World!".
           RecordingStudioPublishable::Services::ExampleService.call(name: "World")
         RUBY
       }
-    ]
-  end
-
-  def helper_sections
-    [
-      {
-        title: "render_publishable_status_badge",
-        subtitle: "Legacy helper wrapper for the publishable status badge component.",
-        code: <<~RUBY
-          <%= render_publishable_status_badge(@publishable) %>
-        RUBY
-      },
-      {
-        title: "render_publishable_quick_actions",
-        subtitle: "Legacy helper wrapper for the publishable quick actions component.",
-        code: <<~RUBY
-          <%= render_publishable_quick_actions(@page_recording) %>
-        RUBY
-      },
     ]
   end
 
