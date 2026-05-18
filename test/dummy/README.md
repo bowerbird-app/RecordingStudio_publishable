@@ -31,4 +31,4 @@ Sign in with:
 - `/recordings/:recording_id/publishable/edit` - edit publishable info
 - `/published/:uuid/:slug` - default public route
 - `/recording_studio` - mounted RecordingStudio engine
-- `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods`, `/docs/helpers`, `/docs/components` - supporting docs
+- `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods`, `/docs/components` - supporting docs
