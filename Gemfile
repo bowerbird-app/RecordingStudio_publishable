@@ -9,6 +9,8 @@ gemspec
 gem "puma"
 gem "sprockets-rails"
 
+gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v0.1.0-alpha"
+gem "recording_studio_accessible", git: "https://github.com/bowerbird-app/RecordingStudio_accessible.git"
 gem "recording_studio_attachable", git: "https://github.com/bowerbird-app/RecordingStudio_attachable.git"
 
 group :development, :test do

@@ -1,4 +1,20 @@
 GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio.git
+  revision: c1aec2222f685037debcbce56422fdff0b6cb4f7
+  tag: v0.1.0-alpha
+  specs:
+    recording_studio (0.1.0)
+      rails (>= 8.1.0)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_accessible.git
+  revision: 442afc0d91ee42e59b201a9ce963931ed1faa2e6
+  specs:
+    recording_studio_accessible (0.1.0)
+      rails (~> 8.1.0)
+      recording_studio (>= 0.1.0)
+
+GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_attachable.git
   revision: 6c81eccdfec05517974a479e501f11a366d14513
   specs:
@@ -10,7 +26,7 @@ PATH
   specs:
     recording_studio_publishable (0.1.1)
       rails (~> 8.1.0)
-      view_component (~> 3.0)
+      view_component (>= 3.0, < 5.0)
 
 GEM
   remote: https://rubygems.org/
@@ -280,6 +296,8 @@ DEPENDENCIES
   debug
   devise
   puma
+  recording_studio!
+  recording_studio_accessible!
   recording_studio_attachable!
   recording_studio_publishable!
   rubocop
@@ -326,7 +344,7 @@ CHECKSUMS
   loofah (2.24.1) sha256=655a30842b70ec476410b347ab1cd2a5b92da46a19044357bbd9f401b009a337
   mail (2.9.0) sha256=6fa6673ecd71c60c2d996260f9ee3dd387d4673b8169b502134659ece6d34941
   marcel (1.1.0) sha256=fdcfcfa33cc52e93c4308d40e4090a5d4ea279e160a7f6af988260fa970e0bee
-  method_source (1.1.0)
+  method_source (1.1.0) sha256=181301c9c45b731b4769bc81e8860e72f9161ad7d66dd99103c9ab84f560f5c5
   mini_mime (1.1.5) sha256=8681b7e2e4215f2a159f9400b5816d85e9d8c6c6b491e96a12797e798f8bccef
   minitest (5.26.2) sha256=f021118a6185b9ba9f5af71f2ba103ad770c75afde9f2ab8da512677c550cde3
   net-imap (0.5.12) sha256=cb8cd05bd353fcc19b6cbc530a9cb06b577a969ea10b7ddb0f37787f74be4444
@@ -355,6 +373,8 @@ CHECKSUMS
   rainbow (3.1.1) sha256=039491aa3a89f42efa1d6dec2fc4e62ede96eb6acd95e52f1ad581182b79bc6a
   rake (13.3.1) sha256=8c9e89d09f66a26a01264e7e3480ec0607f0c497a861ef16063604b1b08eb19c
   rdoc (6.16.1) sha256=71357cc208e6da77ba0c4494e01ae870dd18b437c7c7d801dd73ee2f340b9f5c
+  recording_studio (0.1.0)
+  recording_studio_accessible (0.1.0)
   recording_studio_attachable (0.1.0)
   recording_studio_publishable (0.1.1)
   regexp_parser (2.11.3) sha256=ca13f381a173b7a93450e53459075c9b76a10433caadcb2f1180f2c741fc55a4
@@ -379,7 +399,7 @@ CHECKSUMS
   unicode-emoji (4.1.0) sha256=4997d2d5df1ed4252f4830a9b6e86f932e2013fbff2182a9ce9ccabda4f325a5
   uri (1.1.1) sha256=379fa58d27ffb1387eaada68c749d1426738bd0f654d812fcc07e7568f5c57c6
   useragent (0.16.11) sha256=700e6413ad4bb954bb63547fa098dddf7b0ebe75b40cc6f93b8d54255b173844
-  view_component (3.24.0)
+  view_component (3.24.0) sha256=ede4e9c0ca1605a9f6b74773b6e93de100807a4f057eae983d20acf069950aee
   warden (1.2.9) sha256=46684f885d35a69dbb883deabf85a222c8e427a957804719e143005df7a1efd0
   websocket-driver (0.8.0) sha256=ed0dba4b943c22f17f9a734817e808bc84cdce6a7e22045f5315aa57676d4962
   websocket-extensions (0.1.5) sha256=1c6ba63092cda343eb53fc657110c71c754c56484aad42578495227d717a8241
