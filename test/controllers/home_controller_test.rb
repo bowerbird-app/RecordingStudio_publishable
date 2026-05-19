@@ -86,6 +86,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Edit publishable info"
     assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
     assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
+    assert_includes response.body, "History"
     assert_includes response.body, "Upload image"
     assert_includes response.body, "Manage library"
   end

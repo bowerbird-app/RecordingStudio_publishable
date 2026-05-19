@@ -95,6 +95,58 @@ module RecordingStudioPublishable
         ["(UTC#{zone.formatted_offset}) #{zone.name}", zone.name]
       end
       @social_image_attachments = direct_image_attachments_for(@publishable_recording)
+      @publishable_history_events = publishable_history_events_for(@publishable_recording)
+    end
+
+    def publishable_history_events_for(publishable_recording)
+      return [] unless publishable_recording.respond_to?(:events)
+
+      events = publishable_recording.events.order(occurred_at: :desc).to_a
+      return [] if events.empty?
+
+      publishable_ids = events.flat_map { |event| [event.recordable_id, event.previous_recordable_id] }.compact.uniq
+      snapshots = RecordingStudioPublishable::Publishable.where(id: publishable_ids).index_by(&:id)
+
+      events.filter_map do |event|
+        current = snapshots[event.recordable_id]
+        previous = snapshots[event.previous_recordable_id]
+        label = history_label_for(event, current: current, previous: previous)
+        next if label.blank?
+
+        occurred_at = event.occurred_at || event.created_at
+        next if occurred_at.blank?
+
+        { label: label, occurred_at: occurred_at }
+      end
+    rescue StandardError
+      []
+    end
+
+    def history_label_for(event, current:, previous:)
+      action = event.action.to_s.downcase
+      return "Unpublished" if action.include?("unpublish")
+      return "Scheduled" if action.include?("schedule")
+      return "Published" if action.include?("publish")
+
+      return nil if current.blank?
+
+      status_changed = previous.nil? || current.status != previous.status
+      publish_at_changed = previous.nil? || current.publish_at != previous.publish_at
+      unpublish_at_changed = previous.nil? || current.unpublish_at != previous.unpublish_at
+
+      event_time = event.occurred_at || event.created_at || Time.current
+
+      if current.published_state?
+        if current.publish_at.present? && current.publish_at > event_time && (status_changed || publish_at_changed)
+          return "Scheduled"
+        end
+
+        return "Published" if status_changed || publish_at_changed
+      elsif previous&.published_state? || unpublish_at_changed
+        return "Unpublished"
+      end
+
+      nil
     end
 
     def direct_image_attachments_for(publishable_recording)

@@ -58,6 +58,7 @@
       <% tabs.tab(id: "seo", label: "SEO") %>
       <% tabs.tab(id: "details", label: "Details") %>
       <% tabs.tab(id: "image", label: "Image") %>
+      <% tabs.tab(id: "history", label: "History") %>
 
       <% tabs.panel(id: "schedule") do %>
         <div class="grid gap-4 pt-4 md:grid-cols-3">
@@ -146,6 +147,24 @@
           <% end %>
         </div>
       <% end %>
+
+      <% tabs.panel(id: "history") do %>
+        <% history_time_zone = @publishable.effective_time_zone %>
+        <div class="pt-4">
+          <% if @publishable_history_events.present? %>
+            <ul class="divide-y divide-(--surface-border-color)">
+              <% @publishable_history_events.each do |event| %>
+                <li class="flex items-center justify-between py-3">
+                  <span class="text-sm font-medium"><%= event[:label] %></span>
+                  <span class="text-sm text-(--surface-muted-content-color)"><%= l(event[:occurred_at].in_time_zone(history_time_zone), format: :long) %></span>
+                </li>
+              <% end %>
+            </ul>
+          <% else %>
+            <p class="text-sm text-(--surface-muted-content-color)">No publish or scheduling history yet.</p>
+          <% end %>
+        </div>
+      <% end %>
     <% end %>
 
     <div class="publishable-save-actions">
@@ -185,6 +204,10 @@
     display: block;
   }
 
+  .publishable-edit-form.has-history-tab .publishable-save-actions {
+    display: none;
+  }
+
   .publishable-edit-form [data-publishable-social-image-preview-image]:not(.hidden) + [data-publishable-social-image-empty] {
     display: none !important;
   }
@@ -201,8 +224,15 @@
       return;
     }
 
-    var hasActiveTab = form.querySelector('[role="tab"][aria-selected="true"]') !== null;
+    var activeTab = form.querySelector('[role="tab"][aria-selected="true"]');
+    var hasActiveTab = activeTab !== null;
+    var activeTabText = activeTab && activeTab.textContent ? activeTab.textContent.trim().toLowerCase() : "";
+    var activeControls = activeTab ? (activeTab.getAttribute("aria-controls") || "") : "";
+    var activeId = activeTab ? (activeTab.getAttribute("id") || "") : "";
+    var historySelected = activeTabText === "history" || activeControls.indexOf("history") >= 0 || activeId.indexOf("history") >= 0;
+
     form.classList.toggle("has-active-tab", hasActiveTab);
+    form.classList.toggle("has-history-tab", historySelected);
   }
 
   function syncAllPublishableSaveVisibility() {
