@@ -5,10 +5,10 @@ module RecordingStudioPublishable
     module Publishables
       class Transition < BaseService
         TRANSITIONS = {
-          "publish" => { status: "published", publish_at: nil, unpublish_at: nil },
-          "schedule" => { status: "scheduled" },
-          "unpublish" => { status: "unpublished" },
-          "draft" => { status: "draft", publish_at: nil, unpublish_at: nil }
+          "publish" => { status: "published", unpublish_at: nil },
+          "schedule" => { status: "published" },
+          "unpublish" => { status: "draft" },
+          "draft" => { status: "draft" }
         }.freeze
 
         def initialize(parent_recording:, transition:, actor: nil)
@@ -25,15 +25,8 @@ module RecordingStudioPublishable
           attributes = TRANSITIONS[transition]
           return failure("Unknown publishable transition") unless attributes
 
-          if transition == "schedule"
-            ensure_result = EnsureChild.call(parent_recording: parent_recording, actor: actor)
-            return ensure_result if ensure_result.failure?
-
-            current_publishable = ensure_result.value.recordable
-            unless current_publishable.publish_at.present? && current_publishable.publish_at.future?
-              return failure("Set a future publish at time before marking content as scheduled")
-            end
-          end
+          attributes = attributes.dup
+          attributes[:publish_at] = Time.current if transition == "publish"
 
           Update.call(parent_recording: parent_recording, attributes: attributes, actor: actor)
         end

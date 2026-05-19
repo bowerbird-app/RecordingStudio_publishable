@@ -24,7 +24,10 @@ module RecordingStudioPublishable
         attributes: { slug: "draft-page", status: "draft" }
       ).value!
 
-      assert_equal [published_page.id], Page.currently_published.pluck(:id)
+      currently_published_ids = Page.currently_published.pluck(:id)
+
+      assert_includes currently_published_ids, published_page.id
+      refute_includes currently_published_ids, draft_page.id
     end
 
     test "status scopes return parent recordables for the matching publishable child state" do
@@ -39,7 +42,7 @@ module RecordingStudioPublishable
 
       RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: scheduled_recording,
-        attributes: { slug: "scheduled-page", status: "scheduled", publish_at: 1.day.from_now }
+        attributes: { slug: "scheduled-page", status: "published", publish_at: 1.day.from_now }
       ).value!
 
       RecordingStudioPublishable::Services::Publishables::Update.call(
@@ -49,12 +52,19 @@ module RecordingStudioPublishable
 
       RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: unpublished_recording,
-        attributes: { slug: "unpublished-page", status: "unpublished" }
+        attributes: { slug: "unpublished-page", status: "draft" }
       ).value!
 
-      assert_equal [scheduled_page.id], Page.scheduled.pluck(:id)
-      assert_equal [draft_page.id], Page.draft.pluck(:id)
-      assert_equal [unpublished_page.id], Page.unpublished.pluck(:id)
+      scheduled_ids = Page.scheduled.pluck(:id)
+      draft_ids = Page.draft.pluck(:id)
+      unpublished_ids = Page.unpublished.pluck(:id)
+
+      assert_includes scheduled_ids, scheduled_page.id
+      refute_includes scheduled_ids, draft_page.id
+      assert_includes draft_ids, draft_page.id
+      assert_includes draft_ids, unpublished_page.id
+      assert_includes unpublished_ids, unpublished_page.id
+      refute_includes unpublished_ids, scheduled_page.id
     end
   end
 end

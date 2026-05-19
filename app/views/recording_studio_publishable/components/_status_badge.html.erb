@@ -1,11 +1,7 @@
 <% style =
-  if publishable.currently_published?
+  if publishable.published_state?
     :success
-  elsif publishable.scheduled_for_future?
-    :warning
-  elsif publishable.unpublished?
-    :error
   else
     :info
   end %>
-<%= render FlatPack::Badge::Component.new(text: (publishable.currently_published? ? "Published" : publishable.status.humanize), style: style, size: :sm) %>
+<%= render FlatPack::Badge::Component.new(text: (publishable.published_state? ? "Published" : "Draft"), style: style, size: :sm) %>

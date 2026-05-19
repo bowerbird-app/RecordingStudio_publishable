@@ -5,6 +5,22 @@ module RecordingStudioPublishable
     isolate_namespace RecordingStudioPublishable
     paths.add "app/components", eager_load: true
 
+    initializer "recording_studio_publishable.assets" do |app|
+      next unless app.config.respond_to?(:assets)
+      next unless app.config.assets.respond_to?(:paths)
+
+      assets_path = root.join("app/javascript")
+      app.config.assets.paths << assets_path unless app.config.assets.paths.include?(assets_path)
+    end
+
+    initializer "recording_studio_publishable.importmap", before: "importmap" do |app|
+      next unless app.config.respond_to?(:importmap)
+      next unless app.config.importmap.respond_to?(:paths)
+
+      importmap_path = root.join("config/importmap.rb")
+      app.config.importmap.paths << importmap_path unless app.config.importmap.paths.include?(importmap_path)
+    end
+
     initializer "recording_studio_publishable.before_initialize",
                 before: "recording_studio_publishable.load_config" do |_app|
       RecordingStudioPublishable::Hooks.run(:before_initialize, self)

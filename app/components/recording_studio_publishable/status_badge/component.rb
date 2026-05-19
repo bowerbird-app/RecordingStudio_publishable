@@ -10,19 +10,15 @@ module RecordingStudioPublishable
       attr_reader :publishable
 
       def badge_style
-        if publishable.currently_published?
+        if publishable.published_state?
           :success
-        elsif publishable.scheduled_for_future?
-          :warning
-        elsif publishable.unpublished?
-          :error
         else
           :info
         end
       end
 
       def badge_text
-        publishable.currently_published? ? "Published" : publishable.status.humanize
+        publishable.published_state? ? "Published" : "Draft"
       end
     end
   end

@@ -19,7 +19,24 @@ module RecordingStudioPublishable
         actor: current_publishable_actor
       )
 
-      return redirect_to_edit(notice: "Publishable info saved") if result.success?
+      if result.success?
+        if request.format.json?
+          publishable = @parent_recording.reload.publishable_child_recording&.recordable
+          return render json: { error: "Publishable not found" }, status: :unprocessable_entity if publishable.blank?
+
+          return render json: {
+            status: publishable.published_state? ? "published" : "draft",
+            timing_copy: timing_copy_for(publishable),
+            publish_at_input_value: datetime_input_value_for(publishable.publish_at, publishable),
+            unpublish_at_input_value: datetime_input_value_for(publishable.unpublish_at, publishable),
+            time_zone: publishable.time_zone
+          }
+        end
+
+        return redirect_to_edit(notice: "Publishable info saved")
+      end
+
+      return render json: { error: result.error }, status: :unprocessable_entity if request.format.json?
 
       assign_publishable_form_state
       flash.now[:alert] = result.error
@@ -59,7 +76,7 @@ module RecordingStudioPublishable
 
     def permitted_publishable_attributes
       %i[
-        slug status publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
+        slug status published_toggle publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
         social_title social_description social_image_attachment_recording_id
       ]
     end
@@ -74,7 +91,9 @@ module RecordingStudioPublishable
     def assign_publishable_form_state
       @publishable_recording = @parent_recording.publishable_child_recording
       @publishable = @publishable_recording.recordable
-      @time_zones = ActiveSupport::TimeZone.all.map(&:name)
+      @time_zone_options = ActiveSupport::TimeZone.all.map do |zone|
+        ["(UTC#{zone.formatted_offset}) #{zone.name}", zone.name]
+      end
       @social_image_attachments = direct_image_attachments_for(@publishable_recording)
     end
 
@@ -99,6 +118,25 @@ module RecordingStudioPublishable
 
     def transition_alert(result)
       result.failure? ? result.error : nil
+    end
+
+    def timing_copy_for(publishable)
+      return nil unless publishable.published_state?
+
+      publish_at_time = publishable.publish_at&.in_time_zone(publishable.effective_time_zone)
+      return "Published just now" if publish_at_time.blank?
+
+      if publish_at_time > Time.current
+        "Scheduled to publish in #{helpers.distance_of_time_in_words(Time.current, publish_at_time)}"
+      else
+        "Published #{helpers.time_ago_in_words(publish_at_time)} ago"
+      end
+    end
+
+    def datetime_input_value_for(value, publishable)
+      return nil if value.blank?
+
+      value.in_time_zone(publishable.effective_time_zone).strftime("%Y-%m-%dT%H:%M")
     end
   end
 end

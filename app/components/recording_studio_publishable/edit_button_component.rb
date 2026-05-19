@@ -2,7 +2,7 @@
 
 module RecordingStudioPublishable
   class EditButtonComponent < ViewComponent::Base
-    BUTTON_BASE_CLASS = "inline-flex items-center justify-center rounded-[var(--button-border-radius)] border px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm font-medium leading-none transition-opacity duration-base hover:opacity-90".freeze
+    BUTTON_BASE_CLASS = "inline-flex items-center justify-center rounded-[var(--button-border-radius)] border px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm font-medium leading-none transition-opacity duration-base hover:opacity-90"
 
     def initialize(recording: nil, publishable: nil, label: "Edit", **options)
       @recording = recording || recording_for_publishable(publishable)
@@ -40,9 +40,7 @@ module RecordingStudioPublishable
     def button_tone
       publishable = @recording.current_publishable
       return :secondary unless publishable.present?
-      return :primary if publishable.currently_published?
-      return :warning if publishable.scheduled_for_future?
-      return :default if publishable.unpublished?
+      return :primary if publishable.published_state?
 
       :secondary
     end
@@ -51,7 +49,7 @@ module RecordingStudioPublishable
       publishable = @recording.current_publishable
       return @label unless publishable.present?
 
-      publishable.currently_published? ? "Published" : publishable.status.humanize
+      publishable.published_state? ? "Published" : "Draft"
     end
 
     def edit_path

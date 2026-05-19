@@ -2,13 +2,7 @@
     <%= button_to helpers.recording_studio_publishable.transition_recording_publishable_path(recording_id: recording.id, transition: :publish), method: :patch, class: "inline-flex" do %>
     <%= render FlatPack::Button::Component.new(text: "Publish now", style: :primary, size: :sm) %>
     <% end %>
-    <%= button_to helpers.recording_studio_publishable.transition_recording_publishable_path(recording_id: recording.id, transition: :schedule), method: :patch, class: "inline-flex" do %>
-    <%= render FlatPack::Button::Component.new(text: "Mark scheduled", style: :secondary, size: :sm) %>
-    <% end %>
     <%= button_to helpers.recording_studio_publishable.transition_recording_publishable_path(recording_id: recording.id, transition: :draft), method: :patch, class: "inline-flex" do %>
     <%= render FlatPack::Button::Component.new(text: "Back to draft", style: :ghost, size: :sm) %>
-    <% end %>
-    <%= button_to helpers.recording_studio_publishable.transition_recording_publishable_path(recording_id: recording.id, transition: :unpublish), method: :patch, class: "inline-flex" do %>
-    <%= render FlatPack::Button::Component.new(text: "Unpublish", style: :secondary, size: :sm) %>
     <% end %>
 </div>

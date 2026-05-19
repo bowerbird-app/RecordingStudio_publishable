@@ -17,7 +17,7 @@ module RecordingStudioPublishable
     end
 
     test "published? is false outside the live window and unpublished? tracks prior live content" do
-      publishable = Publishable.new(status: :unpublished, publish_at: 2.hours.ago, unpublish_at: 1.hour.ago,
+      publishable = Publishable.new(status: :draft, publish_at: 2.hours.ago, unpublish_at: 1.hour.ago,
                                     slug: "demo")
 
       refute publishable.currently_published?
@@ -26,15 +26,15 @@ module RecordingStudioPublishable
       assert publishable.previously_published?
     end
 
-    test "scheduled_for_future? is true only for scheduled future records" do
-      publishable = Publishable.new(status: :scheduled, publish_at: 1.hour.from_now, slug: "demo")
+    test "scheduled_for_future? is true only for published future records" do
+      publishable = Publishable.new(status: :published, publish_at: 1.hour.from_now, slug: "demo")
 
       assert publishable.scheduled_for_future?
       refute publishable.currently_published?
     end
 
-    test "scheduled records become currently published once publish_at has passed" do
-      publishable = Publishable.new(status: :scheduled, publish_at: 10.minutes.ago, slug: "demo")
+    test "published records become currently published once publish_at has passed" do
+      publishable = Publishable.new(status: :published, publish_at: 10.minutes.ago, slug: "demo")
 
       assert publishable.currently_published?
       assert publishable.published?
@@ -42,11 +42,22 @@ module RecordingStudioPublishable
     end
 
     test "publish window validation rejects inverted windows" do
-      publishable = Publishable.new(slug: "demo", status: :scheduled, publish_at: 2.hours.from_now,
+      publishable = Publishable.new(slug: "demo", status: :published, publish_at: 2.hours.from_now,
                                     unpublish_at: 1.hour.from_now)
 
       refute publishable.valid?
       assert_includes publishable.errors[:unpublish_at], "must be later than publish at"
+    end
+
+    test "legacy status values normalize to two-state enum" do
+      publishable = Publishable.new(status: "scheduled", slug: "demo")
+
+      assert publishable.valid?
+      assert_equal "published", publishable.status
+
+      publishable.status = "unpublished"
+      assert publishable.valid?
+      assert_equal "draft", publishable.status
     end
 
     test "slug rejects unsafe characters" do

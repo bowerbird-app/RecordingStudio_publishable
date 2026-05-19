@@ -25,7 +25,10 @@ module RecordingStudioPublishable
     end
 
     def publishable_child_recording
-      child_recordings.where(recordable_type: RecordingStudioPublishable::Publishable.name, trashed_at: nil).first
+      child_recordings
+        .where(recordable_type: RecordingStudioPublishable::Publishable.name, trashed_at: nil)
+        .order(created_at: :desc, id: :desc)
+        .first
     end
 
     def current_publishable
