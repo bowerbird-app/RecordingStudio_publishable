@@ -23,6 +23,7 @@
   <% recordable = @parent_recording.recordable %>
   <% recordable_name = recordable.try(:title).presence || recordable.try(:name).presence || @parent_recording.recordable_type.to_s.demodulize.humanize %>
   <% published_state = @publishable.published_state? %>
+  <% scheduled_for_future = @publishable.scheduled_for_future? %>
   <% publish_at_time = @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone) %>
   <% timing_copy = if published_state
                      if publish_at_time.present? && publish_at_time > Time.current
@@ -50,7 +51,22 @@
         label: (published_state ? "Published" : "Draft"),
         checked: published_state
       ) %>
-      <p class="text-sm text-(--surface-muted-content-color) <%= timing_copy.present? ? "" : "hidden" %>" data-publishable-toggle-timing><%= timing_copy %></p>
+      <div class="flex items-center gap-1 text-sm text-(--surface-muted-content-color) <%= timing_copy.present? ? "" : "hidden" %>" data-publishable-toggle-timing-row>
+        <span data-publishable-toggle-timing><%= timing_copy %></span>
+        <span class="<%= scheduled_for_future ? "inline-flex" : "hidden" %>" data-publishable-schedule-dismiss>
+          <%= render FlatPack::Tooltip::Component.new(text: "Click to publish now.", placement: :top) do %>
+            <%= render FlatPack::Button::Component.new(
+              icon: "x-mark",
+              icon_only: true,
+              style: :ghost,
+              size: :sm,
+              type: "button",
+              data: { publishable_schedule_publish_now_url: transition_recording_publishable_path(recording_id: @parent_recording.id, transition: :publish) },
+              aria: { label: "Publish now" }
+            ) %>
+          <% end %>
+        </span>
+      </div>
     </div>
 
     <%= render FlatPack::Tabs::Component.new(default_tab: -1, variant: :pills) do |tabs| %>
@@ -265,35 +281,6 @@
     });
   });
 
-  document.addEventListener("click", function(event) {
-    var form = document.querySelector("form.publishable-edit-form");
-    if (!form || !form.classList.contains("has-active-tab")) {
-      return;
-    }
-
-    var saveActions = form.querySelector(".publishable-save-actions");
-    if (!saveActions) {
-      return;
-    }
-
-    var rect = saveActions.getBoundingClientRect();
-    var withinX = event.clientX >= rect.left && event.clientX <= rect.right;
-    var withinY = event.clientY >= rect.top && event.clientY <= rect.bottom;
-    if (!(withinX && withinY)) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    var saveButton = form.querySelector("#publishable-save-button");
-    if (typeof form.requestSubmit === "function") {
-      form.requestSubmit(saveButton || undefined);
-    } else {
-      form.submit();
-    }
-  }, true);
-
   document.addEventListener("submit", function(event) {
     var form = event.target;
     if (!(form instanceof HTMLFormElement)) {
@@ -327,6 +314,8 @@
       var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
       var labelElement = toggle.closest("label")?.nextElementSibling;
       var timingElement = form.querySelector("[data-publishable-toggle-timing]");
+      var timingRowElement = form.querySelector("[data-publishable-toggle-timing-row]");
+      var dismissElement = form.querySelector("[data-publishable-schedule-dismiss]");
 
       fetch(form.action, {
         method: "PATCH",
@@ -369,15 +358,129 @@
 
         if (payload.timing_copy) {
           timingElement.textContent = payload.timing_copy;
-          timingElement.classList.remove("hidden");
+          if (timingRowElement) {
+            timingRowElement.classList.remove("hidden");
+          }
         } else {
           timingElement.textContent = "";
-          timingElement.classList.add("hidden");
+          if (timingRowElement) {
+            timingRowElement.classList.add("hidden");
+          }
+        }
+
+        if (dismissElement) {
+          if (payload.scheduled_for_future) {
+            dismissElement.classList.add("inline-flex");
+            dismissElement.classList.remove("hidden");
+          } else {
+            dismissElement.classList.remove("inline-flex");
+            dismissElement.classList.add("hidden");
+          }
         }
       }).catch(function() {
         toggle.checked = !toggle.checked;
       });
     }
+  });
+
+  document.addEventListener("click", function(event) {
+    var publishNowButton = event.target.closest("[data-publishable-schedule-publish-now-url]");
+    if (!publishNowButton) {
+      return;
+    }
+
+    console.log("[DEBUG] X button click handler fired");
+    event.preventDefault();
+
+    var url = publishNowButton.getAttribute("data-publishable-schedule-publish-now-url");
+    if (!url) {
+      return;
+    }
+
+    var form = publishNowButton.closest("form.publishable-edit-form");
+    if (!form) {
+      return;
+    }
+
+    var toggle = form.querySelector('input[name="publishable[published_toggle]"][type="checkbox"]');
+    var labelElement = toggle ? toggle.closest("label")?.nextElementSibling : null;
+    var timingElement = form.querySelector("[data-publishable-toggle-timing]");
+    var timingRowElement = form.querySelector("[data-publishable-toggle-timing-row]");
+    var dismissElement = form.querySelector("[data-publishable-schedule-dismiss]");
+
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+
+    fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Accept": "application/json",
+        "X-CSRF-Token": csrfToken || "",
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      credentials: "same-origin"
+    }).then(function(response) {
+      if (!response.ok) {
+        throw new Error("Publish now failed");
+      }
+
+      return response.json();
+    }).then(function(payload) {
+      if (!payload) {
+        return;
+      }
+
+      if (toggle && payload.status === "published") {
+        toggle.checked = true;
+      }
+
+      if (labelElement) {
+        labelElement.textContent = payload.status === "published" ? "Published" : "Draft";
+      }
+
+      var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
+      if (publishAtInput && Object.prototype.hasOwnProperty.call(payload, "publish_at_input_value")) {
+        publishAtInput.value = payload.publish_at_input_value || "";
+      }
+
+      var unpublishAtInput = form.querySelector('[name="publishable[unpublish_at]"]');
+      if (unpublishAtInput && Object.prototype.hasOwnProperty.call(payload, "unpublish_at_input_value")) {
+        unpublishAtInput.value = payload.unpublish_at_input_value || "";
+      }
+
+      var timeZoneInput = form.querySelector('[name="publishable[time_zone]"]');
+      if (timeZoneInput && payload.time_zone) {
+        timeZoneInput.value = payload.time_zone;
+      }
+
+      if (!timingElement) {
+        return;
+      }
+
+      if (payload.timing_copy) {
+        timingElement.textContent = payload.timing_copy;
+        if (timingRowElement) {
+          timingRowElement.classList.remove("hidden");
+        }
+      } else {
+        timingElement.textContent = "";
+        if (timingRowElement) {
+          timingRowElement.classList.add("hidden");
+        }
+      }
+
+      if (dismissElement) {
+        // Always set to exactly 'inline-flex' or 'hidden' (plus any data attributes)
+        var baseClass = "";
+        if (dismissElement.hasAttribute("data-publishable-schedule-dismiss")) {
+          baseClass = ""; // no extra classes needed
+        }
+        if (payload.scheduled_for_future) {
+          dismissElement.className = (baseClass + " inline-flex").trim();
+        } else {
+          dismissElement.className = (baseClass + " hidden").trim();
+        }
+      }
+    });
   });
 
   document.addEventListener("recording-studio-attachable--attachment-image-picker:selected", function(event) {

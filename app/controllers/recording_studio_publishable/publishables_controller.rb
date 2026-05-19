@@ -27,6 +27,7 @@ module RecordingStudioPublishable
           return render json: {
             status: publishable.published_state? ? "published" : "draft",
             timing_copy: timing_copy_for(publishable),
+            scheduled_for_future: publishable.scheduled_for_future?,
             publish_at_input_value: datetime_input_value_for(publishable.publish_at, publishable),
             unpublish_at_input_value: datetime_input_value_for(publishable.unpublish_at, publishable),
             time_zone: publishable.time_zone
@@ -49,6 +50,27 @@ module RecordingStudioPublishable
         transition: params[:transition],
         actor: current_publishable_actor
       )
+
+      if request.format.json?
+        return render json: { error: result.error }, status: :unprocessable_entity if result.failure?
+
+        publishable = @parent_recording.reload.publishable_child_recording&.recordable
+        return render json: { error: "Publishable not found" }, status: :unprocessable_entity if publishable.blank?
+
+        scheduled = publishable.scheduled_for_future?
+        Rails.logger.warn("[DEBUG] scheduled_for_future: #{scheduled}")
+        Rails.logger.warn("[DEBUG] publish_at: #{publishable.publish_at}")
+        Rails.logger.warn("[DEBUG] now: #{Time.current}")
+
+        return render json: {
+          status: publishable.published_state? ? "published" : "draft",
+          timing_copy: timing_copy_for(publishable),
+          scheduled_for_future: scheduled,
+          publish_at_input_value: datetime_input_value_for(publishable.publish_at, publishable),
+          unpublish_at_input_value: datetime_input_value_for(publishable.unpublish_at, publishable),
+          time_zone: publishable.time_zone
+        }
+      end
 
       redirect_to_edit(notice: transition_notice(result), alert: transition_alert(result))
     end
