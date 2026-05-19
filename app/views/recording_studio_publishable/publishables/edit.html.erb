@@ -1,4 +1,18 @@
-<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+<% social_image_modal_id = "publishable-social-image-picker-modal" %>
+
+<div
+  class="mx-auto flex w-full max-w-6xl flex-col gap-6"
+  data-controller="recording-studio-attachable--attachment-image-picker"
+  data-recording-studio-attachable--attachment-image-picker-picker-url-value="<%= recording_studio_attachable.recording_attachment_picker_path(@publishable_recording) %>"
+  data-recording-studio-attachable--attachment-image-picker-upload-url-value="<%= recording_studio_attachable.recording_attachment_imports_path(@publishable_recording) %>"
+  data-recording-studio-attachable--attachment-image-picker-direct-upload-url-value="<%= main_app.rails_direct_uploads_path %>"
+  data-recording-studio-attachable--attachment-image-picker-max-file-size-value="<%= RecordingStudioAttachable.configuration.max_file_size %>"
+  data-recording-studio-attachable--attachment-image-picker-image-processing-enabled-value="<%= RecordingStudioAttachable.configuration.image_processing_enabled %>"
+  data-recording-studio-attachable--attachment-image-picker-image-processing-max-width-value="<%= RecordingStudioAttachable.configuration.image_processing_max_width %>"
+  data-recording-studio-attachable--attachment-image-picker-image-processing-max-height-value="<%= RecordingStudioAttachable.configuration.image_processing_max_height %>"
+  data-recording-studio-attachable--attachment-image-picker-image-processing-quality-value="<%= RecordingStudioAttachable.configuration.image_processing_quality %>"
+  data-recording-studio-attachable--attachment-image-picker-multiple-selection-value="false"
+  data-recording-studio-attachable--attachment-image-picker-modal-id-value="<%= social_image_modal_id %>">
   <%= render FlatPack::Breadcrumb::Component.new(
     show_back: true,
     back_text: "Back",
@@ -28,7 +42,7 @@
     ) %>
   </div>
 
-  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true do |form| %>
+  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true } do |form| %>
     <div class="space-y-2">
       <%= hidden_field_tag "publishable[published_toggle]", "0" %>
       <%= render FlatPack::Switch::Component.new(
@@ -55,7 +69,6 @@
               options: @time_zone_options,
               label: "Time zone",
               placeholder: "Select a time zone",
-              required: true,
               value: @publishable.time_zone.presence
             ) %>
           </div>
@@ -110,114 +123,42 @@
       <% end %>
 
       <% tabs.panel(id: "image") do %>
-        <div class="space-y-2 pt-4">
-          <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_social_image_attachment_recording_id">Social image</label>
-          <% if @publishable.social_image_supported? %>
-            <% social_image_picker_items = Array(@social_image_attachments).filter_map do |attachment_recording| %>
-              <% attachment = attachment_recording.recordable %>
-              <% blob = attachment&.file_attachment&.blob %>
-              <% next unless attachment.present? %>
-              <% {
-                id: attachment_recording.id,
-                kind: :image,
-                name: attachment.name.presence || blob&.filename&.to_s || "Image",
-                title: attachment.name.presence || blob&.filename&.to_s || "Image",
-                content_type: blob&.content_type,
-                byte_size: blob&.byte_size,
-                thumbnail_url: recording_studio_attachable.attachment_preview_file_path(attachment_recording, variant_name: :square_small),
-                payload: { recording_id: attachment_recording.id }
-              } %>
-            <% end %>
+        <% current_social_image_preview_path = if @publishable.social_image_attached? && @publishable.social_image_attachment&.file_attachment.present?
+          main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
+        end %>
 
-            <% current_social_image_name = @publishable.social_image_attachment&.name %>
-            <% current_social_image_preview_path = if @publishable.social_image_attached?
-                                                     recording_studio_attachable.attachment_preview_file_path(@publishable.social_image_attachment_recording, variant_name: :square_small)
-                                                   end %>
-
+        <div id="publishable-social-image-preview-wrapper" data-publishable-social-image-picker style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+          <%= form.hidden_field :social_image_attachment_recording_id, id: "publishable-social-image-input", data: { publishable_social_image_input: true } %>
+          <img
+            src="<%= current_social_image_preview_path || "" %>"
+            alt="Social image"
+            style="width: 192px; height: 192px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 1px solid var(--surface-border-color);"
+            class="<%= @publishable.social_image_attached? ? "" : "hidden" %>"
+            data-publishable-social-image-preview-image
+            data-action="click->recording-studio-attachable--attachment-image-picker#openSinglePicker">
+          <% unless @publishable.social_image_attached? %>
             <div
-              class="space-y-3"
-              data-controller="social-image-picker"
-              data-social-image-picker-picker-id-value="publishable-social-image-picker"
-              data-action="flat-pack:picker:confirm@document->social-image-picker#handleConfirm"
-            >
-              <%= form.hidden_field :social_image_attachment_recording_id, data: { social_image_picker_target: "input" } %>
-
-              <div
-                class="flex items-center gap-3 rounded-md border border-(--surface-border-color) bg-(--surface-raised-background-color) p-3 <%= @publishable.social_image_attached? ? "" : "hidden" %>"
-                data-social-image-picker-target="preview"
-              >
-                <%= image_tag(current_social_image_preview_path || "", alt: current_social_image_name || "Selected social image", class: "h-16 w-16 rounded-md object-cover", data: { social_image_picker_target: "previewImage" }) %>
-                <div class="space-y-1 text-sm">
-                  <p class="font-medium text-(--surface-content-color)" data-social-image-picker-target="previewName"><%= current_social_image_name %></p>
-                  <p class="text-(--surface-muted-content-color)">Used for link previews and shared cards. Save changes to persist a new selection.</p>
-                </div>
-              </div>
-
-              <p class="text-sm text-(--surface-muted-content-color) <%= @publishable.social_image_attached? ? "hidden" : "" %>" data-social-image-picker-target="emptyState">
-                No social image selected yet. Choose one from the picker or upload a new image.
-              </p>
-
-              <div class="flex flex-wrap gap-2">
-                <%= render FlatPack::Button::Component.new(
-                  text: social_image_picker_items.any? ? "Choose image" : "Upload an image first",
-                  style: :secondary,
-                  size: :md,
-                  type: "button",
-                  disabled: social_image_picker_items.empty?,
-                  icon: "image",
-                  data: {
-                    action: "click->flat-pack--modal#open",
-                    "modal-id": "publishable-social-image-picker"
-                  }
-                ) %>
-                <%= render FlatPack::Button::Component.new(
-                  text: "Clear selection",
-                  style: :ghost,
-                  size: :md,
-                  type: "button",
-                  class: (@publishable.social_image_attached? ? nil : "hidden"),
-                  data: {
-                    action: "social-image-picker#clear",
-                    social_image_picker_target: "clearButton"
-                  }
-                ) %>
-              </div>
-
-              <% if social_image_picker_items.any? %>
-                <%= render FlatPack::Picker::Component.new(
-                  id: "publishable-social-image-picker",
-                  title: "Select social image",
-                  subtitle: "Choose an image from the publishable attachment library.",
-                  items: social_image_picker_items,
-                  modal: true,
-                  accepted_kinds: [:image],
-                  selection_mode: :single,
-                  auto_confirm: true,
-                  search_mode: :local,
-                  results_layout: :grid,
-                  modal_body_height_mode: :fixed,
-                  modal_body_height: "clamp(18rem, 50vh, 26rem)",
-                  confirm_text: "Use image",
-                  context: { target: "publishable-social-image" }
-                ) %>
-              <% end %>
+              style="width: 192px; height: 192px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 0.5rem; border: 1px dashed var(--surface-border-color); background: var(--surface-raised-background-color); cursor: pointer;"
+              data-publishable-social-image-empty
+              data-action="click->recording-studio-attachable--attachment-image-picker#openSinglePicker">
+              <span style="font-size: 0.875rem; color: var(--surface-muted-content-color);">Upload Photo</span>
             </div>
-            <div class="flex flex-wrap gap-2">
-              <%= link_to(recording_studio_attachable.recording_attachment_upload_path(@publishable_recording, redirect_mode: :return_to, return_to: request.fullpath), class: "inline-flex") { render FlatPack::Button::Component.new(text: "Upload image", style: :secondary, size: :md, icon: "arrow-up-tray") } %>
-              <%= link_to(recording_studio_attachable.recording_attachments_path(@publishable_recording, kind: :images), class: "inline-flex") { render FlatPack::Button::Component.new(text: "Manage library", style: :secondary, size: :md, icon: "photo") } %>
-            </div>
-            <p class="text-sm text-(--surface-muted-content-color)">Upload images into the publishable attachment library, then choose which one should appear when the page is shared.</p>
-          <% else %>
-            <p class="text-sm text-(--surface-muted-content-color)">Install Active Storage and Recording Studio Attachable in the host app to upload a social image.</p>
           <% end %>
         </div>
       <% end %>
     <% end %>
 
     <div class="publishable-save-actions">
-      <%= render FlatPack::Button::Component.new(text: "Save changes", style: :primary, size: :md, type: "submit") %>
+      <%= form.submit "Save changes", id: "publishable-save-button", class: "inline-flex items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm bg-[var(--button-primary-background-color)] hover:bg-[var(--button-primary-hover-background-color)] text-[var(--button-primary-text-color)] border border-[var(--button-primary-border-color)] shadow-[var(--button-shadow)]" %>
     </div>
   <% end %>
+
+  <%= render "recording_studio_attachable/attachment_image_pickers/modal",
+    modal_id: social_image_modal_id,
+    modal_title: "Select social image",
+    recording: @publishable_recording,
+    search_aria_label: "Search social images",
+    empty_state_text: "No images found for this publishable yet." %>
 </div>
 
 <style>
@@ -235,14 +176,110 @@
 
   .publishable-edit-form .publishable-save-actions {
     display: none;
+    position: relative;
+    z-index: 1;
+    pointer-events: auto;
   }
 
-  .publishable-edit-form:has([role="tab"][aria-selected="true"]) .publishable-save-actions {
+  .publishable-edit-form.has-active-tab .publishable-save-actions {
     display: block;
   }
+
+  .publishable-edit-form [data-publishable-social-image-preview-image]:not(.hidden) + [data-publishable-social-image-empty] {
+    display: none !important;
+  }
+
+  [data-controller~="flat-pack--modal"][aria-hidden="true"] {
+    pointer-events: none !important;
+  }
+
 </style>
 
 <script>
+  function syncPublishableSaveVisibility(form) {
+    if (!(form instanceof HTMLFormElement) || !form.classList.contains("publishable-edit-form")) {
+      return;
+    }
+
+    var hasActiveTab = form.querySelector('[role="tab"][aria-selected="true"]') !== null;
+    form.classList.toggle("has-active-tab", hasActiveTab);
+  }
+
+  function syncAllPublishableSaveVisibility() {
+    document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
+      syncPublishableSaveVisibility(form);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    syncAllPublishableSaveVisibility();
+  });
+
+  document.addEventListener("turbo:load", function() {
+    syncAllPublishableSaveVisibility();
+  });
+
+  document.addEventListener("click", function(event) {
+    var tab = event.target.closest('.publishable-edit-form [role="tab"]');
+    if (!tab) {
+      return;
+    }
+
+    var form = tab.closest("form.publishable-edit-form");
+    if (!form) {
+      return;
+    }
+
+    window.requestAnimationFrame(function() {
+      syncPublishableSaveVisibility(form);
+    });
+  });
+
+  document.addEventListener("click", function(event) {
+    var form = document.querySelector("form.publishable-edit-form");
+    if (!form || !form.classList.contains("has-active-tab")) {
+      return;
+    }
+
+    var saveActions = form.querySelector(".publishable-save-actions");
+    if (!saveActions) {
+      return;
+    }
+
+    var rect = saveActions.getBoundingClientRect();
+    var withinX = event.clientX >= rect.left && event.clientX <= rect.right;
+    var withinY = event.clientY >= rect.top && event.clientY <= rect.bottom;
+    if (!(withinX && withinY)) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    var saveButton = form.querySelector("#publishable-save-button");
+    if (typeof form.requestSubmit === "function") {
+      form.requestSubmit(saveButton || undefined);
+    } else {
+      form.submit();
+    }
+  }, true);
+
+  document.addEventListener("submit", function(event) {
+    var form = event.target;
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    if (!form.classList.contains("publishable-edit-form")) {
+      return;
+    }
+
+    var toggleInputs = form.querySelectorAll('input[name="publishable[published_toggle]"]');
+    toggleInputs.forEach(function(input) {
+      input.disabled = true;
+    });
+  });
+
   document.addEventListener("change", function(event) {
     var toggle = event.target;
     if (!(toggle instanceof HTMLInputElement)) {
@@ -255,7 +292,8 @@
 
     if (toggle.form) {
       var form = toggle.form;
-      var formData = new FormData(form);
+      var formData = new FormData();
+      formData.append("publishable[published_toggle]", toggle.checked ? "1" : "0");
       var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
       var labelElement = toggle.closest("label")?.nextElementSibling;
       var timingElement = form.querySelector("[data-publishable-toggle-timing]");
@@ -309,6 +347,44 @@
       }).catch(function() {
         toggle.checked = !toggle.checked;
       });
+    }
+  });
+
+  document.addEventListener("recording-studio-attachable--attachment-image-picker:selected", function(event) {
+    var host = document.querySelector("[data-publishable-social-image-picker]");
+    if (!host) {
+      return;
+    }
+
+    var attachment = event.detail && event.detail.attachment;
+    if (!attachment) {
+      return;
+    }
+
+    var input = host.querySelector("#publishable-social-image-input");
+    if (input) {
+      input.value = attachment.id || "";
+    }
+
+    var image = host.querySelector("[data-publishable-social-image-preview-image]");
+    if (image) {
+      image.src = attachment.thumbnail_url || "";
+      image.classList.remove("hidden");
+    }
+
+    var emptyState = host.querySelector("[data-publishable-social-image-empty]");
+    if (emptyState) {
+      emptyState.classList.add("hidden");
+    }
+
+    var name = host.querySelector("[data-publishable-social-image-preview-name]");
+    if (name) {
+      name.textContent = attachment.name || "Selected image";
+    }
+
+    var copy = host.querySelector("[data-publishable-social-image-preview-copy]");
+    if (copy) {
+      copy.textContent = "Click to replace image.";
     }
   });
 </script>

@@ -152,7 +152,8 @@ module RecordingStudioPublishable
           return unless validated.key?(:published_toggle)
 
           if status == "published"
-            validated[:publish_at] = Time.current
+            toggle_only_publish_request = attributes.key?(:published_toggle) && !attributes.key?(:publish_at)
+            validated[:publish_at] = Time.current if previous_status != "published" && toggle_only_publish_request
             validated[:unpublish_at] = nil
             Rails.logger.info(
               "[RecordingStudioPublishable::Update] publish side effects applied " \
