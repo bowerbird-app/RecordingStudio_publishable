@@ -15,6 +15,7 @@
       <%= render FlatPack::Sidebar::Item::Component.new(label: "Recordable types", href: main_app.docs_recordable_types_path, icon: :queue_list) %>
       <%= render FlatPack::Sidebar::Item::Component.new(label: "Recordings tree", href: main_app.docs_recordings_tree_path, icon: :folder) %>
       <%= render FlatPack::Sidebar::Item::Component.new(label: "Methods", href: main_app.docs_methods_path, icon: :code_bracket) %>
+        <%= render FlatPack::Sidebar::Item::Component.new(label: "Headers", href: main_app.docs_headers_path, icon: :globe_alt) %>
       <%= render FlatPack::Sidebar::Item::Component.new(label: "Components", href: main_app.docs_components_path, icon: :folder) %>
     </nav>
   <% end %>

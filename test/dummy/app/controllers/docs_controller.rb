@@ -34,6 +34,19 @@ class DocsController < ApplicationController
     @method_sections = method_sections
   end
 
+  def headers
+    @header_recordings = RecordingStudio::Recording.where(recordable_type: %w[Page Article]).includes(:recordable).order(:created_at, :id)
+    @header_parent_recording = selected_header_recording
+    @header_publishable = @header_parent_recording&.current_publishable
+    @header_public_url = @header_parent_recording&.publishable_public_url(
+      host: request.host_with_port,
+      protocol: request.protocol.delete_suffix("://")
+    )
+    @header_social_image_url = social_image_preview_url(@header_publishable)
+    @header_tag_rows = header_tag_rows
+    @header_tag_code = build_header_code
+  end
+
   def components
     require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/status_badge/component").to_s
     require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/quick_actions/component").to_s
@@ -163,7 +176,7 @@ class DocsController < ApplicationController
     [
       {
         title: "RecordingStudioPublishable::EditButtonComponent",
-        subtitle: "Status-aware edit button preview showing published, scheduled, draft, and unpublished states.",
+        subtitle: "Status-aware edit button preview showing published and draft states.",
         entrypoint: "app/components/recording_studio_publishable/edit_button_component.rb",
         params: [
           {
@@ -221,6 +234,70 @@ class DocsController < ApplicationController
     ]
   end
 
+  def selected_header_recording
+    selected_id = params[:recording_id].presence
+    return @header_recordings.first if selected_id.blank?
+
+    @header_recordings.find { |recording| recording.id == selected_id } || @header_recordings.first
+  end
+
+  def social_image_preview_url(publishable)
+    return if publishable.blank? || !publishable.social_image_attached?
+
+    path = recording_studio_attachable.attachment_preview_file_path(
+      publishable.social_image_attachment_recording,
+      variant_name: :square_small
+    )
+
+    "#{request.base_url}#{path}"
+  rescue StandardError
+    nil
+  end
+
+  def header_tag_rows
+    return [] unless @header_parent_recording && @header_publishable
+
+    page_title = @header_publishable.seo_title.presence || @header_parent_recording.recordable&.try(:title).presence || "Published page"
+    description = @header_publishable.seo_description.presence
+    canonical_url = @header_publishable.canonical_url.presence || @header_public_url
+    social_title = @header_publishable.social_title.presence || page_title
+    social_description = @header_publishable.social_description.presence || description
+    twitter_card = @header_social_image_url.present? ? "summary_large_image" : "summary"
+
+    rows = []
+    rows << ["title", page_title]
+    rows << ["meta[name=description]", description] if description.present?
+    rows << ["link[rel=canonical]", canonical_url] if canonical_url.present?
+    rows << ["meta[property=og:type]", "article"]
+    rows << ["meta[property=og:title]", social_title]
+    rows << ["meta[property=og:description]", social_description] if social_description.present?
+    rows << ["meta[property=og:url]", @header_public_url] if @header_public_url.present?
+    rows << ["meta[property=og:image]", @header_social_image_url] if @header_social_image_url.present?
+    rows << ["meta[name=twitter:card]", twitter_card]
+    rows << ["meta[name=twitter:title]", social_title]
+    rows << ["meta[name=twitter:description]", social_description] if social_description.present?
+    rows << ["meta[name=twitter:image]", @header_social_image_url] if @header_social_image_url.present?
+    rows
+  end
+
+  def build_header_code
+    lines = []
+
+    @header_tag_rows.each do |name, value|
+      case name
+      when "title"
+        lines << "<title>#{value}</title>"
+      when "link[rel=canonical]"
+        lines << "<link rel=\"canonical\" href=\"#{value}\">"
+      else
+        key, key_value = name.match(/meta\[(.+?)=(.+?)\]/).captures
+        lines << "<meta #{key}=\"#{key_value}\" content=\"#{value}\">"
+      end
+    end
+
+    lines.join("\n")
+  end
+
   def component_demo_recording
     RecordingStudio::Recording.where(recordable_type: "Page").includes(:recordable).order(:created_at, :id).first
   end
@@ -230,9 +307,8 @@ class DocsController < ApplicationController
       demo_recording = Struct.new(:id, :current_publishable)
       statuses = [
         [:published, RecordingStudioPublishable::Publishable.new(status: :published, slug: "published-demo")],
-        [:scheduled, RecordingStudioPublishable::Publishable.new(status: :scheduled, slug: "scheduled-demo", publish_at: 1.day.from_now)],
-        [:draft, RecordingStudioPublishable::Publishable.new(status: :draft, slug: "draft-demo")],
-        [:unpublished, RecordingStudioPublishable::Publishable.new(status: :unpublished, slug: "unpublished-demo")]
+        [:published_future, RecordingStudioPublishable::Publishable.new(status: :published, slug: "published-future-demo", publish_at: 1.day.from_now)],
+        [:draft, RecordingStudioPublishable::Publishable.new(status: :draft, slug: "draft-demo")]
       ]
 
       statuses.map.with_index(1) do |(name, publishable), index|

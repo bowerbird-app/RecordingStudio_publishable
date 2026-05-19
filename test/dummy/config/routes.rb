@@ -14,6 +14,7 @@ Rails.application.routes.draw do
   get "docs/recordings_tree", to: "docs#recordings_tree", as: :docs_recordings_tree
   get "docs/gem_views", to: "docs#gem_views", as: :docs_gem_views
   get "docs/methods", to: "docs#methods", as: :docs_methods
+  get "docs/headers", to: "docs#headers", as: :docs_headers
   get "docs/components", to: "docs#components", as: :docs_components
 
   get "/dummy/pages/new", to: "dummy_pages#new", as: :new_dummy_page

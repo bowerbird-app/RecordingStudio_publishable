@@ -1,6 +1,9 @@
+<%# TODO: need to question this. this needs to be flexible from registered public renderer in config. not hardcoded%>
+<% page_title = @article&.title.presence || @publishable.seo_title.presence || @publishable.slug.to_s.tr("-", " ").humanize %>
+
 <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
   <%= render FlatPack::PageTitle::Component.new(
-    title: @article.title,
+    title: page_title,
     subtitle: @publishable.seo_description.presence || "Rendered through the article controller configured for published routes.",
     variant: :h1
   ) %>

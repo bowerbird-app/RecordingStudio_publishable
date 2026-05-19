@@ -31,4 +31,5 @@ Sign in with:
 - `/recordings/:recording_id/publishable/edit` - edit publishable info
 - `/published/:uuid/:slug` - default public route
 - `/recording_studio` - mounted RecordingStudio engine
+- `/docs/headers` - preview generated canonical, Open Graph, and Twitter header values
 - `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods`, `/docs/components` - supporting docs
