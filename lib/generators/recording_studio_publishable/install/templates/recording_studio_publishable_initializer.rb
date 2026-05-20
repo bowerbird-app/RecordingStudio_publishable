@@ -16,9 +16,6 @@ RecordingStudioPublishable.configure do |config|
   # Override the engine layout used by all gem-managed screens.
   # config.layout = "application"
 
-  # Optionally override just the edit screen layout.
-  # config.edit_layout = "flat_pack_sidebar"
-
   # Override the backend controller/action used to prepare and render a parent type
   # on the published route without changing the public URL.
   # The default convention resolves Page -> pages#show, Article -> articles#show.

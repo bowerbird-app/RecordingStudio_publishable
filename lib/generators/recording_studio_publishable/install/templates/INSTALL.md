@@ -14,5 +14,4 @@ Next steps:
 Configuration notes:
 
 - `config.default_layout` controls the engine layout globally.
-- `config.edit_layout` lets you override only the edit publishable screen layout.
 - `config.register_public_renderer("Page", controller: "pages", action: :show)` overrides the default `Page -> pages#show` public rendering convention.

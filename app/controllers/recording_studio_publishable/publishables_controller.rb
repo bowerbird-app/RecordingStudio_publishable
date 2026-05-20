@@ -104,10 +104,7 @@ module RecordingStudioPublishable
     end
 
     def publishable_layout
-      config = RecordingStudioPublishable.configuration
-      return config.layout unless config.respond_to?(:edit_layout)
-
-      config.edit_layout.presence || config.layout
+      RecordingStudioPublishable.configuration.layout
     end
 
     def assign_publishable_form_state

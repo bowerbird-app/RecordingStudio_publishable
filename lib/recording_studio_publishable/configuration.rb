@@ -17,7 +17,6 @@ module RecordingStudioPublishable
                   :management_authorizer,
                   :default_time_zone,
                   :layout,
-                  :edit_layout,
                   :canonical_redirect_status
     attr_reader :hooks, :public_path_configs, :public_renderer_configs
 
@@ -26,7 +25,6 @@ module RecordingStudioPublishable
       @management_authorizer = method(:default_management_authorizer)
       @default_time_zone = default_rails_time_zone
       @layout = "recording_studio_publishable/application"
-      @edit_layout = nil
       @canonical_redirect_status = :found
       @public_path_configs = {}
       @public_renderer_configs = {}
@@ -37,7 +35,6 @@ module RecordingStudioPublishable
       {
         default_time_zone: default_time_zone,
         layout: layout,
-        edit_layout: edit_layout,
         canonical_redirect_status: canonical_redirect_status,
         public_path_configs: public_path_configs.dup,
         public_renderer_configs: public_renderer_configs.transform_values(&:to_h),

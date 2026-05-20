@@ -6,7 +6,7 @@ require_relative "../dummy/config/environment"
 require "rails/test_help"
 
 class PublishedControllerTest < ActionDispatch::IntegrationTest
-  test "publishables layout falls back when edit_layout is unavailable" do
+  test "publishables layout uses configured layout" do
     controller = RecordingStudioPublishable::PublishablesController.new
     config = Struct.new(:layout).new("application")
 

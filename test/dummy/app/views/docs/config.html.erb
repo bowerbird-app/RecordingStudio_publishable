@@ -16,7 +16,7 @@
         <p><strong>current_actor_resolver</strong> resolves the actor used to authorize management actions.</p>
         <p><strong>management_authorizer</strong> decides whether a user may edit publishable content.</p>
         <p><strong>default_time_zone</strong> sets the schedule-editing time zone used by the publishable form.</p>
-        <p><strong>layout</strong> controls gem-managed screens, and <strong>edit_layout</strong> can override only the edit page.</p>
+        <p><strong>layout</strong> controls gem-managed screens.</p>
         <p><strong>register_public_renderer</strong> chooses the host controller, action, and optional layout used for a parent type on the published route.</p>
         <p><strong>canonical_redirect_status</strong> changes the status code used for stale slug redirects.</p>
       </div>
@@ -33,7 +33,6 @@
         code: <<~RUBY
           RecordingStudioPublishable.configure do |config|
             config.layout = "application"
-            config.edit_layout = "flat_pack_sidebar"
             config.register_public_renderer("Page", controller: "pages", action: :show, layout: "application")
             config.register_public_renderer("Article", controller: "articles", action: :show, layout: "application")
             config.canonical_redirect_status = :moved_permanently

@@ -65,7 +65,7 @@ bin/rails db:migrate
 
 Public rendering defaults to the parent recordable type convention, for example `Page -> pages#show`. You can override that per type in the generated initializer with `config.register_public_renderer(...)` to choose which host controller/action prepares the published page while keeping the same public URL.
 
-The edit screen uses `config.edit_layout` when set; otherwise it falls back to `config.layout`.
+Gem-managed screens use `config.layout` (default: `recording_studio_publishable/application`).
 
 ## Running tests
 
