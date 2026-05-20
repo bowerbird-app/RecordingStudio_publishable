@@ -91,8 +91,20 @@ class DocsController < ApplicationController
       },
       {
         title: "RecordingStudioPublishable::RecordingExtensions",
-        subtitle: "Instance helpers added to RecordingStudio::Recording.",
+        subtitle: "Scopes and instance helpers added to RecordingStudio::Recording.",
         code: <<~RUBY
+          # Returns recordings whose publishable child is live right now.
+          RecordingStudio::Recording.currently_published
+
+          # Returns recordings whose publishable child is scheduled for the future.
+          RecordingStudio::Recording.scheduled_publishables
+
+          # Returns recordings whose publishable child is still a draft.
+          RecordingStudio::Recording.draft_publishables
+
+          # Returns recordings whose publishable child was previously live and is now unpublished.
+          RecordingStudio::Recording.unpublished_publishables
+
           recording = RecordingStudio::Recording.find(recording_id)
 
           # Returns the publishable child recording (RecordingStudio::Recording).
@@ -126,8 +138,14 @@ class DocsController < ApplicationController
           # Returns publishable records with draft status.
           RecordingStudioPublishable::Publishable.draft
 
-          # Returns publishable records with unpublished status.
+          # Returns publishable records that were previously live and are now unpublished.
           RecordingStudioPublishable::Publishable.unpublished
+
+          # Returns true when the normalized status is published.
+          publishable.published_state?
+
+          # Returns true when the normalized status is draft.
+          publishable.draft_state?
 
           # Returns true when this publishable is currently live.
           publishable.currently_published?
@@ -135,7 +153,7 @@ class DocsController < ApplicationController
           # Returns the same boolean as currently_published?.
           publishable.published?
 
-          # Returns true when status is scheduled and publish_at is in the future.
+          # Returns true when status is published and publish_at is in the future.
           publishable.scheduled_for_future?
 
           # Returns true when this record was published before and is no longer live.
@@ -146,6 +164,15 @@ class DocsController < ApplicationController
 
           # Returns the configured time zone for this publishable, or the addon default.
           publishable.effective_time_zone
+
+          # Returns true when the social image attachment integration is available.
+          publishable.social_image_supported?
+
+          # Returns the attached social image recordable, when present.
+          publishable.social_image_attachment
+
+          # Returns true when a social image attachment has been linked.
+          publishable.social_image_attached?
         RUBY
       },
       {
