@@ -33,7 +33,7 @@
     <% end %>
   <% end %>
 
-  <%# TODO: need to question this bit. %>
+  <%# This section displays resolved head tag values for the selected parent recording and publishable. %>
   <% if @header_parent_recording.present? && @header_publishable.present? %>
     <% preview_title = @header_publishable.social_title.presence || @header_publishable.seo_title.presence || @header_parent_recording.recordable&.try(:title).presence || "Published page" %>
     <% preview_description = @header_publishable.social_description.presence || @header_publishable.seo_description.presence || "No description provided." %>

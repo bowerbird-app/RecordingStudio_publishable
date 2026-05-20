@@ -1,10 +1,13 @@
-<%# TODO: need to question this. this needs to be flexible from registered public renderer in config. not hardcoded%>
 <% page_title = @article&.title.presence || @publishable.seo_title.presence || @publishable.slug.to_s.tr("-", " ").humanize %>
+<% public_renderer = RecordingStudioPublishable.configuration.public_renderer_for(@recording&.recordable_type) %>
 
 <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
   <%= render FlatPack::PageTitle::Component.new(
     title: page_title,
-    subtitle: @publishable.seo_description.presence || "Rendered through the article controller configured for published routes.",
+    subtitle: (
+      @publishable.seo_description.presence ||
+      "Rendered through: #{public_renderer.controller}##{public_renderer.action} (layout: #{public_renderer.layout.presence || RecordingStudioPublishable.configuration.layout})"
+    ),
     variant: :h1
   ) %>
 
