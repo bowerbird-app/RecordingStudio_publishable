@@ -118,8 +118,8 @@ module RecordingStudioPublishable
     private
 
     def default_current_actor_resolver(controller: nil)
-      current_actor = Current.actor if defined?(Current) && Current.respond_to?(:actor)
-      return current_actor if current_actor.present?
+      recording_studio_actor = resolve_recording_studio_actor
+      return recording_studio_actor if recording_studio_actor.present?
       return unless controller.respond_to?(:current_user, true)
 
       controller.send(:current_user)
@@ -186,6 +186,17 @@ module RecordingStudioPublishable
 
       supported = parameters.filter_map { |type, name| name if %i[key keyreq].include?(type) }
       callable.call(**kwargs.slice(*supported))
+    end
+
+    def resolve_recording_studio_actor
+      return unless defined?(RecordingStudio) && RecordingStudio.respond_to?(:configuration)
+
+      actor_resolver = RecordingStudio.configuration.respond_to?(:actor) ? RecordingStudio.configuration.actor : nil
+      return actor_resolver unless actor_resolver.respond_to?(:call)
+
+      actor_resolver.call
+    rescue StandardError
+      nil
     end
   end
 end

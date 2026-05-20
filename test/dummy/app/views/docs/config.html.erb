@@ -12,7 +12,7 @@
         subtitle: "These are the primary configuration points exposed by the addon."
       ) %>
 
-      <div class="space-y-3 text-sm leading-7 text-[var(--surface-muted-content-color)]">
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
         <p><strong>current_actor_resolver</strong> resolves the actor used to authorize management actions.</p>
         <p><strong>management_authorizer</strong> decides whether a user may edit publishable content.</p>
         <p><strong>default_time_zone</strong> sets the schedule-editing time zone used by the publishable form.</p>
@@ -32,7 +32,6 @@
         language: :ruby,
         code: <<~RUBY
           RecordingStudioPublishable.configure do |config|
-            config.current_actor_resolver = ->(controller:) { Current.actor || controller.current_user }
             config.layout = "application"
             config.edit_layout = "flat_pack_sidebar"
             config.register_public_renderer("Page", controller: "pages", action: :show, layout: "application")
@@ -49,7 +48,7 @@
         subtitle: "These settings work together with the install generator and the public route helpers."
       ) %>
 
-      <div class="space-y-3 text-sm leading-7 text-[var(--surface-muted-content-color)]">
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
         <p>Use the host app initializer to tailor auth, layouts, and the backend controller/action that each published recordable type should resolve through.</p>
         <p>The published URL stays the same; the controller mapping only changes which host controller/action prepares the page.</p>
       </div>
