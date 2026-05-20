@@ -15,7 +15,7 @@ folder_recording = RecordingStudio::Recording.unscoped.find_or_create_by!(root_r
 page_recording = RecordingStudio::Recording.unscoped.find_or_create_by!(root_recording_id: root_recording.id, parent_recording_id: folder_recording.id, recordable: page)
 article_recording = RecordingStudio::Recording.unscoped.find_or_create_by!(root_recording_id: root_recording.id, parent_recording_id: folder_recording.id, recordable: article)
 
-Current.actor = user
+Current.actor = RecordingStudio::ActorResolver.resolve_actor.call(user)
 Current.impersonator = nil
 access = RecordingStudio::Access.find_or_create_by!(actor: user, role: :admin)
 RecordingStudio::Recording.unscoped.find_or_create_by!(root_recording_id: root_recording.id, parent_recording_id: root_recording.id, recordable: access)

@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
   end
 
   def set_current_actor
-    Current.actor = current_user
+    Current.actor = RecordingStudio::ActorResolver.resolve_actor.call(current_user)
     Current.impersonator = nil
   end
 end

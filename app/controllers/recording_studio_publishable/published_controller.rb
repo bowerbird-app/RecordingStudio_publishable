@@ -43,7 +43,9 @@ module RecordingStudioPublishable
     end
 
     def redirect_to_canonical_path(canonical_path)
-      redirect_to canonical_path, status: RecordingStudioPublishable.configuration.canonical_redirect_status
+      redirect_to canonical_path,
+                  status: RecordingStudioPublishable.configuration.canonical_redirect_status,
+                  allow_other_host: false
     end
 
     def assign_parent_recordable_context(publishable_recording)
@@ -87,7 +89,11 @@ module RecordingStudioPublishable
 
       controller_class_name = controller_name.to_s
       controller_class_name = "#{controller_class_name.camelize}Controller" unless controller_class_name.end_with?("Controller")
-      controller_class_name.constantize
+      controller_class = controller_class_name.safe_constantize
+      return if controller_class.blank?
+      return if !(controller_class < ActionController::Base)
+
+      controller_class
     rescue NameError
       nil
     end

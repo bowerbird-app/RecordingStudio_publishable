@@ -10,7 +10,7 @@ RecordingStudio.configure do |config|
     "RecordingStudioPublishable::Publishable",
     "RecordingStudioAttachable::Attachment"
   ]
-  config.actor = -> { Current.actor }
+  config.actor = RecordingStudio::ActorResolver.resolve_actor
   config.event_notifications_enabled = true
   config.idempotency_mode = :return_existing
   config.include_children = false

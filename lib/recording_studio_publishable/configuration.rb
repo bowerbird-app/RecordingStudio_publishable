@@ -167,9 +167,10 @@ module RecordingStudioPublishable
 
     def default_public_renderer_for(recordable_type)
       demodulized = normalize_recordable_type(recordable_type).demodulize
+      sanitized = demodulized.to_s.gsub(/[^A-Za-z0-9_]/, "")
 
       PublicRenderer.new(
-        controller: demodulized.underscore.pluralize,
+        controller: sanitized.underscore.pluralize,
         action: :show,
         layout: nil
       )

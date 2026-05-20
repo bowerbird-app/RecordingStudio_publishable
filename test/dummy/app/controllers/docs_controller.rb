@@ -8,9 +8,7 @@ class DocsController < ApplicationController
   end
 
   def recordable_types
-    @recordable_types = Array(RecordingStudio.configuration.recordable_types).filter_map do |recordable_type|
-      normalize_recordable_type(recordable_type)
-    end
+    @recordable_types = RecordingStudio::RecordableTypesService.filtered_types
   end
 
   def recordings_tree
