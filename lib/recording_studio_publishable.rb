@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "recording_studio"
 require "recording_studio_publishable/version"
 require "recording_studio_publishable/hooks"
 require "recording_studio_publishable/configuration"
