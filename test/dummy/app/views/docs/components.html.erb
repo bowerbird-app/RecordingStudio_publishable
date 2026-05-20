@@ -17,18 +17,45 @@
       <% end %>
     <% end %>
 
-    <% if @component_demo_recording.present? && (@component_demo_publishable.present? || section[:preview] != :status_badge) %>
+    <% preview_available = section[:preview] == :status_badge || @component_demo_recording.present? %>
+    <% if preview_available %>
         <div class="space-y-4">
         <% case section[:preview] %>
         <% when :status_badge %>
-            <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @component_demo_publishable) %>
+          <div class="space-y-2">
+            <p class="text-xs font-medium uppercase tracking-wide text-(--surface-muted-content-color)">All possible status badge states</p>
+            <div class="flex flex-wrap gap-3">
+              <% @component_demo_status_badges.each do |publishable| %>
+                <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: publishable) %>
+              <% end %>
+            </div>
+          </div>
         <% when :quick_actions %>
           <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @component_demo_recording) %>
         <% when :edit_button %>
-          <div class="flex flex-wrap gap-3">
-            <% @component_demo_edit_button_recordings.each do |recording| %>
-              <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording) %>
-            <% end %>
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <p class="text-xs font-medium uppercase tracking-wide text-(--surface-muted-content-color)">Without tooltip (default)</p>
+              <div class="flex flex-wrap gap-3">
+                <% published_shown = false %>
+                <% @component_demo_edit_button_recordings.each do |recording| %>
+                  <% if recording.current_publishable&.published_state? %>
+                    <% next if published_shown %>
+                    <% published_shown = true %>
+                  <% end %>
+                  <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording) %>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <p class="text-xs font-medium uppercase tracking-wide text-(--surface-muted-content-color)">With tooltip</p>
+              <div class="flex flex-wrap gap-3">
+                <% @component_demo_edit_button_recordings.each do |recording| %>
+                  <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording, show_tooltip: true) %>
+                <% end %>
+              </div>
+            </div>
           </div>
         <% end %>
         </div>

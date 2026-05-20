@@ -53,7 +53,7 @@ class DocsController < ApplicationController
     require_dependency RecordingStudioPublishable::Engine.root.join("app/components/recording_studio_publishable/edit_button_component").to_s
 
     @component_demo_recording = component_demo_recording
-    @component_demo_publishable = @component_demo_recording&.current_publishable
+    @component_demo_status_badges = component_demo_status_badges
     @component_demo_edit_button_recordings = component_demo_edit_button_recordings
     @component_sections = component_sections
   end
@@ -191,15 +191,22 @@ class DocsController < ApplicationController
             required: false,
             description: "Button label text (default: 'Edit')."
           },
+          {
+            name: "show_tooltip:",
+            type: "Boolean",
+            required: false,
+            description: "When true, shows a published/scheduled tooltip on hover (default: false)."
+          },
         ],
         preview: :edit_button,
         code: <<~ERB
           <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: @component_demo_recording) %>
+          <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: @component_demo_recording, show_tooltip: true) %>
         ERB
       },
       {
         title: "RecordingStudioPublishable::StatusBadge::Component",
-        subtitle: "Shows the current publishable state for a publishable recordable.",
+        subtitle: "Shows all publishable status badge states for a publishable recordable.",
         entrypoint: "app/components/recording_studio_publishable/status_badge/component.rb",
         params: [
           {
@@ -211,7 +218,8 @@ class DocsController < ApplicationController
         ],
         preview: :status_badge,
         code: <<~ERB
-          <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
+          <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: RecordingStudioPublishable::Publishable.new(status: :draft, slug: "draft-demo")) %>
+          <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: RecordingStudioPublishable::Publishable.new(status: :published, slug: "published-demo")) %>
         ERB
       },
       {
@@ -315,6 +323,13 @@ class DocsController < ApplicationController
         demo_recording.new("demo-#{name}-#{index}", publishable)
       end
     end
+  end
+
+  def component_demo_status_badges
+    @component_demo_status_badges ||= [
+      RecordingStudioPublishable::Publishable.new(status: :draft, slug: "draft-demo"),
+      RecordingStudioPublishable::Publishable.new(status: :published, slug: "published-demo")
+    ]
   end
 
   def normalize_recordable_type(recordable_type)

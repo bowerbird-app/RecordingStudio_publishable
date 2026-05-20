@@ -4,17 +4,27 @@ module RecordingStudioPublishable
   class EditButtonComponent < ViewComponent::Base
     BUTTON_BASE_CLASS = "inline-flex items-center justify-center rounded-[var(--button-border-radius)] border px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm font-medium leading-none transition-opacity duration-base hover:opacity-90"
 
-    def initialize(recording: nil, publishable: nil, label: "Edit", **options)
+    def initialize(recording: nil, publishable: nil, label: "Edit", show_tooltip: false, **options)
       @recording = recording || recording_for_publishable(publishable)
       @label = label
+      @show_tooltip = show_tooltip
       @options = options
     end
 
     def call
       raise ArgumentError, "recording is required for EditButtonComponent" unless @recording
 
-      link_to edit_path, class: button_class, **@options do
+      button = link_to edit_path, class: button_class, **@options do
         concat(tag.span(button_text))
+      end
+
+      return button unless @show_tooltip
+
+      tooltip_text = tooltip_copy
+      return button if tooltip_text.blank?
+
+      helpers.render(FlatPack::Tooltip::Component.new(text: tooltip_text, placement: :top)) do
+        button
       end
     end
 
@@ -54,6 +64,20 @@ module RecordingStudioPublishable
 
     def edit_path
       helpers.recording_studio_publishable.edit_recording_publishable_path(recording_id: @recording.id)
+    end
+
+    def tooltip_copy
+      publishable = @recording.current_publishable
+      return if publishable.blank? || !publishable.published_state?
+
+      if publishable.scheduled_for_future?
+        return "Scheduled to publish in #{helpers.distance_of_time_in_words(Time.current, publishable.publish_at)}"
+      end
+
+      publish_at = publishable.publish_at
+      return "Published just now" if publish_at.blank?
+
+      "Published #{helpers.time_ago_in_words(publish_at)} ago"
     end
 
     def recording_for_publishable(publishable)
