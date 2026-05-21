@@ -78,7 +78,14 @@ module RecordingStudioPublishable
     private
 
     def load_parent_recording
-      @parent_recording = RecordingStudio::Recording.find(params[:recording_id])
+      requested_recording = RecordingStudio::Recording.find(params[:recording_id])
+      @parent_recording = canonical_parent_recording_for(requested_recording)
+    end
+
+    def canonical_parent_recording_for(recording)
+      return recording unless recording.recordable_type == RecordingStudioPublishable::Publishable.name
+
+      recording.parent_recording || recording
     end
 
     def ensure_publishable_child

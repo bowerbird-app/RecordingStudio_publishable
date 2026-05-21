@@ -14,7 +14,7 @@ class RecordableTypesServiceTest < Minitest::Test
   def test_filtered_types_returns_only_configured_constantized_classes
     RecordingStudio.configuration.recordable_types = ["String", "", nil, "MissingConstant", "Object"]
 
-    assert_equal ["String", "Object"], RecordingStudio::RecordableTypesService.filtered_types
+    assert_equal %w[String Object], RecordingStudio::RecordableTypesService.filtered_types
   end
 
   def test_valid_recordable_type_accepts_class_based_configuration

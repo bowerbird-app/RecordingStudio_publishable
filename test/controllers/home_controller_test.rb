@@ -83,11 +83,23 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     get recording_studio_publishable.edit_recording_publishable_path(recording_id: @page_recording.id)
 
     assert_response :success
-    assert_includes response.body, "Edit publishable info"
+    assert_includes response.body, "Publish"
     assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
     assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
     assert_includes response.body, "History"
     assert_includes response.body, "Upload image"
     assert_includes response.body, "Manage library"
+  end
+
+  test "edit page accepts a publishable child recording id without nesting another publishable" do
+    publishable_recording = @page_recording.publishable_child_recording
+
+    assert_no_difference -> { RecordingStudio::Recording.where(parent_recording_id: publishable_recording.id, recordable_type: RecordingStudioPublishable::Publishable.name).count } do
+      get recording_studio_publishable.edit_recording_publishable_path(recording_id: publishable_recording.id)
+    end
+
+    assert_response :success
+    assert_includes response.body, "Publish"
+    assert_includes response.body, recording_studio_publishable.publishable_path(recording_id: @page_recording.id)
   end
 end

@@ -30,6 +30,16 @@ module RecordingStudioPublishable
 
           assert_equal first.id, second.id
         end
+
+        test "rejects a publishable recording as the parent" do
+          publishable_recording = EnsureChild.call(parent_recording: @parent_recording).value
+
+          result = EnsureChild.call(parent_recording: publishable_recording)
+
+          assert result.failure?
+          assert_equal "Publishable recordings cannot own publishable children", result.error
+          assert_nil publishable_recording.reload.publishable_child_recording
+        end
       end
     end
   end

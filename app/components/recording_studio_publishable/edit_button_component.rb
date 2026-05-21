@@ -83,9 +83,19 @@ module RecordingStudioPublishable
     def recording_for_publishable(publishable)
       return unless publishable
 
-      publishable.try(:recording) ||
+      normalize_recording(
+        publishable.try(:recording) ||
         publishable.try(:publishable_recording) ||
         publishable.try(:parent_recording)
+      )
+    end
+
+    def normalize_recording(recording)
+      return unless recording
+      return recording unless recording.respond_to?(:recordable_type)
+      return recording unless recording.recordable_type == RecordingStudioPublishable::Publishable.name
+
+      recording.parent_recording || recording
     end
   end
 end

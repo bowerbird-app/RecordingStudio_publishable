@@ -15,6 +15,7 @@ module RecordingStudioPublishable
 
         def perform
           return failure("Parent recording is required") unless parent_recording
+          return failure("Publishable recordings cannot own publishable children") if invalid_parent_recording?
 
           existing_recording = parent_recording.publishable_child_recording
           return success(existing_recording) if existing_recording
@@ -40,6 +41,10 @@ module RecordingStudioPublishable
 
         def service_args
           { parent_recording_id: parent_recording&.id }
+        end
+
+        def invalid_parent_recording?
+          parent_recording.recordable_type == RecordingStudioPublishable::Publishable.name
         end
 
         def default_slug
