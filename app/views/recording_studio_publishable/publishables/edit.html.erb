@@ -22,8 +22,17 @@
 
   <% recordable = @parent_recording.recordable %>
   <% recordable_name = recordable.try(:title).presence || recordable.try(:name).presence || @parent_recording.recordable_type.to_s.demodulize.humanize %>
+  <% pill_active_classes = FlatPack::Button::Pill::Component::ITEM_ACTIVE_CLASSES %>
+  <% pill_inactive_classes = FlatPack::Button::Pill::Component::ITEM_INACTIVE_CLASSES %>
   <% published_state = @publishable.published_state? %>
   <% scheduled_for_future = @publishable.scheduled_for_future? %>
+  <% active_status_pill = if scheduled_for_future
+                            "scheduled"
+                          elsif published_state
+                            "published"
+                          else
+                            "draft"
+                          end %>
   <% publish_at_time = @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone) %>
   <% timing_copy = if published_state
                      if publish_at_time.present? && publish_at_time > Time.current
@@ -43,14 +52,45 @@
     ) %>
   </div>
 
-  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true } do |form| %>
+  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true }, data: { publishable_initial_mode: active_status_pill, publishable_pill_active_classes: pill_active_classes, publishable_pill_inactive_classes: pill_inactive_classes } do |form| %>
     <div class="space-y-2">
-      <%= hidden_field_tag "publishable[published_toggle]", "0" %>
-      <%= render FlatPack::Switch::Component.new(
-        name: "publishable[published_toggle]",
-        label: (published_state ? "Published" : "Draft"),
-        checked: published_state
+      <%= form.hidden_field :status, value: (published_state ? "published" : "draft"), data: { publishable_status_field: true } %>
+      <%= render FlatPack::Button::Pill::Component.new(
+        items: [
+          {
+            text: "Draft",
+            href: "#",
+            active: active_status_pill == "draft",
+            data: { publishable_status_pill: "draft" },
+            aria: { pressed: active_status_pill == "draft" }
+          },
+          {
+            text: "Scheduled",
+            href: "#",
+            active: active_status_pill == "scheduled",
+            data: { publishable_status_pill: "scheduled" },
+            aria: { pressed: active_status_pill == "scheduled" }
+          },
+          {
+            text: "Published",
+            href: "#",
+            active: active_status_pill == "published",
+            data: { publishable_status_pill: "published" },
+            aria: { pressed: active_status_pill == "published" }
+          }
+        ],
+        aria: { label: "Publish status" }
       ) %>
+      <%= render FlatPack::Button::Component.new(
+        icon: "cog-6-tooth",
+        icon_only: true,
+        style: :ghost,
+        size: :sm,
+        type: "button",
+        data: { publishable_advanced_toggle: true },
+        aria: { label: "Toggle publish settings", expanded: "false", controls: "publishable-advanced-panel" }
+      ) %>
+      <p class="text-sm text-(--surface-muted-content-color)">Choose a status, then click Save changes to apply it.</p>
       <div class="flex items-center gap-1 text-sm text-(--surface-muted-content-color) <%= timing_copy.present? ? "" : "hidden" %>" data-publishable-toggle-timing-row>
         <span data-publishable-toggle-timing><%= timing_copy %></span>
         <span class="<%= scheduled_for_future ? "inline-flex" : "hidden" %>" data-publishable-schedule-dismiss>
@@ -69,80 +109,49 @@
       </div>
     </div>
 
-    <%= render FlatPack::Tabs::Component.new(default_tab: -1, variant: :pills) do |tabs| %>
-      <% tabs.tab(id: "schedule", label: "Schedule") %>
-      <% tabs.tab(id: "seo", label: "SEO") %>
-      <% tabs.tab(id: "details", label: "Details") %>
-      <% tabs.tab(id: "image", label: "Image") %>
+    <div class="<%= active_status_pill == "scheduled" ? "" : "hidden" %> grid gap-4 md:grid-cols-3" data-publishable-schedule-fields>
+      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
+      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
+      <div class="space-y-2">
+        <%= render FlatPack::Select::Component.new(
+          name: "publishable[time_zone]",
+          options: @time_zone_options,
+          label: "Time zone",
+          placeholder: "Select a time zone",
+          value: @publishable.time_zone.presence
+        ) %>
+      </div>
+    </div>
 
-      <% tabs.panel(id: "schedule") do %>
-        <div class="grid gap-4 pt-4 md:grid-cols-3">
-          <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
-          <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
-          <div class="space-y-2">
-            <%= render FlatPack::Select::Component.new(
-              name: "publishable[time_zone]",
-              options: @time_zone_options,
-              label: "Time zone",
-              placeholder: "Select a time zone",
-              value: @publishable.time_zone.presence
-            ) %>
-          </div>
-
-          <script>
-            document.addEventListener("DOMContentLoaded", function() {
-              var select = document.querySelector('[name="publishable[time_zone]"]');
-              if (!select) return;
-              if (select.value) return; // already set
-              var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-              if (!tz) return;
-              // Try to match the detected timezone to an option value
-              var found = false;
-              for (var i = 0; i < select.options.length; i++) {
-                if (select.options[i].value === tz) {
-                  select.selectedIndex = i;
-                  found = true;
-                  break;
-                }
-              }
-              if (found) {
-                var event = new Event('change', { bubbles: true });
-                select.dispatchEvent(event);
-              }
-            });
-          </script>
+    <div id="publishable-advanced-panel" class="hidden space-y-8 bg-(--surface-raised-background-color) p-4" data-publishable-advanced-panel>
+      <section class="space-y-4">
+        <h2 class="text-sm font-semibold text-(--surface-content-color)">SEO</h2>
+        <div class="grid gap-4 md:grid-cols-2">
+          <%= render FlatPack::TextInput::Component.new(name: "publishable[seo_title]", label: "SEO title", value: @publishable.seo_title) %>
+          <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
         </div>
-      <% end %>
-
-      <% tabs.panel(id: "seo") do %>
-        <div class="space-y-4 pt-4">
-          <div class="grid gap-4 md:grid-cols-2">
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[seo_title]", label: "SEO title", value: @publishable.seo_title) %>
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
-          </div>
-          <div class="space-y-2">
-            <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_seo_description">SEO description</label>
-            <%= form.text_area :seo_description, value: @publishable.seo_description, class: "min-h-28 w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
-          </div>
-          <%= render FlatPack::TextInput::Component.new(name: "publishable[meta_robots]", label: "Meta robots", value: @publishable.meta_robots, placeholder: "index,follow") %>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_seo_description">SEO description</label>
+          <%= form.text_area :seo_description, value: @publishable.seo_description, class: "min-h-28 w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
         </div>
-      <% end %>
+        <%= render FlatPack::TextInput::Component.new(name: "publishable[meta_robots]", label: "Meta robots", value: @publishable.meta_robots, placeholder: "index,follow") %>
+      </section>
 
-      <% tabs.panel(id: "details") do %>
-        <div class="space-y-4 pt-4">
-          <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
-          <div class="grid gap-4 md:grid-cols-2">
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[social_title]", label: "Social title", value: @publishable.social_title) %>
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[social_description]", label: "Social description", value: @publishable.social_description) %>
-          </div>
+      <section class="space-y-4">
+        <h2 class="text-sm font-semibold text-(--surface-content-color)">Details</h2>
+        <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
+        <div class="grid gap-4 md:grid-cols-2">
+          <%= render FlatPack::TextInput::Component.new(name: "publishable[social_title]", label: "Social title", value: @publishable.social_title) %>
+          <%= render FlatPack::TextInput::Component.new(name: "publishable[social_description]", label: "Social description", value: @publishable.social_description) %>
         </div>
-      <% end %>
+      </section>
 
-      <% tabs.panel(id: "image") do %>
-        <% current_social_image_preview_path = if @publishable.social_image_attached? && @publishable.social_image_attachment&.file_attachment.present?
-          main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
-        end %>
+      <% current_social_image_preview_path = if @publishable.social_image_attached? && @publishable.social_image_attachment&.file_attachment.present?
+        main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
+      end %>
 
+      <section class="space-y-4">
+        <h2 class="text-sm font-semibold text-(--surface-content-color)">Image</h2>
         <div id="publishable-social-image-preview-wrapper" data-publishable-social-image-picker style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
           <%= form.hidden_field :social_image_attachment_recording_id, id: "publishable-social-image-input", data: { publishable_social_image_input: true } %>
           <img
@@ -161,10 +170,10 @@
             </div>
           <% end %>
         </div>
-      <% end %>
-    <% end %>
+      </section>
+    </div>
 
-    <div class="publishable-save-actions">
+    <div class="publishable-save-actions pt-2">
       <%= form.submit "Save changes", id: "publishable-save-button", class: "inline-flex items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm bg-[var(--button-primary-background-color)] hover:bg-[var(--button-primary-hover-background-color)] text-[var(--button-primary-text-color)] border border-[var(--button-primary-border-color)] shadow-[var(--button-shadow)]" %>
     </div>
   <% end %>
@@ -178,27 +187,10 @@
 </div>
 
 <style>
-  .publishable-edit-form input[name="publishable[published_toggle]"]:not(:checked) + [role="switch"] {
-    background-color: var(--switch-track-background-color) !important;
-  }
-
-  .publishable-edit-form input[name="publishable[published_toggle]"]:checked + [role="switch"] {
-    background-color: var(--switch-track-checked-background-color) !important;
-  }
-
-  .publishable-edit-form [role="tab"][aria-selected="false"] {
-    border-color: var(--surface-border-color);
-  }
-
   .publishable-edit-form .publishable-save-actions {
-    display: none;
     position: relative;
     z-index: 1;
     pointer-events: auto;
-  }
-
-  .publishable-edit-form.has-active-tab .publishable-save-actions {
-    display: block;
   }
 
   .publishable-edit-form [data-publishable-social-image-preview-image]:not(.hidden) + [data-publishable-social-image-empty] {
@@ -212,156 +204,148 @@
 </style>
 
 <script>
-  function syncPublishableSaveVisibility(form) {
+  function applyClassTokens(element, classNames, shouldApply) {
+    if (!element || !classNames) {
+      return;
+    }
+
+    classNames.split(/\s+/).filter(Boolean).forEach(function(token) {
+      element.classList.toggle(token, shouldApply);
+    });
+  }
+
+  function initializePublishableTimeZoneDefault() {
+    var select = document.querySelector('[name="publishable[time_zone]"]');
+    if (!select || select.value) {
+      return;
+    }
+
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!tz) {
+      return;
+    }
+
+    var found = false;
+    for (var i = 0; i < select.options.length; i++) {
+      if (select.options[i].value === tz) {
+        select.selectedIndex = i;
+        found = true;
+        break;
+      }
+    }
+
+    if (found) {
+      var event = new Event("change", { bubbles: true });
+      select.dispatchEvent(event);
+    }
+  }
+
+  function formatLocalDateTime(date) {
+    var offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return offsetDate.toISOString().slice(0, 16);
+  }
+
+  function setPublishableStatusMode(form, mode, options) {
     if (!(form instanceof HTMLFormElement) || !form.classList.contains("publishable-edit-form")) {
       return;
     }
 
-    var activeTab = form.querySelector('[role="tab"][aria-selected="true"]');
-    var hasActiveTab = activeTab !== null;
+    options = options || {};
 
-    form.classList.toggle("has-active-tab", hasActiveTab);
+    var statusField = form.querySelector('[data-publishable-status-field]');
+    if (statusField) {
+      statusField.value = mode === "draft" ? "draft" : "published";
+    }
+
+    var activeClasses = form.dataset.publishablePillActiveClasses || "";
+    var inactiveClasses = form.dataset.publishablePillInactiveClasses || "";
+
+    form.querySelectorAll("[data-publishable-status-pill]").forEach(function(pill) {
+      var active = pill.getAttribute("data-publishable-status-pill") === mode;
+      applyClassTokens(pill, activeClasses, active);
+      applyClassTokens(pill, inactiveClasses, !active);
+      pill.setAttribute("aria-pressed", active ? "true" : "false");
+      if (active) {
+        pill.setAttribute("aria-current", "page");
+      } else {
+        pill.removeAttribute("aria-current");
+      }
+    });
+
+    var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
+    var unpublishAtInput = form.querySelector('[name="publishable[unpublish_at]"]');
+    var scheduleFields = form.querySelector("[data-publishable-schedule-fields]");
+
+    if (scheduleFields) {
+      scheduleFields.classList.toggle("hidden", mode !== "scheduled");
+    }
+
+    if (mode === "draft") {
+      if (publishAtInput) publishAtInput.value = "";
+      if (unpublishAtInput) unpublishAtInput.value = "";
+    }
+
+    if (mode === "published" && !options.preserveInputs) {
+      if (publishAtInput) publishAtInput.value = formatLocalDateTime(new Date());
+      if (unpublishAtInput) unpublishAtInput.value = "";
+    }
   }
 
-  function syncAllPublishableSaveVisibility() {
+  function initializePublishableFormState() {
     document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
-      syncPublishableSaveVisibility(form);
+      var initialMode = form.dataset.publishableInitialMode || "draft";
+      setPublishableStatusMode(form, initialMode, { preserveInputs: true });
     });
   }
 
   document.addEventListener("DOMContentLoaded", function() {
-    syncAllPublishableSaveVisibility();
+    initializePublishableTimeZoneDefault();
+    initializePublishableFormState();
   });
 
   document.addEventListener("turbo:load", function() {
-    syncAllPublishableSaveVisibility();
+    initializePublishableTimeZoneDefault();
+    initializePublishableFormState();
   });
 
   document.addEventListener("click", function(event) {
-    var tab = event.target.closest('.publishable-edit-form [role="tab"]');
-    if (!tab) {
+    var pill = event.target.closest("[data-publishable-status-pill]");
+    if (pill) {
+      event.preventDefault();
+
+      var pillForm = pill.closest("form.publishable-edit-form");
+      if (pillForm) {
+        setPublishableStatusMode(pillForm, pill.getAttribute("data-publishable-status-pill"));
+      }
+
       return;
     }
 
-    var form = tab.closest("form.publishable-edit-form");
-    if (!form) {
+    var advancedToggleButton = event.target.closest("[data-publishable-advanced-toggle]");
+    if (advancedToggleButton) {
+      event.preventDefault();
+
+      var advancedForm = advancedToggleButton.closest("form.publishable-edit-form");
+      if (!advancedForm) {
+        return;
+      }
+
+      var advancedPanel = advancedForm.querySelector("[data-publishable-advanced-panel]");
+      if (!advancedPanel) {
+        return;
+      }
+
+      var isHidden = advancedPanel.classList.contains("hidden");
+      advancedPanel.classList.toggle("hidden", !isHidden);
+      advancedToggleButton.setAttribute("aria-expanded", isHidden ? "true" : "false");
       return;
     }
 
-    window.requestAnimationFrame(function() {
-      syncPublishableSaveVisibility(form);
-    });
-  });
-
-  document.addEventListener("submit", function(event) {
-    var form = event.target;
-    if (!(form instanceof HTMLFormElement)) {
-      return;
-    }
-
-    if (!form.classList.contains("publishable-edit-form")) {
-      return;
-    }
-
-    var toggleInputs = form.querySelectorAll('input[name="publishable[published_toggle]"]');
-    toggleInputs.forEach(function(input) {
-      input.disabled = true;
-    });
-  });
-
-  document.addEventListener("change", function(event) {
-    var toggle = event.target;
-    if (!(toggle instanceof HTMLInputElement)) {
-      return;
-    }
-
-    if (toggle.type !== "checkbox" || toggle.name !== "publishable[published_toggle]") {
-      return;
-    }
-
-    if (toggle.form) {
-      var form = toggle.form;
-      var formData = new FormData();
-      formData.append("publishable[published_toggle]", toggle.checked ? "1" : "0");
-      var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-      var labelElement = toggle.closest("label")?.nextElementSibling;
-      var timingElement = form.querySelector("[data-publishable-toggle-timing]");
-      var timingRowElement = form.querySelector("[data-publishable-toggle-timing-row]");
-      var dismissElement = form.querySelector("[data-publishable-schedule-dismiss]");
-
-      fetch(form.action, {
-        method: "PATCH",
-        headers: {
-          "Accept": "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-          "X-CSRF-Token": csrfToken || ""
-        },
-        credentials: "same-origin",
-        body: formData
-      }).then(function(response) {
-        if (!response.ok) {
-          throw new Error("Toggle save failed");
-        }
-
-        return response.json();
-      }).then(function(payload) {
-        if (labelElement) {
-          labelElement.textContent = payload.status === "published" ? "Published" : "Draft";
-        }
-
-        var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
-        if (publishAtInput && Object.prototype.hasOwnProperty.call(payload, "publish_at_input_value")) {
-          publishAtInput.value = payload.publish_at_input_value || "";
-        }
-
-        var unpublishAtInput = form.querySelector('[name="publishable[unpublish_at]"]');
-        if (unpublishAtInput && Object.prototype.hasOwnProperty.call(payload, "unpublish_at_input_value")) {
-          unpublishAtInput.value = payload.unpublish_at_input_value || "";
-        }
-
-        var timeZoneInput = form.querySelector('[name="publishable[time_zone]"]');
-        if (timeZoneInput && payload.time_zone) {
-          timeZoneInput.value = payload.time_zone;
-        }
-
-        if (!timingElement) {
-          return;
-        }
-
-        if (payload.timing_copy) {
-          timingElement.textContent = payload.timing_copy;
-          if (timingRowElement) {
-            timingRowElement.classList.remove("hidden");
-          }
-        } else {
-          timingElement.textContent = "";
-          if (timingRowElement) {
-            timingRowElement.classList.add("hidden");
-          }
-        }
-
-        if (dismissElement) {
-          if (payload.scheduled_for_future) {
-            dismissElement.classList.add("inline-flex");
-            dismissElement.classList.remove("hidden");
-          } else {
-            dismissElement.classList.remove("inline-flex");
-            dismissElement.classList.add("hidden");
-          }
-        }
-      }).catch(function() {
-        toggle.checked = !toggle.checked;
-      });
-    }
-  });
-
-  document.addEventListener("click", function(event) {
     var publishNowButton = event.target.closest("[data-publishable-schedule-publish-now-url]");
     if (!publishNowButton) {
       return;
     }
 
-    console.log("[DEBUG] X button click handler fired");
     event.preventDefault();
 
     var url = publishNowButton.getAttribute("data-publishable-schedule-publish-now-url");
@@ -374,8 +358,6 @@
       return;
     }
 
-    var toggle = form.querySelector('input[name="publishable[published_toggle]"][type="checkbox"]');
-    var labelElement = toggle ? toggle.closest("label")?.nextElementSibling : null;
     var timingElement = form.querySelector("[data-publishable-toggle-timing]");
     var timingRowElement = form.querySelector("[data-publishable-toggle-timing-row]");
     var dismissElement = form.querySelector("[data-publishable-schedule-dismiss]");
@@ -401,13 +383,7 @@
         return;
       }
 
-      if (toggle && payload.status === "published") {
-        toggle.checked = true;
-      }
-
-      if (labelElement) {
-        labelElement.textContent = payload.status === "published" ? "Published" : "Draft";
-      }
+      setPublishableStatusMode(form, "published");
 
       var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
       if (publishAtInput && Object.prototype.hasOwnProperty.call(payload, "publish_at_input_value")) {

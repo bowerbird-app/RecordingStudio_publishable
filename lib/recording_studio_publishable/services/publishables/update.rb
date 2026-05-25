@@ -19,8 +19,7 @@ module RecordingStudioPublishable
           return ensure_result if ensure_result.failure?
 
           publishable_recording = ensure_result.value
-          current_publishable = publishable_recording.recordable
-          validated_attributes = validated_attributes_result(publishable_recording, current_publishable)
+          validated_attributes = validated_attributes_result(publishable_recording)
           return validated_attributes if validated_attributes.failure?
 
           root_recording = publishable_recording.root_recording || parent_recording.root_recording || parent_recording
@@ -45,7 +44,6 @@ module RecordingStudioPublishable
         def assign_attributes(publishable, validated_attributes)
           permitted_attributes.each do |attribute|
             next unless validated_attributes.key?(attribute)
-            next if attribute == :published_toggle
 
             publishable.public_send("#{attribute}=", validated_attributes[attribute])
           end
@@ -56,12 +54,12 @@ module RecordingStudioPublishable
 
         def permitted_attributes
           %i[
-            slug status published_toggle publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
+            slug status publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
             social_title social_description social_image_attachment_recording_id
           ]
         end
 
-        def validated_attributes_result(publishable_recording, current_publishable)
+        def validated_attributes_result(publishable_recording)
           validated = {}
 
           permitted_attributes.each do |attribute|
@@ -83,13 +81,12 @@ module RecordingStudioPublishable
             validated[:social_image_attachment_recording_id] = social_image_recording&.id
           end
 
-          apply_publish_state_side_effects(validated, current_publishable)
+          apply_publish_state_side_effects(validated)
 
           success(validated)
         end
 
         def normalized_value(attribute, value)
-          return parsed_toggle(value) if attribute == :published_toggle
           return parsed_time(value, attributes[:time_zone]) if %i[publish_at unpublish_at].include?(attribute)
           return value.presence if %i[seo_description social_description canonical_url meta_robots
                                       social_title].include?(attribute)
@@ -127,73 +124,20 @@ module RecordingStudioPublishable
           :invalid
         end
 
-        def parsed_toggle(value)
-          normalized = value.is_a?(Array) ? value.last : value
-          ActiveModel::Type::Boolean.new.cast(normalized)
-        end
-
-        def apply_publish_state_side_effects(validated, current_publishable)
+        def apply_publish_state_side_effects(validated)
           status = status_from(validated)
           return if status.blank?
 
-          previous_status = normalized_status(current_publishable&.status) || "draft"
           validated[:status] = status
 
-          Rails.logger.info(
-            "[RecordingStudioPublishable::Update] publish side effects start " \
-            "parent_recording_id=#{parent_recording&.id} " \
-            "publishable_id=#{current_publishable&.id} " \
-            "previous_status=#{previous_status} target_status=#{status} " \
-            "published_toggle=#{validated[:published_toggle].inspect} " \
-            "publish_at_before=#{current_publishable&.publish_at&.utc&.iso8601} " \
-            "unpublish_at_before=#{current_publishable&.unpublish_at&.utc&.iso8601}"
-          )
-
-          return unless validated.key?(:published_toggle)
-
           if status == "published"
-            toggle_only_publish_request = attributes.key?(:published_toggle) && !attributes.key?(:publish_at)
-            validated[:publish_at] = Time.current if previous_status != "published" && toggle_only_publish_request
             validated[:unpublish_at] = nil
-            Rails.logger.info(
-              "[RecordingStudioPublishable::Update] publish side effects applied " \
-              "parent_recording_id=#{parent_recording&.id} " \
-              "new_status=#{validated[:status]} " \
-              "publish_at_after=#{validated[:publish_at]&.utc&.iso8601} " \
-              "unpublish_at_after=#{validated[:unpublish_at]&.utc&.iso8601}"
-            )
+            validated[:publish_at] = Time.current if validated[:publish_at].blank?
             return
           end
 
-          validated[:unpublish_at] = Time.current if previous_status == "published"
-          Rails.logger.info(
-            "[RecordingStudioPublishable::Update] publish side effects applied " \
-            "parent_recording_id=#{parent_recording&.id} " \
-            "new_status=#{validated[:status]} " \
-            "publish_at_after=#{validated[:publish_at]&.utc&.iso8601} " \
-            "unpublish_at_after=#{validated[:unpublish_at]&.utc&.iso8601}"
-          )
-        end
-
-        def status_from(validated)
-          return "published" if validated[:published_toggle] == true
-          return "draft" if validated[:published_toggle] == false
-
-          normalized_status(validated[:status])
-        end
-
-        def normalized_status(value)
-          status = value.to_s.presence
-          return if status.blank?
-
-          case status
-          when "scheduled"
-            "published"
-          when "unpublished"
-            "draft"
-          else
-            status
-          end
+          validated[:publish_at] = nil
+          validated[:unpublish_at] = nil
         end
       end
     end

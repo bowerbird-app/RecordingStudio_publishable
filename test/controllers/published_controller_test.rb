@@ -21,7 +21,12 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
                                                           parent_recording: root)
     publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,
-      attributes: { slug: "public-page", status: "published" }
+      attributes: {
+        slug: "public-page",
+        status: "published",
+        seo_title: "Public page SEO",
+        seo_description: "Search description for the public page"
+      }
     ).value
 
     get "/published/#{publishable_recording.id}/public-page"
@@ -58,6 +63,8 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     get "/published/#{publishable_recording.id}/public-page"
 
     assert_response :success
+    assert_includes response.body, "<title>Public page SEO</title>"
+    assert_includes response.body, '<meta name="description" content="Search description for the public page">'
     assert_includes response.body, "Rendered through the parent type&#39;s conventional public template."
     assert_includes response.body, "Page title:"
     assert_includes response.body, "Public page"

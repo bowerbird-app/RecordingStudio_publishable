@@ -37,11 +37,11 @@ module RecordingStudioPublishable
     scope :unpublished, -> { where(status: statuses[:draft]).where.not(unpublish_at: nil) }
 
     def published_state?
-      normalized_status_value == self.class.statuses[:published]
+      status == self.class.statuses[:published]
     end
 
     def draft_state?
-      normalized_status_value == self.class.statuses[:draft]
+      status == self.class.statuses[:draft]
     end
 
     def currently_published?(now = Time.current)

@@ -59,11 +59,11 @@ module RecordingStudioPublishable
           RecordingStudioPublishable.configuration.default_time_zone = original_time_zone
         end
 
-        test "published toggle true sets published state and publish_at when missing" do
+        test "published status with no publish_at sets publish_at now" do
           freeze_time do
             result = Update.call(
               parent_recording: @parent_recording,
-              attributes: { slug: "landing-page", published_toggle: "1" }
+              attributes: { slug: "landing-page", status: "published" }
             )
 
             assert result.success?
@@ -74,51 +74,43 @@ module RecordingStudioPublishable
           end
         end
 
-        test "published toggle false sets draft state and unpublish_at now" do
+        test "draft status clears publish timestamps" do
           freeze_time do
             result = Update.call(
               parent_recording: @parent_recording,
-              attributes: { slug: "landing-page", published_toggle: "0" }
+              attributes: {
+                slug: "landing-page",
+                status: "draft",
+                publish_at: 1.hour.ago,
+                unpublish_at: 1.hour.from_now
+              }
             )
 
             assert result.success?
             publishable = result.value.recordable
             assert_equal "draft", publishable.status
-            assert_in_delta Time.current.to_f, publishable.unpublish_at.to_f, 1.0
+            assert_nil publishable.publish_at
+            assert_nil publishable.unpublish_at
             refute publishable.currently_published?
           end
         end
 
-        test "republishing after draft sets a new publish_at and clears unpublish_at" do
+        test "published status preserves an explicit future publish_at and clears unpublish_at" do
           freeze_time do
-            first_publish = Update.call(
+            result = Update.call(
               parent_recording: @parent_recording,
-              attributes: { slug: "landing-page", published_toggle: "1" }
+              attributes: {
+                slug: "landing-page",
+                status: "published",
+                publish_at: 1.day.from_now,
+                unpublish_at: 1.hour.from_now
+              }
             )
 
-            assert first_publish.success?
-            first_publish_time = first_publish.value.recordable.publish_at
-
-            travel 10.minutes
-            unpublish = Update.call(
-              parent_recording: @parent_recording,
-              attributes: { slug: "landing-page", published_toggle: "0" }
-            )
-
-            assert unpublish.success?
-            assert_equal "draft", unpublish.value.recordable.status
-            assert unpublish.value.recordable.unpublish_at.present?
-
-            travel 5.minutes
-            republish = Update.call(
-              parent_recording: @parent_recording,
-              attributes: { slug: "landing-page", published_toggle: "1" }
-            )
-
-            assert republish.success?
-            publishable = republish.value.recordable
+            assert result.success?
+            publishable = result.value.recordable
             assert_equal "published", publishable.status
-            assert publishable.publish_at > first_publish_time
+            assert publishable.publish_at.future?
             assert_nil publishable.unpublish_at
           end
         end

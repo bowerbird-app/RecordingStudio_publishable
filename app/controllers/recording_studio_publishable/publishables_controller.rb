@@ -105,7 +105,7 @@ module RecordingStudioPublishable
 
     def permitted_publishable_attributes
       %i[
-        slug status published_toggle publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
+        slug status publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
         social_title social_description social_image_attachment_recording_id
       ]
     end
