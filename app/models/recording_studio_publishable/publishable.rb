@@ -2,11 +2,6 @@
 
 module RecordingStudioPublishable
   class Publishable < ApplicationRecord
-    LEGACY_STATUS_MAP = {
-      "scheduled" => "published",
-      "unpublished" => "draft"
-    }.freeze
-
     include RecordingStudio::Capabilities::Attachable.to(
       allowed_content_types: ["image/*"],
       enabled_attachment_kinds: %i[image],
@@ -22,8 +17,6 @@ module RecordingStudioPublishable
       draft: "draft",
       published: "published"
     }, default: :draft, validate: true
-
-    before_validation :normalize_status_value
 
     validates :slug, presence: true
     validates :slug,
@@ -96,16 +89,6 @@ module RecordingStudioPublishable
     end
 
     private
-
-    def normalize_status_value
-      self[:status] = normalized_status_value
-    end
-
-    def normalized_status_value
-      raw_status = self[:status].to_s
-      mapped = LEGACY_STATUS_MAP.fetch(raw_status, raw_status)
-      self.class.statuses.fetch(mapped, self.class.statuses[:draft])
-    end
 
     def publish_window_is_valid
       return unless published_state?

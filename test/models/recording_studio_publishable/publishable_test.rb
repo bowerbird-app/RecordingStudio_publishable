@@ -49,15 +49,16 @@ module RecordingStudioPublishable
       assert_includes publishable.errors[:unpublish_at], "must be later than publish at"
     end
 
-    test "legacy status values normalize to two-state enum" do
+    test "legacy status values are rejected" do
       publishable = Publishable.new(status: "scheduled", slug: "demo")
 
-      assert publishable.valid?
-      assert_equal "published", publishable.status
+      refute publishable.valid?
+      assert_includes publishable.errors[:status], "is not included in the list"
 
       publishable.status = "unpublished"
-      assert publishable.valid?
-      assert_equal "draft", publishable.status
+
+      refute publishable.valid?
+      assert_includes publishable.errors[:status], "is not included in the list"
     end
 
     test "slug rejects unsafe characters" do
