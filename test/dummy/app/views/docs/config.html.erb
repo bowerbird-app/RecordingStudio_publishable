@@ -52,6 +52,28 @@
 
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
+        title: "Public head helper",
+        subtitle: "Add the helper to the host app layout head so published pages emit SEO and social tags automatically."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :erb,
+        code: [
+          "<!-- app/views/layouts/application.html.erb -->",
+          "<head>",
+          "  <" + "%= publishable_head_tags " + "%" + ">",
+          "</head>"
+        ].join("\n")
+      ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
+        <p>Call the helper from the layout that renders your published pages. It uses the current <code>@publishable</code> and <code>@publishable_recording</code> instance variables when they are present.</p>
+        <p>You can also pass explicit arguments if your host app wants to supply a custom public URL, title, description, or social image URL.</p>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
         title: "Related guidance",
         subtitle: "These settings work together with the install generator and the public route helpers."
       ) %>

@@ -49,6 +49,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body,
                     "Tune the host-app actor lookup, layouts, public renderer overrides, and redirect behavior."
     assert_includes response.body, "Available settings"
+    assert_includes response.body, "Public head helper"
+    assert_includes response.body, "publishable_head_tags"
     refute_includes response.body, "FlatPack::Card"
   end
 
