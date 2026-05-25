@@ -53,6 +53,7 @@ class ConfigurationTest < Minitest::Test
       end
 
       include RecordingStudioPublishable::ParentRecordable
+
       recording_studio_publishable
     end
 

@@ -21,7 +21,9 @@ module RecordingStudioPublishable
       )
         configured_path = RecordingStudioPublishable.configuration.public_path_for(name)
         effective_path = path
-        effective_path = configured_path if path == RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH && configured_path != RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH
+        if path == RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH && configured_path != RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH
+          effective_path = configured_path
+        end
 
         self.recording_studio_publishable_path_template = effective_path
         RecordingStudioPublishable.configuration.register_public_renderer(

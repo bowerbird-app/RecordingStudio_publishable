@@ -93,10 +93,12 @@ module RecordingStudioPublishable
       return if controller_name.blank?
 
       controller_class_name = controller_name.to_s
-      controller_class_name = "#{controller_class_name.camelize}Controller" unless controller_class_name.end_with?("Controller")
+      unless controller_class_name.end_with?("Controller")
+        controller_class_name = "#{controller_class_name.camelize}Controller"
+      end
       controller_class = controller_class_name.safe_constantize
       return if controller_class.blank?
-      return if !(controller_class < ActionController::Base)
+      return unless controller_class < ActionController::Base
 
       controller_class
     rescue NameError
