@@ -5,6 +5,7 @@ require_relative "hooks"
 module RecordingStudioPublishable
   class Configuration
     DEFAULT_PUBLIC_PATH = "/published/:uuid/:slug"
+    PUBLIC_PATH_TOKENS = [":uuid", ":slug"].freeze
     PublicRenderer = Struct.new(:controller, :action, :layout, keyword_init: true) do
       def template_path
         controller_path = controller.to_s.underscore
@@ -52,16 +53,19 @@ module RecordingStudioPublishable
     end
 
     def register_public_path(recordable_type, path: DEFAULT_PUBLIC_PATH)
-      public_path_configs[normalize_recordable_type(recordable_type)] = path
+      validated_path = validate_public_path_template!(path)
+      public_path_configs[normalize_recordable_type(recordable_type)] = validated_path
     end
 
     def public_path_for(recordable_type)
       public_path_configs[normalize_recordable_type(recordable_type)] || DEFAULT_PUBLIC_PATH
     end
 
-    def register_public_renderer(recordable_type, controller: nil, action: nil, layout: nil)
+    def register_public_renderer(recordable_type, controller: nil, action: nil, layout: nil, path: nil)
       normalized_type = normalize_recordable_type(recordable_type)
       default_renderer = default_public_renderer_for(normalized_type)
+
+      register_public_path(normalized_type, path: path) if path.present?
 
       public_renderer_configs[normalized_type] = PublicRenderer.new(
         controller: controller.presence || default_renderer.controller,
@@ -163,6 +167,21 @@ module RecordingStudioPublishable
 
     def normalize_recordable_type(recordable_type)
       recordable_type.is_a?(Class) ? recordable_type.name : recordable_type.to_s
+    end
+
+    def validate_public_path_template!(path)
+      template = path.to_s
+      raise ArgumentError, "public path must start with '/'" unless template.start_with?("/")
+
+      tokens = template.scan(/:[A-Za-z_][A-Za-z0-9_]*/)
+      unknown_tokens = tokens - PUBLIC_PATH_TOKENS
+      if unknown_tokens.any?
+        raise ArgumentError, "public path contains unsupported tokens: #{unknown_tokens.join(', ')}"
+      end
+
+      raise ArgumentError, "public path must include :uuid" unless tokens.include?(":uuid")
+
+      template
     end
 
     def default_public_renderer_for(recordable_type)

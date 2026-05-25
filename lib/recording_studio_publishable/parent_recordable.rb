@@ -19,13 +19,17 @@ module RecordingStudioPublishable
         public_action: nil,
         public_layout: nil
       )
-        self.recording_studio_publishable_path_template = path
-        RecordingStudioPublishable.configuration.register_public_path(name, path: path)
+        configured_path = RecordingStudioPublishable.configuration.public_path_for(name)
+        effective_path = path
+        effective_path = configured_path if path == RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH && configured_path != RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH
+
+        self.recording_studio_publishable_path_template = effective_path
         RecordingStudioPublishable.configuration.register_public_renderer(
           name,
           controller: public_controller,
           action: public_action,
-          layout: public_layout
+          layout: public_layout,
+          path: effective_path
         )
       end
 

@@ -61,6 +61,28 @@ class DocsController < ApplicationController
   def method_sections
     [
       {
+        title: "RecordingStudioPublishable::Configuration",
+        subtitle: "Configure renderer mappings and per-type public path templates.",
+        code: <<~RUBY
+          RecordingStudioPublishable.configure do |config|
+            config.register_public_renderer(
+              "Page",
+              controller: "pages",
+              action: :show
+            )
+
+            config.register_public_renderer(
+              "Article",
+              controller: "articles",
+              action: :show,
+              path: "/blogs/:uuid/:slug"
+            )
+
+            config.register_public_path("Page", path: "/published/:uuid/:slug")
+          end
+        RUBY
+      },
+      {
         title: "RecordingStudioPublishable::ParentRecordable",
         subtitle: "Query helpers that return the parent recordables, not the publishable child records.",
         code: <<~RUBY
@@ -177,7 +199,7 @@ class DocsController < ApplicationController
         title: "RecordingStudioPublishable::Routing",
         subtitle: "Build the canonical public path and URL for a publishable child recording.",
         code: <<~RUBY
-          # Returns a path like /published/:uuid/:slug with placeholders filled in.
+          # Returns a path like /published/:uuid/:slug or a configured alternative such as /blogs/:uuid/:slug.
           RecordingStudioPublishable::Routing.path_for(
             publishable_recording: publishable_recording,
             publishable: publishable_recording.recordable,

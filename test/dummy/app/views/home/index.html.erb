@@ -20,7 +20,6 @@
               <tr class="text-(--surface-muted-content-color)">
                 <th class="px-4 py-3 font-medium">Type</th>
                 <th class="px-4 py-3 font-medium">Title</th>
-                <th class="px-4 py-3 font-medium">Recording</th>
                 <th class="px-4 py-3 font-medium">Parent</th>
                 <th class="px-4 py-3 font-medium">Public path</th>
                 <th class="px-4 py-3 font-medium">Actions</th>
@@ -31,7 +30,6 @@
                 <tr>
                   <td class="px-4 py-3"><%= recording.recordable_type.to_s.demodulize %></td>
                   <td class="px-4 py-3 font-medium"><%= recording.recordable.try(:title).presence || recording.recordable.to_s %></td>
-                  <td class="px-4 py-3"><%= recording.id %></td>
                   <td class="px-4 py-3"><%= recording.parent_recording&.recordable_type.to_s.demodulize.underscore.humanize.presence || "Root" %></td>
                   <td class="px-4 py-3">
                     <% if recording.publishable_public_path.present? %>

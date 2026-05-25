@@ -29,4 +29,18 @@ class RoutingTest < Minitest::Test
       protocol: "https"
     )
   end
+
+  def test_register_public_renderer_path_updates_routing_template
+    RecordingStudioPublishable.configuration.register_public_renderer(
+      "Article",
+      controller: "articles",
+      action: :show,
+      path: "/blogs/:uuid/:slug"
+    )
+
+    recording = PublishableRecording.new("123", Publishable.new("hello-world"), ParentRecording.new("Article"))
+
+    assert_equal "/blogs/123/hello-world",
+                 RecordingStudioPublishable::Routing.path_for(publishable_recording: recording)
+  end
 end

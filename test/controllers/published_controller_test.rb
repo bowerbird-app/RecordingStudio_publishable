@@ -92,4 +92,19 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     assert_response :redirect
     assert_equal "/published/#{publishable_recording.id}/public-page", response.location.sub(%r{^https?://[^/]+}, "")
   end
+
+  test "custom article public path is reachable via configured prefix" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Article.create!(title: "Blog post"),
+                                                          parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: { slug: "blog-post", status: "published" }
+    ).value
+
+    get "/blogs/#{publishable_recording.id}/blog-post"
+
+    assert_response :success
+    assert_includes response.body, "Blog post"
+  end
 end

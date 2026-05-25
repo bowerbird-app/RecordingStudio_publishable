@@ -23,8 +23,11 @@ module RecordingStudioPublishable
     private
 
     def find_publishable_recording
+      uuid = params[:uuid].presence
+      return unless uuid
+
       RecordingStudio::Recording.find_by(
-        id: params[:uuid],
+        id: uuid,
         recordable_type: RecordingStudioPublishable::Publishable.name,
         trashed_at: nil
       )
@@ -39,6 +42,8 @@ module RecordingStudioPublishable
     end
 
     def stale_slug?
+      return false unless params.key?(:slug)
+
       params[:slug].to_s != @publishable.slug.to_s
     end
 

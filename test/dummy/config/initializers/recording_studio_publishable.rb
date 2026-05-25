@@ -10,7 +10,8 @@ RecordingStudioPublishable.configure do |config|
   config.register_public_renderer(
     "Article",
     controller: "articles",
-    action: :show
+    action: :show,
+    path: "/blogs/:uuid/:slug"
   )
 
   config.management_authorizer = lambda do |recording:, actor:, **|

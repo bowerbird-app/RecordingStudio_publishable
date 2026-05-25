@@ -33,6 +33,41 @@ class ConfigurationTest < Minitest::Test
     assert_equal "pages/show", RecordingStudioPublishable.configuration.public_template_for("Page")
   end
 
+  def test_register_public_renderer_persists_path_template_when_provided
+    RecordingStudioPublishable.configuration.register_public_renderer(
+      "Article",
+      controller: "articles",
+      action: :show,
+      path: "/blogs/:uuid/:slug"
+    )
+
+    assert_equal "/blogs/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("Article")
+  end
+
+  def test_parent_recordable_defaults_do_not_override_an_existing_custom_path
+    RecordingStudioPublishable.configuration.register_public_path("Article", path: "/blogs/:uuid/:slug")
+
+    klass = Class.new do
+      def self.name
+        "Article"
+      end
+
+      include RecordingStudioPublishable::ParentRecordable
+      recording_studio_publishable
+    end
+
+    assert_equal "/blogs/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("Article")
+    assert_equal "/blogs/:uuid/:slug", klass.recording_studio_publishable_path_template
+  end
+
+  def test_register_public_path_rejects_templates_without_uuid
+    error = assert_raises(ArgumentError) do
+      RecordingStudioPublishable.configuration.register_public_path("Article", path: "/blogs/:slug")
+    end
+
+    assert_includes error.message, ":uuid"
+  end
+
   def test_layout_defaults_to_the_blank_engine_layout
     assert_equal "recording_studio_publishable/application", RecordingStudioPublishable.configuration.layout
   end
