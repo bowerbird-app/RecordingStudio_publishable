@@ -64,35 +64,56 @@ class DocsController < ApplicationController
     [
       {
         title: "RecordingStudioPublishable::Configuration",
-        subtitle: "Configure renderer mappings and per-type public path templates.",
+        subtitle: "Set global defaults in the initializer and prefer model-level publishable declarations for per-type routing.",
         code: <<~RUBY
           RecordingStudioPublishable.configure do |config|
-            config.register_public_renderer(
-              "Page",
-              controller: "pages",
-              action: :show
-            )
+            config.default_time_zone = "America/Los_Angeles"
+            config.layout = "recording_studio_publishable/application"
+            config.canonical_redirect_status = :found
+          end
 
-            config.register_public_renderer(
-              "Article",
-              controller: "articles",
-              action: :show,
-              path: "/blogs/:uuid/:slug"
-            )
+          class Page < ApplicationRecord
+            include RecordingStudioPublishable::ParentRecordable
 
-            config.register_public_path("Page", path: "/published/:uuid/:slug")
+            recording_studio_publishable(
+              public_controller: "pages",
+              public_action: :show,
+              schedule: false,
+              seo: false
+            )
+          end
+
+          class Article < ApplicationRecord
+            include RecordingStudioPublishable::ParentRecordable
+
+            recording_studio_publishable(
+              public_controller: "articles",
+              public_action: :show,
+              path: "/blogs/:uuid/:slug",
+              schedule: true,
+              seo: true
+            )
           end
         RUBY
       },
       {
         title: "RecordingStudioPublishable::ParentRecordable",
-        subtitle: "Query helpers that return the parent recordables, not the publishable child records.",
+        subtitle: "Scopes you call on parent models (like Page/Article) that filter by publishable state and still return parent model records, not child Publishable rows.",
         code: <<~RUBY
           class Page < ApplicationRecord
             include RecordingStudioPublishable::ParentRecordable
 
-            recording_studio_publishable
+            recording_studio_publishable(
+              public_controller: "pages",
+              public_action: :show,
+              schedule: false,
+              seo: false
+            )
           end
+
+          # Per-model capability flags are readable from configuration.
+          RecordingStudioPublishable.configuration.schedule_enabled_for("Page")
+          RecordingStudioPublishable.configuration.seo_enabled_for("Page")
 
           # Returns Page records whose publishable child is live right now.
           Page.currently_published
@@ -113,7 +134,7 @@ class DocsController < ApplicationController
       },
       {
         title: "RecordingStudioPublishable::RecordingExtensions",
-        subtitle: "Scopes and instance helpers added to RecordingStudio::Recording.",
+        subtitle: "Methods you call directly on RecordingStudio::Recording to filter recordings by publishable state and access publishable-related helpers on each recording.",
         code: <<~RUBY
           # Returns recordings whose publishable child is live right now.
           RecordingStudio::Recording.currently_published
@@ -147,7 +168,7 @@ class DocsController < ApplicationController
       },
       {
         title: "RecordingStudioPublishable::Publishable",
-        subtitle: "Scopes and predicates for the publishable child records themselves.",
+        subtitle: "Methods on the Publishable child model itself, including scopes for publish state and boolean checks for one publishable record.",
         code: <<~RUBY
           publishable = RecordingStudioPublishable::Publishable.find(publishable_id)
 
@@ -291,7 +312,7 @@ class DocsController < ApplicationController
         ],
         preview: :quick_actions,
         code: <<~ERB
-          <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @page_recording) %>
+          <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @component_demo_recording) %>
         ERB
       },
     ]

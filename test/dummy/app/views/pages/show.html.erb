@@ -1,4 +1,17 @@
 <div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
+  <% resolved_public_path = RecordingStudioPublishable::Routing.path_for(
+       publishable_recording: @recording,
+       publishable: @publishable,
+       parent_recordable_type: @recording.parent_recording&.recordable_type
+     ) %>
+  <% resolved_public_url = RecordingStudioPublishable::Routing.url_for(
+       publishable_recording: @recording,
+       publishable: @publishable,
+       parent_recordable_type: @recording.parent_recording&.recordable_type,
+       host: request.host_with_port,
+       protocol: request.protocol.delete_suffix("://")
+     ) %>
+
   <%= render FlatPack::PageTitle::Component.new(
     title: @page.title,
     subtitle: @publishable.seo_description.presence || "Rendered through the parent type's conventional public template.",
@@ -14,7 +27,8 @@
     <% card.body do %>
       <div class="space-y-4 text-sm leading-7">
         <p><strong>Page title:</strong> <%= @page.title %></p>
-        <p><strong>Public path:</strong> <%= @recording.publishable_public_path %></p>
+        <p><strong>Public path (Routing):</strong> <%= resolved_public_path %></p>
+        <p><strong>Public URL (Routing):</strong> <%= resolved_public_url %></p>
         <% if @publishable.canonical_url.present? %>
           <p><strong>Canonical URL:</strong> <%= @publishable.canonical_url %></p>
         <% end %>

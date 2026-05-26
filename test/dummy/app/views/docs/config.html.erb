@@ -1,7 +1,7 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Config",
-    subtitle: "Tune the host-app actor lookup, layouts, public controller overrides, and redirect behavior.",
+    subtitle: "Tune global addon settings and model-level publishable behavior (routing, schedule, and SEO capabilities).",
     variant: :h1
   ) %>
 
@@ -15,32 +15,65 @@
       <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
         <p><strong>management_authorizer</strong> (required) decides whether a user may edit publishable content. Receives <code>recording:</code> and <code>actor:</code> keyword args.</p>
         <p><strong>layout</strong> (optional) sets the layout for all gem-managed screens (default: <code>"application"</code>).</p>
-        <p><strong>register_public_renderer</strong> (optional, repeatable) maps a recordable type to a host controller/action/layout for published routes.</p>
+        <p><strong>default_time_zone</strong> (optional) sets the fallback time zone used for publish/unpublish scheduling.</p>
         <p><strong>canonical_redirect_status</strong> (optional) sets the status code for stale slug redirects (default: <code>:moved_permanently</code>).</p>
+        <p><strong>recording_studio_publishable</strong> (model DSL) is the recommended place to define per-model public controller/action/path and capability flags like <code>schedule:</code> and <code>seo:</code>.</p>
       </div>
     </section>
 
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
-        title: "Initializer example",
-        subtitle: "The generated initializer shows the intended extension points."
+        title: "Model-level setup (recommended)",
+        subtitle: "Define route mapping and feature capabilities close to each recordable model."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :ruby,
+        code: <<~RUBY
+          class Page < ApplicationRecord
+            include RecordingStudioPublishable::ParentRecordable
+
+            recording_studio_publishable(
+              public_controller: "pages",
+              public_action: :show,
+              schedule: false,
+              seo: false
+            )
+          end
+
+          class Article < ApplicationRecord
+            include RecordingStudioPublishable::ParentRecordable
+
+            recording_studio_publishable(
+              public_controller: "articles",
+              public_action: :show,
+              path: "/blogs/:uuid/:slug",
+              schedule: true,
+              seo: true
+            )
+          end
+        RUBY
+      ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
+        <p>Set <code>schedule: false</code> to hide schedule controls and ignore scheduling parameters for that model.</p>
+        <p>Set <code>seo: false</code> to disable SEO-only tags (<code>title</code>, <code>meta[name=description]</code>, <code>canonical</code>) while still allowing social tags.</p>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Initializer example (global settings)",
+        subtitle: "Use the initializer for cross-cutting defaults and authorization policy."
       ) %>
 
       <%= render FlatPack::CodeBlock::Component.new(
         language: :ruby,
         code: <<~RUBY
           RecordingStudioPublishable.configure do |config|
-            config.register_public_renderer(
-              "Page",
-              controller: "pages",
-              action: :show
-            )
-
-            config.register_public_renderer(
-              "Article",
-              controller: "articles",
-              action: :show
-            )
+            config.default_time_zone = "America/Los_Angeles"
+            config.layout = "recording_studio_publishable/application"
+            config.canonical_redirect_status = :found
 
             config.management_authorizer = lambda do |recording:, actor:, **|
               actor.present? && recording.present? && actor.email == "admin@admin.com"
@@ -69,6 +102,8 @@
       <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
         <p>Call the helper from the layout that renders your published pages. It uses the current <code>@publishable</code> and <code>@publishable_recording</code> instance variables when they are present.</p>
         <p>You can also pass explicit arguments if your host app wants to supply a custom public URL, title, description, or social image URL.</p>
+        <p>The helper emits tags only when the publishable is currently live. If a record is still scheduled, no head tags are emitted yet.</p>
+        <p>When <code>seo: false</code> on a model, SEO tags are skipped but social Open Graph/Twitter tags still render for live records.</p>
       </div>
     </section>
 
@@ -79,8 +114,8 @@
       ) %>
 
       <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>Use the host app initializer to tailor authorization, layouts, and the backend controller/action that each published recordable type should resolve through.</p>
-        <p>The published URL stays the same; the controller mapping only changes which host controller/action prepares the page.</p>
+        <p>Use model-level <code>recording_studio_publishable</code> declarations for per-type public routing and feature flags.</p>
+        <p>Keep the initializer focused on cross-cutting behavior like authorization, layout, default time zone, and redirect status.</p>
       </div>
     </section>
   </div>

@@ -36,6 +36,10 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body,
                     "Install the gem, mount the engine, and wire the optional addons needed for publishable child recordings."
     assert_includes response.body, "Add the gem"
+    assert_includes response.body, "Configure your models"
+    assert_includes response.body, "recording_studio_publishable("
+    assert_includes response.body, "schedule: false"
+    assert_includes response.body, "seo: false"
     assert_includes response.body, "Mounted routes"
     assert_includes response.body, "Optional access control"
     refute_includes response.body, "FlatPack::Card"
@@ -47,8 +51,12 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Config"
     assert_includes response.body,
-                    "Tune the host-app actor lookup, layouts, public renderer overrides, and redirect behavior."
+                    "Tune global addon settings and model-level publishable behavior (routing, schedule, and SEO capabilities)."
     assert_includes response.body, "Available settings"
+    assert_includes response.body, "Model-level setup (recommended)"
+    assert_includes response.body, "recording_studio_publishable("
+    assert_includes response.body, "schedule: false"
+    assert_includes response.body, "seo: false"
     assert_includes response.body, "Public head helper"
     assert_includes response.body, "publishable_head_tags"
     refute_includes response.body, "FlatPack::Card"
@@ -81,14 +89,17 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     get docs_methods_path
 
     assert_response :success
+    assert_includes response.body, "Review the public methods, scopes, and helper entry points exposed by the addon."
+    assert_includes response.body, "RecordingStudioPublishable::Configuration"
     assert_includes response.body, "RecordingStudioPublishable::ParentRecordable"
     assert_includes response.body, "RecordingStudioPublishable::Publishable"
+    assert_includes response.body, "schedule: false"
+    assert_includes response.body, "seo: false"
+    assert_includes response.body, "RecordingStudioPublishable.configuration.schedule_enabled_for(&quot;Page&quot;)"
     assert_includes response.body, "Returns Page records whose publishable child is live right now."
     assert_includes response.body, "Returns publishable records that are live right now."
-    assert_includes response.body, "RecordingStudioPublishable::Services::Publishables::Update"
     assert_includes response.body, "recording.publishable_public_url(host: &quot;example.test&quot;)"
     assert_includes response.body, "RecordingStudioPublishable::Routing.url_for"
-    refute_includes response.body, "RecordingStudioPublishable::Configuration"
     refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"
   end
 
@@ -102,7 +113,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body,
                     "RecordingStudioPublishable::StatusBadge::Component.new(publishable: RecordingStudioPublishable::Publishable.new(status: :draft"
     assert_includes response.body, "slug: &quot;scheduled-demo&quot;, publish_at: 1.day.from_now"
-    assert_includes response.body, "Required initializer arguments for this component"
+    assert_includes response.body, "Initializer arguments for this component"
     assert_includes response.body, "RecordingStudioPublishable::Publishable"
     assert_includes response.body, "RecordingStudio::Recording"
     assert_includes response.body, "All possible status badge states"
