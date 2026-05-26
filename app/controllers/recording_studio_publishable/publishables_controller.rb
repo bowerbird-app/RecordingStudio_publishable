@@ -13,6 +13,17 @@ module RecordingStudioPublishable
     end
 
     def update
+      incoming = params.fetch(:publishable, {}).to_unsafe_h.slice(
+        "status",
+        "publish_at",
+        "unpublish_at",
+        "time_zone",
+        "slug"
+      )
+      Rails.logger.warn(
+        "[PublishableDebug] update request recording_id=#{@parent_recording.id} format=#{request.format.symbol} incoming=#{incoming.inspect}"
+      )
+
       result = RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: @parent_recording,
         attributes: publishable_params,
@@ -24,6 +35,10 @@ module RecordingStudioPublishable
           publishable = @parent_recording.reload.publishable_child_recording&.recordable
           return render json: { error: "Publishable not found" }, status: :unprocessable_entity if publishable.blank?
 
+          Rails.logger.warn(
+            "[PublishableDebug] update success(json) recording_id=#{@parent_recording.id} status=#{publishable.status.inspect} publish_at=#{publishable.publish_at.inspect} unpublish_at=#{publishable.unpublish_at.inspect} tz=#{publishable.time_zone.inspect}"
+          )
+
           return render json: {
             status: publishable.published_state? ? "published" : "draft",
             timing_copy: timing_copy_for(publishable),
@@ -34,14 +49,18 @@ module RecordingStudioPublishable
           }
         end
 
+        publishable = @parent_recording.reload.publishable_child_recording&.recordable
+        Rails.logger.warn(
+          "[PublishableDebug] update success(html) recording_id=#{@parent_recording.id} status=#{publishable&.status.inspect} publish_at=#{publishable&.publish_at.inspect} unpublish_at=#{publishable&.unpublish_at.inspect} tz=#{publishable&.time_zone.inspect}"
+        )
+
         return redirect_to_edit(notice: "Publishable info saved")
       end
 
       return render json: { error: result.error }, status: :unprocessable_entity if request.format.json?
 
-      assign_publishable_form_state
-      flash.now[:alert] = result.error
-      render :edit, status: :unprocessable_entity
+      Rails.logger.warn("[PublishablesController#update] failure: #{result.error.inspect}")
+      redirect_to_edit(alert: result.error.presence || "Publishable info could not be saved")
     end
 
     def transition
@@ -135,7 +154,12 @@ module RecordingStudioPublishable
     end
 
     def redirect_to_edit(notice: nil, alert: nil)
-      redirect_to edit_recording_publishable_path(recording_id: @parent_recording.id), notice: notice, alert: alert
+      redirect_to(
+        edit_recording_publishable_path(recording_id: @parent_recording.id),
+        notice: notice,
+        alert: alert,
+        status: :see_other
+      )
     end
 
     def transition_notice(result)

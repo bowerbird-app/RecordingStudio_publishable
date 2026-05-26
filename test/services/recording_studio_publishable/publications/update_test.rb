@@ -39,22 +39,26 @@ module RecordingStudioPublishable
           original_time_zone = RecordingStudioPublishable.configuration.default_time_zone
           RecordingStudioPublishable.configuration.default_time_zone = "Pacific Time (US & Canada)"
 
-          result = Update.call(
-            parent_recording: @parent_recording,
-            attributes: {
-              slug: "landing-page",
-              status: "published",
-              publish_at: "2026-05-20 09:00",
-              time_zone: "Pacific Time (US & Canada)"
-            }
-          )
+          freeze_time do
+            future_publish_at = 2.days.from_now.in_time_zone("Pacific Time (US & Canada)").strftime("%Y-%m-%d %H:%M")
 
-          assert result.success?
-          publishable = result.value.recordable
+            result = Update.call(
+              parent_recording: @parent_recording,
+              attributes: {
+                slug: "landing-page",
+                status: "published",
+                publish_at: future_publish_at,
+                time_zone: "Pacific Time (US & Canada)"
+              }
+            )
 
-          assert_equal "Pacific Time (US & Canada)", publishable.effective_time_zone
-          assert_equal "UTC", publishable.publish_at.time_zone.name
-          assert publishable.scheduled_for_future?
+            assert result.success?
+            publishable = result.value.recordable
+
+            assert_equal "Pacific Time (US & Canada)", publishable.effective_time_zone
+            assert_equal "UTC", publishable.publish_at.time_zone.name
+            assert publishable.scheduled_for_future?
+          end
         ensure
           RecordingStudioPublishable.configuration.default_time_zone = original_time_zone
         end
@@ -115,7 +119,7 @@ module RecordingStudioPublishable
           end
         end
 
-        test "draft state with future publish_at does not become live" do
+        test "draft state clears publish_at and does not become live" do
           future_publish_at = "2099-05-20 09:00"
 
           result = Update.call(
@@ -130,7 +134,7 @@ module RecordingStudioPublishable
           assert result.success?
           publishable = result.value.recordable
           assert_equal "draft", publishable.status
-          assert publishable.publish_at.future?
+          assert_nil publishable.publish_at
           refute publishable.currently_published?
         end
 

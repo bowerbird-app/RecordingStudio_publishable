@@ -21,6 +21,8 @@ module RecordingStudioPublishable
     validates :slug, presence: true
     validates :slug,
               format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/, message: "must use URL-safe lowercase slug segments" }
+    validates :seo_description, length: { maximum: 160 }, allow_blank: true
+    validates :social_description, length: { maximum: 200 }, allow_blank: true
     validate :publish_window_is_valid
 
     scope :currently_published, lambda {

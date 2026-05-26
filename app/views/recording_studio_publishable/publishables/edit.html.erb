@@ -26,6 +26,18 @@
   <% pill_inactive_classes = FlatPack::Button::Pill::Component::ITEM_INACTIVE_CLASSES %>
   <% published_state = @publishable.published_state? %>
   <% scheduled_for_future = @publishable.scheduled_for_future? %>
+  <% normalized_meta_robots = @publishable.meta_robots.to_s.split(",").map { |token| token.strip.downcase }.reject(&:blank?).join(",") %>
+  <% meta_robots_preset_options = [
+       ["Default (index,follow)", "index,follow"],
+       ["No index", "noindex,follow"],
+       ["No index, no follow", "noindex,nofollow"],
+       ["Index, no follow", "index,nofollow"],
+       ["Custom", "__custom__"]
+     ] %>
+  <% meta_robots_preset_values = meta_robots_preset_options.to_h.values - ["__custom__"] %>
+  <% meta_robots_initial_preset = meta_robots_preset_values.include?(normalized_meta_robots) ? normalized_meta_robots : "__custom__" %>
+  <% seo_title_max_characters = 60 %>
+  <% social_title_max_characters = 70 %>
   <% active_status_pill = if scheduled_for_future
                             "scheduled"
                           elsif published_state
@@ -33,16 +45,6 @@
                           else
                             "draft"
                           end %>
-  <% publish_at_time = @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone) %>
-  <% timing_copy = if published_state
-                     if publish_at_time.present? && publish_at_time > Time.current
-                       "Scheduled to publish in #{distance_of_time_in_words(Time.current, publish_at_time)}"
-                     elsif publish_at_time.present?
-                       "Published #{time_ago_in_words(publish_at_time)} ago"
-                     else
-                       "Published just now"
-                     end
-                   end %>
 
   <div class="flex flex-wrap items-center justify-between gap-3">
     <%= render FlatPack::PageTitle::Component.new(
@@ -53,59 +55,53 @@
   </div>
 
   <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true }, data: { publishable_initial_mode: active_status_pill, publishable_pill_active_classes: pill_active_classes, publishable_pill_inactive_classes: pill_inactive_classes } do |form| %>
+    <%= render FlatPack::Alert::Component.new(
+      title: "You have unsaved changes",
+      style: :warning,
+      class: "hidden",
+      data: { publishable_unsaved_warning: true }
+    ) %>
+
     <div class="space-y-2">
       <%= form.hidden_field :status, value: (published_state ? "published" : "draft"), data: { publishable_status_field: true } %>
-      <%= render FlatPack::Button::Pill::Component.new(
-        items: [
-          {
-            text: "Draft",
-            href: "#",
-            active: active_status_pill == "draft",
-            data: { publishable_status_pill: "draft" },
-            aria: { pressed: active_status_pill == "draft" }
-          },
-          {
-            text: "Scheduled",
-            href: "#",
-            active: active_status_pill == "scheduled",
-            data: { publishable_status_pill: "scheduled" },
-            aria: { pressed: active_status_pill == "scheduled" }
-          },
-          {
-            text: "Published",
-            href: "#",
-            active: active_status_pill == "published",
-            data: { publishable_status_pill: "published" },
-            aria: { pressed: active_status_pill == "published" }
-          }
-        ],
-        aria: { label: "Publish status" }
-      ) %>
-      <%= render FlatPack::Button::Component.new(
-        icon: "cog-6-tooth",
-        icon_only: true,
-        style: :ghost,
-        size: :sm,
-        type: "button",
-        data: { publishable_advanced_toggle: true },
-        aria: { label: "Toggle publish settings", expanded: "false", controls: "publishable-advanced-panel" }
-      ) %>
-      <p class="text-sm text-(--surface-muted-content-color)">Choose a status, then click Save changes to apply it.</p>
-      <div class="flex items-center gap-1 text-sm text-(--surface-muted-content-color) <%= timing_copy.present? ? "" : "hidden" %>" data-publishable-toggle-timing-row>
-        <span data-publishable-toggle-timing><%= timing_copy %></span>
-        <span class="<%= scheduled_for_future ? "inline-flex" : "hidden" %>" data-publishable-schedule-dismiss>
-          <%= render FlatPack::Tooltip::Component.new(text: "Click to publish now.", placement: :top) do %>
-            <%= render FlatPack::Button::Component.new(
-              icon: "x-mark",
-              icon_only: true,
-              style: :ghost,
-              size: :sm,
-              type: "button",
-              data: { publishable_schedule_publish_now_url: transition_recording_publishable_path(recording_id: @parent_recording.id, transition: :publish) },
-              aria: { label: "Publish now" }
-            ) %>
-          <% end %>
-        </span>
+      <div class="flex flex-wrap items-center gap-2">
+        <div data-publishable-status-pill-group>
+          <%= render FlatPack::Button::Pill::Component.new(
+            items: [
+              {
+                text: "Draft",
+                href: "#",
+                active: active_status_pill == "draft",
+                data: { publishable_status_pill: "draft" },
+                aria: { pressed: active_status_pill == "draft" }
+              },
+              {
+                text: "Scheduled",
+                href: "#",
+                active: active_status_pill == "scheduled",
+                data: { publishable_status_pill: "scheduled" },
+                aria: { pressed: active_status_pill == "scheduled" }
+              },
+              {
+                text: "Published",
+                href: "#",
+                active: active_status_pill == "published",
+                data: { publishable_status_pill: "published" },
+                aria: { pressed: active_status_pill == "published" }
+              }
+            ],
+            aria: { label: "Publish status" }
+          ) %>
+        </div>
+        <%= render FlatPack::Button::Component.new(
+          icon: "cog-6-tooth",
+          icon_only: true,
+          style: :ghost,
+          size: :sm,
+          type: "button",
+          data: { publishable_advanced_toggle: true },
+          aria: { label: "Toggle publish settings", expanded: "false", controls: "publishable-advanced-panel" }
+        ) %>
       </div>
     </div>
 
@@ -123,26 +119,77 @@
       </div>
     </div>
 
-    <div id="publishable-advanced-panel" class="hidden space-y-8 bg-(--surface-raised-background-color) p-4" data-publishable-advanced-panel>
+    <div id="publishable-advanced-panel" class="hidden space-y-8 bg-(--surface-raised-background-color)" data-publishable-advanced-panel>
       <section class="space-y-4">
         <h2 class="text-sm font-semibold text-(--surface-content-color)">SEO</h2>
         <div class="grid gap-4 md:grid-cols-2">
-          <%= render FlatPack::TextInput::Component.new(name: "publishable[seo_title]", label: "SEO title", value: @publishable.seo_title) %>
+          <div class="space-y-1">
+            <%= render FlatPack::TextInput::Component.new(
+              name: "publishable[seo_title]",
+              id: "publishable-seo-title-input",
+              label: "SEO title",
+              value: @publishable.seo_title,
+              maxlength: seo_title_max_characters,
+              data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
+            ) %>
+            <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
+          </div>
           <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
         </div>
+        <%= render FlatPack::TextArea::Component.new(
+          name: "publishable[seo_description]",
+          label: "SEO description",
+          value: @publishable.seo_description,
+          rows: 4,
+          character_count: true,
+          max_characters: 160,
+          placeholder: "Short summary for search engines"
+        ) %>
+        <%= form.hidden_field :meta_robots, value: (normalized_meta_robots.presence || "index,follow"), data: { publishable_meta_robots_value: true } %>
         <div class="space-y-2">
-          <label class="text-sm font-medium text-(--surface-content-color)" for="publishable_seo_description">SEO description</label>
-          <%= form.text_area :seo_description, value: @publishable.seo_description, class: "min-h-28 w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm" %>
+          <%= render FlatPack::Select::Component.new(
+            name: "publishable_meta_robots_preset",
+            options: meta_robots_preset_options,
+            label: "Meta robots",
+            value: meta_robots_initial_preset,
+            data: { publishable_meta_robots_preset: true }
+          ) %>
         </div>
-        <%= render FlatPack::TextInput::Component.new(name: "publishable[meta_robots]", label: "Meta robots", value: @publishable.meta_robots, placeholder: "index,follow") %>
+        <div id="publishable-meta-robots-advanced" class="<%= meta_robots_initial_preset == "__custom__" ? "" : "hidden" %>" data-publishable-meta-robots-advanced>
+          <%= render FlatPack::TextInput::Component.new(
+            name: "publishable_meta_robots_custom",
+            label: "Meta robots (advanced)",
+            value: (normalized_meta_robots.presence || "index,follow"),
+            placeholder: "index,follow",
+            data: { publishable_meta_robots_custom_input: true }
+          ) %>
+        </div>
       </section>
 
       <section class="space-y-4">
         <h2 class="text-sm font-semibold text-(--surface-content-color)">Details</h2>
         <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
-        <div class="grid gap-4 md:grid-cols-2">
-          <%= render FlatPack::TextInput::Component.new(name: "publishable[social_title]", label: "Social title", value: @publishable.social_title) %>
-          <%= render FlatPack::TextInput::Component.new(name: "publishable[social_description]", label: "Social description", value: @publishable.social_description) %>
+        <div class="space-y-4">
+          <div class="space-y-1">
+            <%= render FlatPack::TextInput::Component.new(
+              name: "publishable[social_title]",
+              id: "publishable-social-title-input",
+              label: "Social title",
+              value: @publishable.social_title,
+              maxlength: social_title_max_characters,
+              data: { publishable_title_counter_input: true, publishable_title_counter_target: "social-title", publishable_title_counter_limit: social_title_max_characters }
+            ) %>
+            <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="social-title"></p>
+          </div>
+          <%= render FlatPack::TextArea::Component.new(
+            name: "publishable[social_description]",
+            label: "Social description",
+            value: @publishable.social_description,
+            rows: 4,
+            character_count: true,
+            max_characters: 200,
+            placeholder: "Description shown in social previews"
+          ) %>
         </div>
       </section>
 
@@ -174,7 +221,7 @@
     </div>
 
     <div class="publishable-save-actions pt-2">
-      <%= form.submit "Save changes", id: "publishable-save-button", class: "inline-flex items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm bg-[var(--button-primary-background-color)] hover:bg-[var(--button-primary-hover-background-color)] text-[var(--button-primary-text-color)] border border-[var(--button-primary-border-color)] shadow-[var(--button-shadow)]" %>
+      <%= form.submit "Save changes", id: "publishable-save-button", class: "inline-flex items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm border border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]", data: { publishable_save_button: true, publishable_save_primary_classes: "border-[var(--button-primary-border-color)] bg-[var(--button-primary-background-color)] hover:bg-[var(--button-primary-hover-background-color)] text-[var(--button-primary-text-color)] shadow-[var(--button-shadow)]", publishable_save_secondary_classes: "border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]" } %>
     </div>
   <% end %>
 
@@ -254,7 +301,7 @@
 
     var statusField = form.querySelector('[data-publishable-status-field]');
     if (statusField) {
-      statusField.value = mode === "draft" ? "draft" : "published";
+      statusField.value = mode;
     }
 
     var activeClasses = form.dataset.publishablePillActiveClasses || "";
@@ -286,9 +333,188 @@
     }
 
     if (mode === "published" && !options.preserveInputs) {
-      if (publishAtInput) publishAtInput.value = formatLocalDateTime(new Date());
+      // Keep published mode inputs empty unless user explicitly sets a schedule.
+      if (publishAtInput) publishAtInput.value = "";
       if (unpublishAtInput) unpublishAtInput.value = "";
     }
+
+    refreshPublishableDirtyState(form);
+  }
+
+  function publishableFormSnapshot(form) {
+    var formData = new FormData(form);
+    var entries = [];
+
+    formData.forEach(function(value, key) {
+      if (key === "authenticity_token") {
+        return;
+      }
+
+      entries.push([key, String(value)]);
+    });
+
+    return JSON.stringify(entries);
+  }
+
+  function updatePublishableDirtyState(form, dirty) {
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    var warning = form.querySelector("[data-publishable-unsaved-warning]");
+    if (warning) {
+      warning.classList.toggle("hidden", !dirty);
+    }
+
+    var saveButton = form.querySelector("[data-publishable-save-button]");
+    if (!saveButton) {
+      return;
+    }
+
+    var primaryClasses = saveButton.dataset.publishableSavePrimaryClasses || "";
+    var secondaryClasses = saveButton.dataset.publishableSaveSecondaryClasses || "";
+
+    applyClassTokens(saveButton, primaryClasses, dirty);
+    applyClassTokens(saveButton, secondaryClasses, !dirty);
+  }
+
+  function refreshPublishableDirtyState(form) {
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    var baseline = form.dataset.publishableInitialSnapshot || "";
+    var dirty = publishableFormSnapshot(form) !== baseline;
+    updatePublishableDirtyState(form, dirty);
+  }
+
+  function resetPublishableDirtyBaseline(form) {
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    form.dataset.publishableInitialSnapshot = publishableFormSnapshot(form);
+    updatePublishableDirtyState(form, false);
+  }
+
+  function initializePublishableDirtyTracking() {
+    document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
+      if (form.dataset.publishableDirtyTrackingInitialized === "true") {
+        refreshPublishableDirtyState(form);
+        return;
+      }
+
+      form.dataset.publishableDirtyTrackingInitialized = "true";
+
+      form.addEventListener("input", function() {
+        refreshPublishableDirtyState(form);
+      });
+
+      form.addEventListener("change", function() {
+        refreshPublishableDirtyState(form);
+      });
+
+      resetPublishableDirtyBaseline(form);
+    });
+  }
+
+  function initializePublishableMetaRobotsControls() {
+    document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
+      if (form.dataset.publishableMetaRobotsInitialized === "true") {
+        return;
+      }
+
+      form.dataset.publishableMetaRobotsInitialized = "true";
+
+      var hiddenValueInput = form.querySelector("[data-publishable-meta-robots-value]");
+      var presetSelect = form.querySelector("[data-publishable-meta-robots-preset]");
+      var advancedContainer = form.querySelector("[data-publishable-meta-robots-advanced]");
+      var customInput = form.querySelector("[data-publishable-meta-robots-custom-input]");
+
+      if (!hiddenValueInput || !presetSelect || !advancedContainer || !customInput) {
+        return;
+      }
+
+      function setAdvancedVisible(visible) {
+        advancedContainer.classList.toggle("hidden", !visible);
+      }
+
+      function normalizedValue(value) {
+        return String(value || "")
+          .split(",")
+          .map(function(token) { return token.trim().toLowerCase(); })
+          .filter(Boolean)
+          .join(",");
+      }
+
+      function setHiddenValue(value) {
+        hiddenValueInput.value = normalizedValue(value) || "index,follow";
+      }
+
+      function syncFromPreset() {
+        var presetValue = presetSelect.value || "index,follow";
+        var useCustom = presetValue === "__custom__";
+
+        setAdvancedVisible(useCustom);
+
+        if (useCustom) {
+          setHiddenValue(customInput.value);
+        } else {
+          setHiddenValue(presetValue);
+          customInput.value = presetValue;
+        }
+
+        refreshPublishableDirtyState(form);
+      }
+
+      presetSelect.addEventListener("change", syncFromPreset);
+
+      customInput.addEventListener("input", function() {
+        if (presetSelect.value === "__custom__") {
+          setHiddenValue(customInput.value);
+          refreshPublishableDirtyState(form);
+        }
+      });
+
+      customInput.addEventListener("change", function() {
+        if (presetSelect.value === "__custom__") {
+          setHiddenValue(customInput.value);
+          refreshPublishableDirtyState(form);
+        }
+      });
+
+      syncFromPreset();
+    });
+  }
+
+  function initializePublishableTitleCounters() {
+    document.querySelectorAll("form.publishable-edit-form [data-publishable-title-counter-input]").forEach(function(input) {
+      if (input.dataset.publishableTitleCounterInitialized === "true") {
+        return;
+      }
+
+      input.dataset.publishableTitleCounterInitialized = "true";
+
+      var targetKey = input.dataset.publishableTitleCounterTarget;
+      var limit = parseInt(input.dataset.publishableTitleCounterLimit || "0", 10);
+      if (!targetKey || !limit) {
+        return;
+      }
+
+      var counter = document.querySelector('[data-publishable-title-counter="' + targetKey + '"]');
+      if (!counter) {
+        return;
+      }
+
+      function updateCounter() {
+        var currentLength = String(input.value || "").length;
+        counter.textContent = currentLength + " / " + limit + " characters";
+      }
+
+      input.addEventListener("input", updateCounter);
+      input.addEventListener("change", updateCounter);
+      updateCounter();
+    });
   }
 
   function initializePublishableFormState() {
@@ -301,11 +527,17 @@
   document.addEventListener("DOMContentLoaded", function() {
     initializePublishableTimeZoneDefault();
     initializePublishableFormState();
+    initializePublishableMetaRobotsControls();
+    initializePublishableTitleCounters();
+    initializePublishableDirtyTracking();
   });
 
   document.addEventListener("turbo:load", function() {
     initializePublishableTimeZoneDefault();
     initializePublishableFormState();
+    initializePublishableMetaRobotsControls();
+    initializePublishableTitleCounters();
+    initializePublishableDirtyTracking();
   });
 
   document.addEventListener("click", function(event) {
@@ -316,6 +548,26 @@
       var pillForm = pill.closest("form.publishable-edit-form");
       if (pillForm) {
         setPublishableStatusMode(pillForm, pill.getAttribute("data-publishable-status-pill"));
+      }
+
+      return;
+    }
+
+    var pillGroupLink = event.target.closest("[data-publishable-status-pill-group] a");
+    if (pillGroupLink) {
+      event.preventDefault();
+
+      var fallbackForm = pillGroupLink.closest("form.publishable-edit-form");
+      if (!fallbackForm) {
+        return;
+      }
+
+      var explicitMode = pillGroupLink.getAttribute("data-publishable-status-pill");
+      var labelMode = (pillGroupLink.textContent || "").trim().toLowerCase();
+      var fallbackMode = explicitMode || labelMode;
+
+      if (["draft", "scheduled", "published"].indexOf(fallbackMode) !== -1) {
+        setPublishableStatusMode(fallbackForm, fallbackMode);
       }
 
       return;
@@ -340,95 +592,6 @@
       advancedToggleButton.setAttribute("aria-expanded", isHidden ? "true" : "false");
       return;
     }
-
-    var publishNowButton = event.target.closest("[data-publishable-schedule-publish-now-url]");
-    if (!publishNowButton) {
-      return;
-    }
-
-    event.preventDefault();
-
-    var url = publishNowButton.getAttribute("data-publishable-schedule-publish-now-url");
-    if (!url) {
-      return;
-    }
-
-    var form = publishNowButton.closest("form.publishable-edit-form");
-    if (!form) {
-      return;
-    }
-
-    var timingElement = form.querySelector("[data-publishable-toggle-timing]");
-    var timingRowElement = form.querySelector("[data-publishable-toggle-timing-row]");
-    var dismissElement = form.querySelector("[data-publishable-schedule-dismiss]");
-
-    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
-
-    fetch(url, {
-      method: "PATCH",
-      headers: {
-        "Accept": "application/json",
-        "X-CSRF-Token": csrfToken || "",
-        "X-Requested-With": "XMLHttpRequest"
-      },
-      credentials: "same-origin"
-    }).then(function(response) {
-      if (!response.ok) {
-        throw new Error("Publish now failed");
-      }
-
-      return response.json();
-    }).then(function(payload) {
-      if (!payload) {
-        return;
-      }
-
-      setPublishableStatusMode(form, "published");
-
-      var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
-      if (publishAtInput && Object.prototype.hasOwnProperty.call(payload, "publish_at_input_value")) {
-        publishAtInput.value = payload.publish_at_input_value || "";
-      }
-
-      var unpublishAtInput = form.querySelector('[name="publishable[unpublish_at]"]');
-      if (unpublishAtInput && Object.prototype.hasOwnProperty.call(payload, "unpublish_at_input_value")) {
-        unpublishAtInput.value = payload.unpublish_at_input_value || "";
-      }
-
-      var timeZoneInput = form.querySelector('[name="publishable[time_zone]"]');
-      if (timeZoneInput && payload.time_zone) {
-        timeZoneInput.value = payload.time_zone;
-      }
-
-      if (!timingElement) {
-        return;
-      }
-
-      if (payload.timing_copy) {
-        timingElement.textContent = payload.timing_copy;
-        if (timingRowElement) {
-          timingRowElement.classList.remove("hidden");
-        }
-      } else {
-        timingElement.textContent = "";
-        if (timingRowElement) {
-          timingRowElement.classList.add("hidden");
-        }
-      }
-
-      if (dismissElement) {
-        // Always set to exactly 'inline-flex' or 'hidden' (plus any data attributes)
-        var baseClass = "";
-        if (dismissElement.hasAttribute("data-publishable-schedule-dismiss")) {
-          baseClass = ""; // no extra classes needed
-        }
-        if (payload.scheduled_for_future) {
-          dismissElement.className = (baseClass + " inline-flex").trim();
-        } else {
-          dismissElement.className = (baseClass + " hidden").trim();
-        }
-      }
-    });
   });
 
   document.addEventListener("recording-studio-attachable--attachment-image-picker:selected", function(event) {
@@ -445,6 +608,11 @@
     var input = host.querySelector("#publishable-social-image-input");
     if (input) {
       input.value = attachment.id || "";
+
+      var form = input.closest("form.publishable-edit-form");
+      if (form) {
+        refreshPublishableDirtyState(form);
+      }
     }
 
     var image = host.querySelector("[data-publishable-social-image-preview-image]");
