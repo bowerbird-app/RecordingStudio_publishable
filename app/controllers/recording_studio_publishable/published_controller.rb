@@ -71,7 +71,9 @@ module RecordingStudioPublishable
       inferred_type = inferred_parent_recordable_type_for(publishable_recording)
       actual_type = publishable_recording.parent_recording&.recordable_type
 
-      return false if params[:parent_recordable_type].present? && actual_type.present? && inferred_type.to_s != actual_type.to_s
+      if params[:parent_recordable_type].present? && actual_type.present? && inferred_type.to_s != actual_type.to_s
+        return false
+      end
 
       RecordingStudioPublishable.configuration.public_url_enabled_for(inferred_type)
     end

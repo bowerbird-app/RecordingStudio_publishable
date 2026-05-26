@@ -79,7 +79,8 @@ module RecordingStudioPublishable
       true
     end
 
-    def register_public_renderer(recordable_type, controller: nil, action: nil, layout: nil, path: nil, url_enabled: nil)
+    def register_public_renderer(recordable_type, controller: nil, action: nil, layout: nil, path: nil,
+                                 url_enabled: nil)
       normalized_type = normalize_recordable_type(recordable_type)
       default_renderer = default_public_renderer_for(normalized_type)
 
