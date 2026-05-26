@@ -26,6 +26,8 @@
   <% pill_inactive_classes = FlatPack::Button::Pill::Component::ITEM_INACTIVE_CLASSES %>
   <% published_state = @publishable.published_state? %>
   <% scheduled_for_future = @publishable.scheduled_for_future? %>
+  <% schedule_enabled = @schedule_enabled != false %>
+  <% seo_enabled = @seo_enabled != false %>
   <% normalized_meta_robots = @publishable.meta_robots.to_s.split(",").map { |token| token.strip.downcase }.reject(&:blank?).join(",") %>
   <% meta_robots_preset_options = [
        ["Default (index,follow)", "index,follow"],
@@ -38,7 +40,7 @@
   <% meta_robots_initial_preset = meta_robots_preset_values.include?(normalized_meta_robots) ? normalized_meta_robots : "__custom__" %>
   <% seo_title_max_characters = 60 %>
   <% social_title_max_characters = 70 %>
-  <% active_status_pill = if scheduled_for_future
+  <% active_status_pill = if schedule_enabled && scheduled_for_future
                             "scheduled"
                           elsif published_state
                             "published"
@@ -54,7 +56,7 @@
     ) %>
   </div>
 
-  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true }, data: { publishable_initial_mode: active_status_pill, publishable_pill_active_classes: pill_active_classes, publishable_pill_inactive_classes: pill_inactive_classes } do |form| %>
+  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true }, data: { publishable_initial_mode: active_status_pill, publishable_pill_active_classes: pill_active_classes, publishable_pill_inactive_classes: pill_inactive_classes, publishable_schedule_enabled: schedule_enabled } do |form| %>
     <div hidden data-publishable-unsaved-warning-wrapper>
       <%= render FlatPack::Alert::Component.new(
         title: "You have unsaved changes",
@@ -76,13 +78,15 @@
                 data: { publishable_status_pill: "draft" },
                 aria: { pressed: active_status_pill == "draft" }
               },
-              {
-                text: "Scheduled",
-                href: "#",
-                active: active_status_pill == "scheduled",
-                data: { publishable_status_pill: "scheduled" },
-                aria: { pressed: active_status_pill == "scheduled" }
-              },
+              (if schedule_enabled
+                {
+                  text: "Scheduled",
+                  href: "#",
+                  active: active_status_pill == "scheduled",
+                  data: { publishable_status_pill: "scheduled" },
+                  aria: { pressed: active_status_pill == "scheduled" }
+                }
+              end),
               {
                 text: "Published",
                 href: "#",
@@ -90,7 +94,7 @@
                 data: { publishable_status_pill: "published" },
                 aria: { pressed: active_status_pill == "published" }
               }
-            ],
+            ].compact,
             aria: { label: "Publish status" }
           ) %>
         </div>
@@ -106,66 +110,70 @@
       </div>
     </div>
 
-    <div class="<%= active_status_pill == "scheduled" ? "" : "hidden" %> grid gap-4 md:grid-cols-3" data-publishable-schedule-fields>
-      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
-      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
-      <div class="space-y-2">
-        <%= render FlatPack::Select::Component.new(
-          name: "publishable[time_zone]",
-          options: @time_zone_options,
-          label: "Time zone",
-          placeholder: "Select a time zone",
-          value: @publishable.time_zone.presence
-        ) %>
-      </div>
-    </div>
-
-    <div id="publishable-advanced-panel" class="hidden space-y-8 bg-(--surface-raised-background-color)" data-publishable-advanced-panel>
-      <section class="space-y-4">
-        <h2 class="text-sm font-semibold text-(--surface-content-color)">SEO</h2>
-        <div class="grid gap-4 md:grid-cols-2">
-          <div class="space-y-1">
-            <%= render FlatPack::TextInput::Component.new(
-              name: "publishable[seo_title]",
-              id: "publishable-seo-title-input",
-              label: "SEO title",
-              value: @publishable.seo_title,
-              maxlength: seo_title_max_characters,
-              data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
-            ) %>
-            <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
-          </div>
-          <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
-        </div>
-        <%= render FlatPack::TextArea::Component.new(
-          name: "publishable[seo_description]",
-          label: "SEO description",
-          value: @publishable.seo_description,
-          rows: 4,
-          character_count: true,
-          max_characters: 160,
-          placeholder: "Short summary for search engines"
-        ) %>
-        <%= form.hidden_field :meta_robots, value: (normalized_meta_robots.presence || "index,follow"), data: { publishable_meta_robots_value: true } %>
+    <% if schedule_enabled %>
+      <div class="<%= active_status_pill == "scheduled" ? "" : "hidden" %> grid gap-4 md:grid-cols-3" data-publishable-schedule-fields>
+        <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
+        <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
         <div class="space-y-2">
           <%= render FlatPack::Select::Component.new(
-            name: "publishable_meta_robots_preset",
-            options: meta_robots_preset_options,
-            label: "Meta robots",
-            value: meta_robots_initial_preset,
-            data: { publishable_meta_robots_preset: true }
+            name: "publishable[time_zone]",
+            options: @time_zone_options,
+            label: "Time zone",
+            placeholder: "Select a time zone",
+            value: @publishable.time_zone.presence
           ) %>
         </div>
-        <div id="publishable-meta-robots-advanced" class="<%= meta_robots_initial_preset == "__custom__" ? "" : "hidden" %>" data-publishable-meta-robots-advanced>
-          <%= render FlatPack::TextInput::Component.new(
-            name: "publishable_meta_robots_custom",
-            label: "Meta robots (advanced)",
-            value: (normalized_meta_robots.presence || "index,follow"),
-            placeholder: "index,follow",
-            data: { publishable_meta_robots_custom_input: true }
+      </div>
+    <% end %>
+
+    <div id="publishable-advanced-panel" class="hidden space-y-8 bg-(--surface-raised-background-color)" data-publishable-advanced-panel>
+      <% if seo_enabled %>
+        <section class="space-y-4">
+          <h2 class="text-sm font-semibold text-(--surface-content-color)">SEO</h2>
+          <div class="grid gap-4 md:grid-cols-2">
+            <div class="space-y-1">
+              <%= render FlatPack::TextInput::Component.new(
+                name: "publishable[seo_title]",
+                id: "publishable-seo-title-input",
+                label: "SEO title",
+                value: @publishable.seo_title,
+                maxlength: seo_title_max_characters,
+                data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
+              ) %>
+              <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
+            </div>
+            <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
+          </div>
+          <%= render FlatPack::TextArea::Component.new(
+            name: "publishable[seo_description]",
+            label: "SEO description",
+            value: @publishable.seo_description,
+            rows: 4,
+            character_count: true,
+            max_characters: 160,
+            placeholder: "Short summary for search engines"
           ) %>
-        </div>
-      </section>
+          <%= form.hidden_field :meta_robots, value: (normalized_meta_robots.presence || "index,follow"), data: { publishable_meta_robots_value: true } %>
+          <div class="space-y-2">
+            <%= render FlatPack::Select::Component.new(
+              name: "publishable_meta_robots_preset",
+              options: meta_robots_preset_options,
+              label: "Meta robots",
+              value: meta_robots_initial_preset,
+              data: { publishable_meta_robots_preset: true }
+            ) %>
+          </div>
+          <div id="publishable-meta-robots-advanced" class="<%= meta_robots_initial_preset == "__custom__" ? "" : "hidden" %>" data-publishable-meta-robots-advanced>
+            <%= render FlatPack::TextInput::Component.new(
+              name: "publishable_meta_robots_custom",
+              label: "Meta robots (advanced)",
+              value: (normalized_meta_robots.presence || "index,follow"),
+              placeholder: "index,follow",
+              data: { publishable_meta_robots_custom_input: true }
+            ) %>
+          </div>
+        </section>
+      <% end %>
 
       <section class="space-y-4">
         <h2 class="text-sm font-semibold text-(--surface-content-color)">Details</h2>
@@ -199,7 +207,7 @@
       end %>
 
       <section class="space-y-4">
-        <h2 class="text-sm font-semibold text-(--surface-content-color)">Image</h2>
+        <h2 class="text-sm font-semibold text-(--surface-content-color)">Social Image</h2>
         <div id="publishable-social-image-preview-wrapper" data-publishable-social-image-picker style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
           <%= form.hidden_field :social_image_attachment_recording_id, id: "publishable-social-image-input", data: { publishable_social_image_input: true } %>
           <img
@@ -299,6 +307,11 @@
     }
 
     options = options || {};
+
+    var scheduleEnabled = form.dataset.publishableScheduleEnabled !== "false";
+    if (!scheduleEnabled && mode === "scheduled") {
+      mode = "published";
+    }
 
     var statusField = form.querySelector('[data-publishable-status-field]');
     if (statusField) {

@@ -91,6 +91,40 @@ class ConfigurationTest < Minitest::Test
     assert_equal "pages/show", RecordingStudioPublishable.configuration.public_template_for("Page")
   end
 
+  def test_schedule_and_seo_capabilities_default_to_true
+    klass = Class.new do
+      def self.name
+        "CapabilityDefaults"
+      end
+
+      include RecordingStudioPublishable::ParentRecordable
+
+      recording_studio_publishable
+    end
+
+    assert_equal true, klass.recording_studio_publishable_schedule_enabled
+    assert_equal true, klass.recording_studio_publishable_seo_enabled
+    assert_equal true, RecordingStudioPublishable.configuration.schedule_enabled_for(klass)
+    assert_equal true, RecordingStudioPublishable.configuration.seo_enabled_for(klass)
+  end
+
+  def test_schedule_and_seo_capabilities_can_be_disabled_from_model_dsl
+    klass = Class.new do
+      def self.name
+        "CapabilityOptOut"
+      end
+
+      include RecordingStudioPublishable::ParentRecordable
+
+      recording_studio_publishable(schedule: false, seo: false)
+    end
+
+    assert_equal false, klass.recording_studio_publishable_schedule_enabled
+    assert_equal false, klass.recording_studio_publishable_seo_enabled
+    assert_equal false, RecordingStudioPublishable.configuration.schedule_enabled_for(klass)
+    assert_equal false, RecordingStudioPublishable.configuration.seo_enabled_for(klass)
+  end
+
   def test_merge_updates_known_attributes
     RecordingStudioPublishable.configuration.merge!(
       default_time_zone: "Pacific Time (US & Canada)",

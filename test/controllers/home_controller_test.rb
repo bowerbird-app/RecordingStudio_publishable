@@ -84,11 +84,11 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Publish"
-    assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
-    assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
-    assert_includes response.body, "History"
-    assert_includes response.body, "Upload image"
-    assert_includes response.body, "Manage library"
+    refute_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
+    refute_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
+    refute_includes response.body, "SEO title"
+    refute_includes response.body, "SEO description"
+    assert_includes response.body, "Upload Photo"
   end
 
   test "edit page accepts a publishable child recording id without nesting another publishable" do

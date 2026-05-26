@@ -123,10 +123,19 @@ module RecordingStudioPublishable
     end
 
     def permitted_publishable_attributes
-      %i[
-        slug status publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
-        social_title social_description social_image_attachment_recording_id
+      attributes = %i[
+        slug status social_title social_description social_image_attachment_recording_id
       ]
+
+      if schedule_enabled_for_recordable?
+        attributes.concat(%i[publish_at unpublish_at time_zone])
+      end
+
+      if seo_enabled_for_recordable?
+        attributes.concat(%i[seo_title seo_description canonical_url meta_robots])
+      end
+
+      attributes
     end
 
     def publishable_layout
@@ -136,10 +145,20 @@ module RecordingStudioPublishable
     def assign_publishable_form_state
       @publishable_recording = @parent_recording.publishable_child_recording
       @publishable = @publishable_recording.recordable
+      @schedule_enabled = schedule_enabled_for_recordable?
+      @seo_enabled = seo_enabled_for_recordable?
       @time_zone_options = ActiveSupport::TimeZone.all.map do |zone|
         ["(UTC#{zone.formatted_offset}) #{zone.name}", zone.name]
       end
       @social_image_attachments = direct_image_attachments_for(@publishable_recording)
+    end
+
+    def schedule_enabled_for_recordable?
+      RecordingStudioPublishable.configuration.schedule_enabled_for(@parent_recording.recordable_type)
+    end
+
+    def seo_enabled_for_recordable?
+      RecordingStudioPublishable.configuration.seo_enabled_for(@parent_recording.recordable_type)
     end
 
     def direct_image_attachments_for(publishable_recording)

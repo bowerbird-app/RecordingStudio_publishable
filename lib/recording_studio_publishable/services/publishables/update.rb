@@ -53,10 +53,27 @@ module RecordingStudioPublishable
         end
 
         def permitted_attributes
-          %i[
-            slug status publish_at unpublish_at time_zone seo_title seo_description canonical_url meta_robots
-            social_title social_description social_image_attachment_recording_id
+          attributes = %i[
+            slug status social_title social_description social_image_attachment_recording_id
           ]
+
+          if schedule_enabled_for_recordable?
+            attributes.concat(%i[publish_at unpublish_at time_zone])
+          end
+
+          if seo_enabled_for_recordable?
+            attributes.concat(%i[seo_title seo_description canonical_url meta_robots])
+          end
+
+          attributes
+        end
+
+        def schedule_enabled_for_recordable?
+          RecordingStudioPublishable.configuration.schedule_enabled_for(parent_recording.recordable_type)
+        end
+
+        def seo_enabled_for_recordable?
+          RecordingStudioPublishable.configuration.seo_enabled_for(parent_recording.recordable_type)
         end
 
         def validated_attributes_result(publishable_recording)

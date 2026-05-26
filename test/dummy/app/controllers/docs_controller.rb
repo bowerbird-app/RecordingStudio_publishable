@@ -35,14 +35,15 @@ class DocsController < ApplicationController
   def headers
     @header_recordings = RecordingStudio::Recording.where(recordable_type: %w[Page Article]).includes(:recordable).order(:created_at, :id)
     @header_parent_recording = selected_header_recording
+    @header_publishable_recording = @header_parent_recording&.publishable_child_recording
     @header_publishable = @header_parent_recording&.current_publishable
     @header_public_url = @header_parent_recording&.publishable_public_url(
       host: request.host_with_port,
       protocol: request.protocol.delete_suffix("://")
     )
     @header_social_image_url = social_image_preview_url(@header_publishable)
-    @header_tag_rows = header_tag_rows
     @header_tag_code = build_header_code_from_helper
+    @header_tag_rows = header_tag_rows
   end
 
   def components
@@ -316,57 +317,63 @@ class DocsController < ApplicationController
   end
 
   def header_tag_rows
-    return [] unless @header_parent_recording && @header_publishable
+    return [] unless @header_parent_recording && @header_publishable && @header_publishable_recording
 
-    page_title = @header_publishable.seo_title.presence || @header_parent_recording.recordable&.try(:title).presence || "Published page"
-    description = @header_publishable.seo_description.presence
-    canonical_url = @header_publishable.canonical_url.presence || @header_public_url
-    social_title = @header_publishable.social_title.presence || page_title
-    social_description = @header_publishable.social_description.presence || description
-    twitter_card = @header_social_image_url.present? ? "summary_large_image" : "summary"
-
-    rows = []
-    rows << ["title", page_title]
-    rows << ["meta[name=description]", description] if description.present?
-    rows << ["link[rel=canonical]", canonical_url] if canonical_url.present?
-    rows << ["meta[property=og:type]", "article"]
-    rows << ["meta[property=og:title]", social_title]
-    rows << ["meta[property=og:description]", social_description] if social_description.present?
-    rows << ["meta[property=og:url]", @header_public_url] if @header_public_url.present?
-    rows << ["meta[property=og:image]", @header_social_image_url] if @header_social_image_url.present?
-    rows << ["meta[name=twitter:card]", twitter_card]
-    rows << ["meta[name=twitter:title]", social_title]
-    rows << ["meta[name=twitter:description]", social_description] if social_description.present?
-    rows << ["meta[name=twitter:image]", @header_social_image_url] if @header_social_image_url.present?
+    rows = [["seo_enabled", header_seo_enabled?.to_s]]
+    rows.concat(parse_header_tag_rows(@header_tag_code))
     rows
   end
 
-  def build_header_code
-    lines = []
-
-    @header_tag_rows.each do |name, value|
-      case name
-      when "title"
-        lines << "<title>#{value}</title>"
-      when "link[rel=canonical]"
-        lines << "<link rel=\"canonical\" href=\"#{value}\">"
-      else
-        key, key_value = name.match(/meta\[(.+?)=(.+?)\]/).captures
-        lines << "<meta #{key}=\"#{key_value}\" content=\"#{value}\">"
-      end
-    end
-
-    lines.join("\n")
-  end
-
   def build_header_code_from_helper
-    return "" unless @header_parent_recording && @header_publishable
+    return "" unless @header_parent_recording && @header_publishable && @header_publishable_recording
 
     helpers.publishable_head_tags(
-      publishable_recording: @header_parent_recording,
+      publishable_recording: @header_publishable_recording,
       publishable: @header_publishable,
       public_url: @header_public_url
     ).to_s
+  end
+
+  def parse_header_tag_rows(tag_code)
+    return [] if tag_code.blank?
+
+    fragment = Nokogiri::HTML::DocumentFragment.parse(tag_code)
+
+    fragment.children.filter_map do |node|
+      next if node.text?
+
+      case node.name
+      when "title"
+        value = node.text.to_s.strip
+        value.present? ? ["title", value] : nil
+      when "meta"
+        content = node["content"].to_s
+        next if content.blank?
+
+        if node["name"].present?
+          ["meta[name=#{node['name']}]", content]
+        elsif node["property"].present?
+          ["meta[property=#{node['property']}]", content]
+        end
+      when "link"
+        rel = node["rel"].to_s
+        href = node["href"].to_s
+        if rel.present? && href.present?
+          ["link[rel=#{rel}]", href]
+        end
+      end
+    end
+  rescue StandardError
+    []
+  end
+
+  def header_seo_enabled?
+    recordable_type = @header_parent_recording&.recordable_type
+    return true if recordable_type.blank?
+
+    RecordingStudioPublishable.configuration.seo_enabled_for(recordable_type)
+  rescue StandardError
+    true
   end
 
   def component_demo_recording

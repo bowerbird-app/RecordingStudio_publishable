@@ -120,4 +120,37 @@ class PublishableHeadTagsHelperTest < Minitest::Test
     assert_includes html, '<meta property="og:image:height" content="630">'
     assert_includes html, '<meta name="twitter:image" content="https://example.test/attachments/social-card-social_share.jpg">'
   end
+
+  def test_publishable_head_tags_omits_seo_tags_when_seo_capability_is_disabled
+    parent_recordable = Struct.new(:title).new("Launch Checklist")
+    parent_recording = ParentRecording.new("Article", parent_recordable)
+    publishable = Publishable.new(
+      "SEO headline",
+      "Search-friendly description",
+      "https://example.test/custom-canonical",
+      "Social headline",
+      "Social description",
+      "launch-checklist"
+    )
+    publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
+    view = ViewContext.new(Struct.new(:base_url).new("https://example.test"))
+
+    config = Object.new
+    config.define_singleton_method(:seo_enabled_for) { |_recordable_type| false }
+
+    html = RecordingStudioPublishable.stub(:configuration, config) do
+      view.publishable_head_tags(
+        publishable_recording: publishable_recording,
+        publishable: publishable,
+        parent_recordable: parent_recordable
+      )
+    end
+
+    refute_includes html, "<title>"
+    refute_includes html, '<meta name="description"'
+    refute_includes html, '<link rel="canonical"'
+    assert_includes html, '<meta property="og:title" content="Social headline">'
+    assert_includes html, '<meta property="og:description" content="Social description">'
+    assert_includes html, '<meta name="twitter:title" content="Social headline">'
+  end
 end

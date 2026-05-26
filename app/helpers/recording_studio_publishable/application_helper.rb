@@ -23,11 +23,16 @@ module RecordingStudioPublishable
         parent_recordable_type: publishable_recording.parent_recording&.recordable_type
       )
 
-      title ||= publishable.seo_title.presence || parent_recordable&.try(:title).presence || "Published page"
-      description ||= publishable.seo_description.presence
-      canonical_url ||= publishable.canonical_url.presence || public_url
-      social_title ||= publishable.social_title.presence || title
-      social_description ||= publishable.social_description.presence || description
+      seo_enabled = seo_enabled_for_publishable?(publishable_recording: publishable_recording)
+
+      if seo_enabled
+        title ||= publishable.seo_title.presence || parent_recordable&.try(:title).presence || "Published page"
+        description ||= publishable.seo_description.presence
+        canonical_url ||= publishable.canonical_url.presence || public_url
+      end
+
+      social_title ||= publishable.social_title.presence || parent_recordable&.try(:title).presence || "Published page"
+      social_description ||= publishable.social_description.presence
       social_image_url ||= resolved_social_image_url(publishable: publishable)
 
       if social_image_url.present?
@@ -36,9 +41,11 @@ module RecordingStudioPublishable
       end
 
       tag_rows = []
-      tag_rows << tag.title(title)
-      tag_rows << tag.meta(name: "description", content: description) if description.present?
-      tag_rows << tag.link(rel: "canonical", href: canonical_url) if canonical_url.present?
+      if seo_enabled
+        tag_rows << tag.title(title) if title.present?
+        tag_rows << tag.meta(name: "description", content: description) if description.present?
+        tag_rows << tag.link(rel: "canonical", href: canonical_url) if canonical_url.present?
+      end
       tag_rows << tag.meta(property: "og:type", content: "article")
       tag_rows << tag.meta(property: "og:title", content: social_title)
       tag_rows << tag.meta(property: "og:description", content: social_description) if social_description.present?
@@ -105,6 +112,15 @@ module RecordingStudioPublishable
       return path unless respond_to?(:request) && request.respond_to?(:base_url) && request.base_url.present?
 
       "#{request.base_url}#{path}"
+    end
+
+    def seo_enabled_for_publishable?(publishable_recording:)
+      recordable_type = publishable_recording&.parent_recording&.recordable_type
+      return true if recordable_type.blank?
+
+      RecordingStudioPublishable.configuration.seo_enabled_for(recordable_type)
+    rescue StandardError
+      true
     end
   end
 end

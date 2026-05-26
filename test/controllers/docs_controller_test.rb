@@ -124,4 +124,57 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "X (Twitter)-style preview"
     assert_includes response.body, "Facebook-style preview"
   end
+
+  test "headers resolved values show seo disabled and only social tags for page" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Headers SEO False Workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Headers SEO False Page"),
+                                                          parent_recording: root)
+
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: {
+        slug: "headers-seo-false-page",
+        status: "published",
+        seo_title: "SEO title should be ignored",
+        seo_description: "SEO description should be ignored"
+      }
+    )
+
+    get docs_headers_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "seo_enabled"
+    assert_includes response.body, "false"
+    assert_includes response.body, "meta[property=og:title]"
+    assert_includes response.body, "meta[name=twitter:title]"
+    refute_includes response.body, "meta[name=description]"
+    refute_includes response.body, "link[rel=canonical]"
+  end
+
+  test "headers resolved values show seo tags when enabled for article" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Headers SEO True Workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Article.create!(title: "Headers SEO True Article"),
+                                                          parent_recording: root)
+
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: {
+        slug: "headers-seo-true-article",
+        status: "published",
+        seo_title: "Headers SEO Title",
+        seo_description: "Headers SEO Description"
+      }
+    )
+
+    get docs_headers_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "seo_enabled"
+    assert_includes response.body, "true"
+    assert_includes response.body, "title"
+    assert_includes response.body, "Headers SEO Title"
+    assert_includes response.body, "meta[name=description]"
+    assert_includes response.body, "Headers SEO Description"
+    assert_includes response.body, "link[rel=canonical]"
+  end
 end

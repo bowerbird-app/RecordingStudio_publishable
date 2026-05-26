@@ -91,6 +91,28 @@ module RecordingStudioPublishable
       public_renderer_for(recordable_type).layout
     end
 
+    def schedule_enabled_for(recordable_type)
+      recordable_class = recordable_type_class(recordable_type)
+      return true if recordable_class.blank?
+
+      return true unless recordable_class.respond_to?(:recording_studio_publishable_schedule_enabled)
+
+      recordable_class.recording_studio_publishable_schedule_enabled != false
+    rescue StandardError
+      true
+    end
+
+    def seo_enabled_for(recordable_type)
+      recordable_class = recordable_type_class(recordable_type)
+      return true if recordable_class.blank?
+
+      return true unless recordable_class.respond_to?(:recording_studio_publishable_seo_enabled)
+
+      recordable_class.recording_studio_publishable_seo_enabled != false
+    rescue StandardError
+      true
+    end
+
     def default_layout
       layout
     end
@@ -167,6 +189,15 @@ module RecordingStudioPublishable
 
     def normalize_recordable_type(recordable_type)
       recordable_type.is_a?(Class) ? recordable_type.name : recordable_type.to_s
+    end
+
+    def recordable_type_class(recordable_type)
+      return recordable_type if recordable_type.is_a?(Class)
+
+      normalized = normalize_recordable_type(recordable_type)
+      return if normalized.blank?
+
+      normalized.safe_constantize
     end
 
     def validate_public_path_template!(path)
