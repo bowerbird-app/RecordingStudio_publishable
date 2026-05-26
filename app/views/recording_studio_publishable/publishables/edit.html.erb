@@ -630,14 +630,26 @@
     }
 
     var image = host.querySelector("[data-publishable-social-image-preview-image]");
-    if (image) {
-      image.src = attachment.thumbnail_url || "";
-      image.classList.remove("hidden");
-    }
-
     var emptyState = host.querySelector("[data-publishable-social-image-empty]");
-    if (emptyState) {
-      emptyState.classList.add("hidden");
+
+    if (image) {
+      var primaryUrl = attachment.thumbnail_url || attachment.insert_url || "";
+      var fallbackUrl = attachment.insert_url || "";
+
+      image.onerror = function() {
+        if (fallbackUrl && image.src !== fallbackUrl) {
+          image.src = fallbackUrl;
+          return;
+        }
+
+        image.onerror = null;
+      };
+
+      image.src = primaryUrl;
+      image.classList.remove("hidden");
+      if (emptyState) {
+        emptyState.classList.add("hidden");
+      }
     }
 
     var name = host.querySelector("[data-publishable-social-image-preview-name]");

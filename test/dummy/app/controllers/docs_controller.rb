@@ -42,6 +42,7 @@ class DocsController < ApplicationController
       protocol: request.protocol.delete_suffix("://")
     )
     @header_social_image_url = social_image_preview_url(@header_publishable)
+    @header_publishability_rows = header_publishability_rows
     @header_tag_code = build_header_code_from_helper
     @header_tag_rows = header_tag_rows
   end
@@ -306,10 +307,38 @@ class DocsController < ApplicationController
   def social_image_preview_url(publishable)
     return if publishable.blank? || !publishable.social_image_attached?
 
-    path = recording_studio_attachable.attachment_preview_file_path(
-      publishable.social_image_attachment_recording,
-      variant_name: :square_small
-    )
+    attachment_recording = publishable.social_image_attachment_recording
+    return if attachment_recording.blank?
+
+    file_attachment = publishable.social_image_attachment&.file_attachment
+    path = rails_blob_path(file_attachment, only_path: true) if file_attachment.present?
+
+    if path.blank?
+      begin
+        # Prefer social-share sizing for link cards.
+        path = recording_studio_attachable.attachment_preview_file_path(
+          attachment_recording,
+          variant_name: :social_share
+        )
+      rescue StandardError
+        path = nil
+      end
+    end
+
+    if path.blank?
+      begin
+        path = recording_studio_attachable.attachment_preview_file_path(
+          attachment_recording,
+          variant_name: :square_small
+        )
+      rescue StandardError
+        path = nil
+      end
+    end
+
+    return if path.blank?
+
+    return path if path.to_s.match?(%r{\Ahttps?://}i)
 
     "#{request.base_url}#{path}"
   rescue StandardError
@@ -319,9 +348,20 @@ class DocsController < ApplicationController
   def header_tag_rows
     return [] unless @header_parent_recording && @header_publishable && @header_publishable_recording
 
-    rows = [["seo_enabled", header_seo_enabled?.to_s]]
-    rows.concat(parse_header_tag_rows(@header_tag_code))
-    rows
+    parse_header_tag_rows(@header_tag_code)
+  end
+
+  def header_publishability_rows
+    return [] unless @header_parent_recording && @header_publishable && @header_publishable_recording
+
+    [
+      ["publishable_status", @header_publishable.status.to_s],
+      ["currently_published", @header_publishable.currently_published?.to_s],
+      ["scheduled_for_future", @header_publishable.scheduled_for_future?.to_s],
+      ["publish_at", @header_publishable.publish_at&.iso8601.to_s.presence || "-"],
+      ["unpublish_at", @header_publishable.unpublish_at&.iso8601.to_s.presence || "-"],
+      ["seo_enabled", header_seo_enabled?.to_s]
+    ]
   end
 
   def build_header_code_from_helper

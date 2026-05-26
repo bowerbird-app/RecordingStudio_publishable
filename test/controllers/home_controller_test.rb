@@ -94,7 +94,10 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
   test "edit page accepts a publishable child recording id without nesting another publishable" do
     publishable_recording = @page_recording.publishable_child_recording
 
-    assert_no_difference -> { RecordingStudio::Recording.where(parent_recording_id: publishable_recording.id, recordable_type: RecordingStudioPublishable::Publishable.name).count } do
+    assert_no_difference lambda {
+      RecordingStudio::Recording.where(parent_recording_id: publishable_recording.id,
+                                       recordable_type: RecordingStudioPublishable::Publishable.name).count
+    } do
       get recording_studio_publishable.edit_recording_publishable_path(recording_id: publishable_recording.id)
     end
 

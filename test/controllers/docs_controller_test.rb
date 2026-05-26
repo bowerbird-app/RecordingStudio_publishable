@@ -121,8 +121,11 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     get docs_headers_path(recording_id: parent_recording.id)
 
     assert_response :success
+    assert_includes response.body, "Publishability"
     assert_includes response.body, "X (Twitter)-style preview"
     assert_includes response.body, "Facebook-style preview"
+    assert_includes response.body, "publishable_status"
+    assert_includes response.body, "currently_published"
   end
 
   test "headers resolved values show seo disabled and only social tags for page" do

@@ -127,13 +127,9 @@ module RecordingStudioPublishable
         slug status social_title social_description social_image_attachment_recording_id
       ]
 
-      if schedule_enabled_for_recordable?
-        attributes.concat(%i[publish_at unpublish_at time_zone])
-      end
+      attributes.concat(%i[publish_at unpublish_at time_zone]) if schedule_enabled_for_recordable?
 
-      if seo_enabled_for_recordable?
-        attributes.concat(%i[seo_title seo_description canonical_url meta_robots])
-      end
+      attributes.concat(%i[seo_title seo_description canonical_url meta_robots]) if seo_enabled_for_recordable?
 
       attributes
     end

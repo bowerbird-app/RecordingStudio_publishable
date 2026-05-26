@@ -14,7 +14,7 @@
             <select
               id="recording_id"
               name="recording_id"
-              class="w-full rounded-md border border-[var(--surface-border-color)] bg-[var(--surface-raised-background-color)] px-3 py-2 text-sm"
+              class="w-full rounded-md border border-(--surface-border-color) bg-(--surface-raised-background-color) px-3 py-2 text-sm"
             >
               <% @header_recordings.each do |recording| %>
                 <% title = recording.recordable&.try(:title).presence || recording.recordable_type.to_s.demodulize %>
@@ -43,6 +43,34 @@
        rescue URI::InvalidURIError
          nil
        end %>
+
+    <%= render FlatPack::SectionTitle::Component.new(
+      title: "Publishability",
+      subtitle: "Runtime state that affects whether headers are emitted for this record."
+    ) %>
+
+    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+      <% card.body do %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-(--surface-border-color) text-left text-sm">
+            <thead>
+              <tr class="text-(--surface-muted-content-color)">
+                <th class="px-4 py-3 font-medium">Field</th>
+                <th class="px-4 py-3 font-medium">Value</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-(--surface-border-color)">
+              <% @header_publishability_rows.each do |name, value| %>
+                <tr>
+                  <td class="px-4 py-3 font-medium"><%= name %></td>
+                  <td class="px-4 py-3 break-all"><%= value %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    <% end %>
 
     <%= render FlatPack::SectionTitle::Component.new(
       title: "Resolved values",
@@ -83,24 +111,26 @@
           <div class="space-y-2">
             <p class="text-xs font-semibold uppercase tracking-wide text-(--surface-muted-content-color)">X (Twitter)-style preview</p>
             <div class="overflow-hidden rounded-2xl border border-(--surface-border-color) bg-(--surface-raised-background-color)">
-              <div class="flex min-h-36">
-                <% if @header_social_image_url.present? %>
-                  <img src="<%= @header_social_image_url %>" alt="X style social image preview" class="h-36 w-36 shrink-0 object-cover">
-                <% else %>
-                  <div class="flex h-36 w-36 shrink-0 items-center justify-center bg-(--surface-subtle-background-color) px-2 text-center text-xs text-(--surface-muted-content-color)">
-                    No social image
-                  </div>
-                <% end %>
+              <div class="flex items-stretch">
+                <div class="h-36 w-36 shrink-0 overflow-hidden border-r border-(--surface-border-color)" style="width: 9rem; height: 9rem;">
+                  <% if @header_social_image_url.present? %>
+                    <img src="<%= @header_social_image_url %>" alt="X style social image preview" class="block h-full w-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
+                  <% else %>
+                    <div class="flex h-full w-full items-center justify-center bg-(--surface-subtle-background-color) px-2 text-center text-xs text-(--surface-muted-content-color)">
+                      No social image
+                    </div>
+                  <% end %>
+                </div>
 
-                <div class="flex min-w-0 flex-1 flex-col justify-center space-y-1 p-4">
+                <div class="flex min-w-0 flex-1 flex-col justify-center space-y-1 p-3.5">
+                  <% if preview_domain.present? %>
+                    <p class="truncate text-[11px] uppercase tracking-wide text-(--surface-muted-content-color)"><%= preview_domain %></p>
+                  <% end %>
                   <% if preview_title.present? %>
                     <p class="line-clamp-2 text-base font-semibold text-(--surface-content-color)"><%= preview_title %></p>
                   <% end %>
                   <% if preview_description.present? %>
                     <p class="line-clamp-2 text-sm text-(--surface-muted-content-color)"><%= preview_description %></p>
-                  <% end %>
-                  <% if preview_domain.present? %>
-                    <p class="truncate text-xs text-(--surface-muted-content-color)"><%= preview_domain %></p>
                   <% end %>
                 </div>
               </div>
