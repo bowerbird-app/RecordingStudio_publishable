@@ -114,4 +114,25 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Blog post"
   end
+
+  test "published show returns not found when public url is disabled for the recordable type" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Article.create!(title: "Blog post"),
+                                                          parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: { slug: "blog-post", status: "published" }
+    ).value
+
+    configuration = RecordingStudioPublishable.configuration
+    disabled_url_config = lambda do |recordable_type|
+      recordable_type.to_s != "Article"
+    end
+
+    configuration.stub(:public_url_enabled_for, disabled_url_config) do
+      get "/published/#{publishable_recording.id}/blog-post"
+    end
+
+    assert_response :not_found
+  end
 end

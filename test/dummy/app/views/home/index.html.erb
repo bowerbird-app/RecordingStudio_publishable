@@ -1,7 +1,7 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Dummy publishables",
-    subtitle: "Review seeded pages and articles, then jump straight to each publishable edit screen and public route.",
+    subtitle: "Review seeded pages, articles, and widgets, then jump straight to each publishable edit screen and public route when available.",
     variant: :h1
   ) %>
 
@@ -34,6 +34,8 @@
                   <td class="px-4 py-3">
                     <% if recording.publishable_public_path.present? %>
                       <%= link_to recording.publishable_public_path, recording.publishable_public_path, class: "text-(--surface-primary-content-color) underline underline-offset-2" %>
+                    <% elsif !RecordingStudioPublishable.configuration.public_url_enabled_for(recording.recordable_type) %>
+                      No public URL (disabled for this type)
                     <% else %>
                       Not published yet
                     <% end %>

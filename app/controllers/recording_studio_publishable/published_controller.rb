@@ -8,12 +8,14 @@ module RecordingStudioPublishable
       publishable_recording = find_publishable_recording
       return head :not_found unless publishable_recording
 
+      return head :not_found unless public_url_enabled_for?(publishable_recording)
+
       @publishable_recording = publishable_recording
       @publishable = publishable_recording.recordable
       return head :not_found unless @publishable.currently_published?
 
       canonical_path = public_canonical_path_for(publishable_recording)
-      return redirect_to_canonical_path(canonical_path) if stale_slug?
+      return redirect_to_canonical_path(canonical_path) if stale_slug? && canonical_path.present?
 
       assign_parent_recordable_context(publishable_recording)
       prepare_public_controller_context(public_renderer)
@@ -37,7 +39,7 @@ module RecordingStudioPublishable
       RecordingStudioPublishable::Routing.path_for(
         publishable_recording: publishable_recording,
         publishable: @publishable,
-        parent_recordable_type: publishable_recording.parent_recording&.recordable_type
+        parent_recordable_type: inferred_parent_recordable_type_for(publishable_recording)
       )
     end
 
@@ -59,6 +61,19 @@ module RecordingStudioPublishable
       @recording = @parent_recording
       @recordable = @parent_recordable
       assign_parent_recordable_instance_variable
+    end
+
+    def inferred_parent_recordable_type_for(publishable_recording)
+      params[:parent_recordable_type].presence || publishable_recording.parent_recording&.recordable_type
+    end
+
+    def public_url_enabled_for?(publishable_recording)
+      inferred_type = inferred_parent_recordable_type_for(publishable_recording)
+      actual_type = publishable_recording.parent_recording&.recordable_type
+
+      return false if params[:parent_recordable_type].present? && actual_type.present? && inferred_type.to_s != actual_type.to_s
+
+      RecordingStudioPublishable.configuration.public_url_enabled_for(inferred_type)
     end
 
     def public_renderer

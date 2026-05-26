@@ -8,7 +8,7 @@ class HomeController < ApplicationController
   private
 
   def publishable_parent_recordings
-    RecordingStudio::Recording.where(recordable_type: %w[Page Article]).includes(:recordable, :parent_recording).order(:created_at, :id)
+    RecordingStudio::Recording.where(recordable_type: %w[Page Article Widget]).includes(:recordable, :parent_recording).order(:created_at, :id)
   end
 
   def load_edit_button_component

@@ -26,6 +26,7 @@
   <% pill_inactive_classes = FlatPack::Button::Pill::Component::ITEM_INACTIVE_CLASSES %>
   <% published_state = @publishable.published_state? %>
   <% scheduled_for_future = @publishable.scheduled_for_future? %>
+  <% url_enabled = @url_enabled != false %>
   <% schedule_enabled = @schedule_enabled != false %>
   <% seo_enabled = @seo_enabled != false %>
   <% normalized_meta_robots = @publishable.meta_robots.to_s.split(",").map { |token| token.strip.downcase }.reject(&:blank?).join(",") %>
@@ -67,6 +68,13 @@
 
     <div class="space-y-2">
       <%= form.hidden_field :status, value: (published_state ? "published" : "draft"), data: { publishable_status_field: true } %>
+      <% unless url_enabled %>
+        <%= render FlatPack::Alert::Component.new(
+          title: "Public URL is disabled for this content type",
+          description: "Publishing controls still manage where and when this content appears across placements.",
+          style: :info
+        ) %>
+      <% end %>
       <div class="flex flex-wrap items-center gap-2">
         <div data-publishable-status-pill-group>
           <%= render FlatPack::Button::Pill::Component.new(
@@ -98,15 +106,17 @@
             aria: { label: "Publish status" }
           ) %>
         </div>
-        <%= render FlatPack::Button::Component.new(
-          icon: "cog-6-tooth",
-          icon_only: true,
-          style: :ghost,
-          size: :sm,
-          type: "button",
-          data: { publishable_advanced_toggle: true },
-          aria: { label: "Toggle publish settings", expanded: "false", controls: "publishable-advanced-panel" }
-        ) %>
+        <% if url_enabled %>
+          <%= render FlatPack::Button::Component.new(
+            icon: "cog-6-tooth",
+            icon_only: true,
+            style: :ghost,
+            size: :sm,
+            type: "button",
+            data: { publishable_advanced_toggle: true },
+            aria: { label: "Toggle publish settings", expanded: "false", controls: "publishable-advanced-panel" }
+          ) %>
+        <% end %>
       </div>
     </div>
 
@@ -142,7 +152,9 @@
               ) %>
               <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
             </div>
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
+            <% if url_enabled %>
+              <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
+            <% end %>
           </div>
           <%= render FlatPack::TextArea::Component.new(
             name: "publishable[seo_description]",
@@ -177,7 +189,9 @@
 
       <section class="space-y-4">
         <h2 class="text-sm font-semibold text-(--surface-content-color)">Details</h2>
-        <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
+        <% if url_enabled %>
+          <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
+        <% end %>
         <div class="space-y-4">
           <div class="space-y-1">
             <%= render FlatPack::TextInput::Component.new(

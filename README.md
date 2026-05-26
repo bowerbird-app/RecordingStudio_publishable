@@ -9,6 +9,7 @@ Recording Studio Publishable adds a reusable **publishable child recording** to 
 - current-state helpers for draft, scheduled, published, and unpublished content
 - a default public route at `/published/:uuid/:slug`
 - conventional public rendering for parent types such as `Page -> pages#show`, with override hooks
+- per-recordable URL mode controls (enabled by default, can be disabled)
 - canonical public path and URL helpers for publishable child recordings
 - a FlatPack-based **Edit publishable info** screen
 - reusable publishable ViewComponents for a status badge, quick actions, and a summary card
@@ -64,6 +65,18 @@ bin/rails db:migrate
 ```
 
 Public rendering defaults to the parent recordable type convention, for example `Page -> pages#show`. You can override that per type in the generated initializer with `config.register_public_renderer(...)` to choose which host controller/action prepares the published page while keeping the same public URL.
+
+You can disable standalone public URLs for a recordable type while still using publish state and scheduling for internal placements:
+
+```ruby
+class FeaturedItem < ApplicationRecord
+	include RecordingStudioPublishable::ParentRecordable
+
+	recording_studio_publishable(url: false, schedule: true, seo: false)
+end
+```
+
+When `url: false`, publishables still support draft/published/scheduled workflow, but no public path or URL is generated and published endpoints return `404`.
 
 Gem-managed screens use `config.layout` (default: `recording_studio_publishable/application`).
 

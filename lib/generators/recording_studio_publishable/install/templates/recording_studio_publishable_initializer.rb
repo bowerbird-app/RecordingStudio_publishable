@@ -21,6 +21,10 @@ RecordingStudioPublishable.configure do |config|
   # The default convention resolves Page -> pages#show, Article -> articles#show.
   # config.register_public_renderer("Page", controller: "pages", action: :show, layout: "application")
 
+  # Disable standalone public URLs for a given recordable type.
+  # Publish state can still be used for internal placements.
+  # config.register_public_url("FeaturedItem", enabled: false)
+
   # Change the redirect status used when a stale slug is requested.
   # config.canonical_redirect_status = :moved_permanently
 end
