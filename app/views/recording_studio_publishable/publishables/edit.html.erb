@@ -55,12 +55,13 @@
   </div>
 
   <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true }, data: { publishable_initial_mode: active_status_pill, publishable_pill_active_classes: pill_active_classes, publishable_pill_inactive_classes: pill_inactive_classes } do |form| %>
-    <%= render FlatPack::Alert::Component.new(
-      title: "You have unsaved changes",
-      style: :warning,
-      class: "hidden",
-      data: { publishable_unsaved_warning: true }
-    ) %>
+    <div hidden data-publishable-unsaved-warning-wrapper>
+      <%= render FlatPack::Alert::Component.new(
+        title: "You have unsaved changes",
+        style: :warning,
+        data: { publishable_unsaved_warning: true }
+      ) %>
+    </div>
 
     <div class="space-y-2">
       <%= form.hidden_field :status, value: (published_state ? "published" : "draft"), data: { publishable_status_field: true } %>
@@ -361,9 +362,9 @@
       return;
     }
 
-    var warning = form.querySelector("[data-publishable-unsaved-warning]");
+    var warning = form.querySelector("[data-publishable-unsaved-warning-wrapper]");
     if (warning) {
-      warning.classList.toggle("hidden", !dirty);
+      warning.hidden = !dirty;
     }
 
     var saveButton = form.querySelector("[data-publishable-save-button]");

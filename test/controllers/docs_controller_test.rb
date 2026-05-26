@@ -99,10 +99,29 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Components"
     assert_includes response.body, "app/components/recording_studio_publishable/status_badge/component.rb"
     assert_includes response.body, "app/components/recording_studio_publishable/quick_actions/component.rb"
-    assert_includes response.body, "RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable)"
+    assert_includes response.body,
+                    "RecordingStudioPublishable::StatusBadge::Component.new(publishable: RecordingStudioPublishable::Publishable.new(status: :draft"
+    assert_includes response.body, "slug: &quot;scheduled-demo&quot;, publish_at: 1.day.from_now"
     assert_includes response.body, "Required initializer arguments for this component"
     assert_includes response.body, "RecordingStudioPublishable::Publishable"
     assert_includes response.body, "RecordingStudio::Recording"
-    assert_includes response.body, "Live rendering from the dummy app seed data"
+    assert_includes response.body, "All possible status badge states"
+  end
+
+  test "headers page renders platform-style social previews for draft publishables" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Headers Docs Workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Headers Draft Page"),
+                                                          parent_recording: root)
+
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: { slug: "headers-draft-page", status: "draft" }
+    )
+
+    get docs_headers_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "X (Twitter)-style preview"
+    assert_includes response.body, "Facebook-style preview"
   end
 end

@@ -13,7 +13,7 @@
       <img src="./assets/0.13.2/loading.gif" alt="loading"/>
     </div>
     <div id="wrapper" class="hide">
-      <div class="timestamp">Generated <abbr class="timeago" title="2026-05-25T08:20:59+00:00">2026-05-25T08:20:59+00:00</abbr></div>
+      <div class="timestamp">Generated <abbr class="timeago" title="2026-05-26T03:22:38+00:00">2026-05-26T03:22:38+00:00</abbr></div>
       <ul class="group_tabs"></ul>
 
       <div id="content">
@@ -22,7 +22,7 @@
     <span class="group_name">All Files</span>
     (<span class="covered_percent">
       <span class="red">
-  48.39%
+  47.94%
 </span>
 
      </span>
@@ -42,22 +42,22 @@
   </div>
 
   <div class="t-line-summary">
-    <b>527</b> relevant lines,
-    <span class="green"><b>255</b> lines covered</span> and
-    <span class="red"><b>272</b> lines missed. </span>
+    <b>534</b> relevant lines,
+    <span class="green"><b>256</b> lines covered</span> and
+    <span class="red"><b>278</b> lines missed. </span>
     (<span class="red">
-  48.39%
+  47.94%
 </span>
 )
   </div>
 
   
     <div class="t-branch-summary">
-      <span><b>212</b> total branches, </span>
+      <span><b>216</b> total branches, </span>
       <span class="green"><b>18</b> branches covered</span> and
-      <span class="red"><b>194</b> branches missed.</span>
+      <span class="red"><b>198</b> branches missed.</span>
       (<span class="red">
-  8.49%
+  8.33%
 </span>
 )
     </div>
@@ -294,17 +294,17 @@
         
           <tr class="t-file">
             <td class="strong t-file__name"><a href="#ccfde504a4bcdf6c96acb79771973c2b529a1e71" class="src_link" title="lib/recording_studio_publishable/services/publishables/update.rb">lib/recording_studio_publishable/services/publishables/update.rb</a></td>
-            <td class="red strong cell--number t-file__coverage">23.94 %</td>
-            <td class="cell--number">145</td>
-            <td class="cell--number">71</td>
-            <td class="cell--number">17</td>
-            <td class="cell--number">54</td>
-            <td class="cell--number">0.24</td>
+            <td class="red strong cell--number t-file__coverage">23.08 %</td>
+            <td class="cell--number">167</td>
+            <td class="cell--number">78</td>
+            <td class="cell--number">18</td>
+            <td class="cell--number">60</td>
+            <td class="cell--number">0.23</td>
             
               <td class="red strong cell--number t-file__branch-coverage">0.00 %</td>
-              <td class="cell--number">38</td>
+              <td class="cell--number">42</td>
               <td class="cell--number">0</td>
-              <td class="cell--number">38</td>
+              <td class="cell--number">42</td>
             
           </tr>
         
@@ -14423,7 +14423,7 @@
     <h3>lib/recording_studio_publishable/services/publishables/update.rb</h3>
     <h4>
       <span class="red">
-  23.94%
+  23.08%
 </span>
 
       lines covered
@@ -14440,16 +14440,16 @@
     
 
     <div class="t-line-summary">
-      <b>71</b> relevant lines.
-      <span class="green"><b>17</b> lines covered</span> and
-      <span class="red"><b>54</b> lines missed.</span>
+      <b>78</b> relevant lines.
+      <span class="green"><b>18</b> lines covered</span> and
+      <span class="red"><b>60</b> lines missed.</span>
     </div>
 
     
       <div class="t-branch-summary">
-          <span><b>38</b> total branches, </span>
+          <span><b>42</b> total branches, </span>
           <span class="green"><b>0</b> branches covered</span> and
-          <span class="red"><b>38</b> branches missed.</span>
+          <span class="red"><b>42</b> branches missed.</span>
       </div>
     
 
@@ -15582,7 +15582,7 @@
               
             
 
-            <code class="ruby">          success(validated)</code>
+            <code class="ruby">          Rails.logger.warn(</code>
           </li>
         </div>
       
@@ -15594,7 +15594,7 @@
               
             
 
-            <code class="ruby">        end</code>
+            <code class="ruby">            &quot;[PublishableDebug] validated attributes parent_recording_id=#{parent_recording.id} raw_status=#{attributes[:status].inspect} normalized_status=#{validated[:status].inspect} publish_at=#{validated[:publish_at].inspect} unpublish_at=#{validated[:unpublish_at].inspect} time_zone=#{validated[:time_zone].inspect}&quot;</code>
           </li>
         </div>
       
@@ -15606,12 +15606,60 @@
               
             
 
+            <code class="ruby">          )</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="89">
+            
+
+            
+              
+            
+
             <code class="ruby"></code>
           </li>
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="89">
+          <li class="missed" data-hits="0" data-linenumber="90">
+            
+
+            
+              
+            
+
+            <code class="ruby">          success(validated)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="91">
+            
+
+            
+              
+            
+
+            <code class="ruby">        end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="92">
+            
+
+            
+              
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="93">
             
               <span class="hits">1</span>
             
@@ -15625,7 +15673,7 @@
         </div>
       
         <div>
-          <li class="missed-branch" data-hits="0" data-linenumber="90">
+          <li class="missed-branch" data-hits="0" data-linenumber="94">
             
 
             
@@ -15645,7 +15693,7 @@
         </div>
       
         <div>
-          <li class="missed-branch" data-hits="0" data-linenumber="91">
+          <li class="missed-branch" data-hits="0" data-linenumber="95">
             
 
             
@@ -15665,7 +15713,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="92">
+          <li class="never" data-hits="" data-linenumber="96">
             
 
             
@@ -15677,7 +15725,7 @@
         </div>
       
         <div>
-          <li class="missed-branch" data-hits="0" data-linenumber="93">
+          <li class="missed-branch" data-hits="0" data-linenumber="97">
             
 
             
@@ -15697,7 +15745,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="94">
+          <li class="never" data-hits="" data-linenumber="98">
             
 
             
@@ -15709,7 +15757,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="95">
+          <li class="missed" data-hits="0" data-linenumber="99">
             
 
             
@@ -15721,7 +15769,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="96">
+          <li class="never" data-hits="" data-linenumber="100">
             
 
             
@@ -15733,7 +15781,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="97">
+          <li class="never" data-hits="" data-linenumber="101">
             
 
             
@@ -15745,7 +15793,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="98">
+          <li class="covered" data-hits="1" data-linenumber="102">
             
               <span class="hits">1</span>
             
@@ -15759,7 +15807,7 @@
         </div>
       
         <div>
-          <li class="missed-branch" data-hits="0" data-linenumber="99">
+          <li class="missed-branch" data-hits="0" data-linenumber="103">
             
 
             
@@ -15779,7 +15827,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="100">
+          <li class="never" data-hits="" data-linenumber="104">
             
 
             
@@ -15791,7 +15839,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="101">
+          <li class="missed" data-hits="0" data-linenumber="105">
             
 
             
@@ -15803,7 +15851,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="102">
+          <li class="never" data-hits="" data-linenumber="106">
             
 
             
@@ -15815,7 +15863,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="103">
+          <li class="missed" data-hits="0" data-linenumber="107">
             
 
             
@@ -15827,7 +15875,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="104">
+          <li class="never" data-hits="" data-linenumber="108">
             
 
             
@@ -15839,7 +15887,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="105">
+          <li class="never" data-hits="" data-linenumber="109">
             
 
             
@@ -15851,7 +15899,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="106">
+          <li class="covered" data-hits="1" data-linenumber="110">
             
               <span class="hits">1</span>
             
@@ -15865,7 +15913,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="107">
+          <li class="missed" data-hits="0" data-linenumber="111">
             
 
             
@@ -15877,7 +15925,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="108">
+          <li class="never" data-hits="" data-linenumber="112">
             
 
             
@@ -15889,7 +15937,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="109">
+          <li class="never" data-hits="" data-linenumber="113">
             
 
             
@@ -15901,7 +15949,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="110">
+          <li class="never" data-hits="" data-linenumber="114">
             
 
             
@@ -15913,7 +15961,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="111">
+          <li class="never" data-hits="" data-linenumber="115">
             
 
             
@@ -15925,7 +15973,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="112">
+          <li class="never" data-hits="" data-linenumber="116">
             
 
             
@@ -15937,7 +15985,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="113">
+          <li class="never" data-hits="" data-linenumber="117">
             
 
             
@@ -15949,7 +15997,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="114">
+          <li class="never" data-hits="" data-linenumber="118">
             
 
             
@@ -15961,7 +16009,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="115">
+          <li class="covered" data-hits="1" data-linenumber="119">
             
               <span class="hits">1</span>
             
@@ -15975,7 +16023,7 @@
         </div>
       
         <div>
-          <li class="missed-branch" data-hits="0" data-linenumber="116">
+          <li class="missed-branch" data-hits="0" data-linenumber="120">
             
 
             
@@ -15995,7 +16043,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="117">
+          <li class="never" data-hits="" data-linenumber="121">
             
 
             
@@ -16003,62 +16051,6 @@
             
 
             <code class="ruby"></code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed-branch" data-hits="0" data-linenumber="118">
-            
-
-            
-              
-                <span class="hits" title="then branch hit 0 times">
-                  then: 0
-                </span>
-              
-                <span class="hits" title="else branch hit 0 times">
-                  else: 0
-                </span>
-              
-            
-
-            <code class="ruby">          zone_name = time_zone.presence || parent_recording.current_publishable&amp;.time_zone.presence ||</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="never" data-hits="" data-linenumber="119">
-            
-
-            
-              
-            
-
-            <code class="ruby">                      RecordingStudioPublishable.configuration.default_time_zone</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="120">
-            
-
-            
-              
-            
-
-            <code class="ruby">          zone = ActiveSupport::TimeZone[zone_name] || ActiveSupport::TimeZone[&quot;UTC&quot;]</code>
-          </li>
-        </div>
-      
-        <div>
-          <li class="missed" data-hits="0" data-linenumber="121">
-            
-
-            
-              
-            
-
-            <code class="ruby">          parsed = zone.parse(value.to_s)</code>
           </li>
         </div>
       
@@ -16078,7 +16070,7 @@
               
             
 
-            <code class="ruby">          parsed ? parsed.utc : :invalid</code>
+            <code class="ruby">          zone_name = time_zone.presence || parent_recording.current_publishable&amp;.time_zone.presence ||</code>
           </li>
         </div>
       
@@ -16090,7 +16082,7 @@
               
             
 
-            <code class="ruby">        rescue StandardError</code>
+            <code class="ruby">                      RecordingStudioPublishable.configuration.default_time_zone</code>
           </li>
         </div>
       
@@ -16102,12 +16094,68 @@
               
             
 
+            <code class="ruby">          zone = ActiveSupport::TimeZone[zone_name] || ActiveSupport::TimeZone[&quot;UTC&quot;]</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="125">
+            
+
+            
+              
+            
+
+            <code class="ruby">          parsed = zone.parse(value.to_s)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed-branch" data-hits="0" data-linenumber="126">
+            
+
+            
+              
+                <span class="hits" title="then branch hit 0 times">
+                  then: 0
+                </span>
+              
+                <span class="hits" title="else branch hit 0 times">
+                  else: 0
+                </span>
+              
+            
+
+            <code class="ruby">          parsed ? parsed.utc : :invalid</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="127">
+            
+
+            
+              
+            
+
+            <code class="ruby">        rescue StandardError</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="128">
+            
+
+            
+              
+            
+
             <code class="ruby">          :invalid</code>
           </li>
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="125">
+          <li class="never" data-hits="" data-linenumber="129">
             
 
             
@@ -16119,7 +16167,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="126">
+          <li class="never" data-hits="" data-linenumber="130">
             
 
             
@@ -16131,7 +16179,7 @@
         </div>
       
         <div>
-          <li class="covered" data-hits="1" data-linenumber="127">
+          <li class="covered" data-hits="1" data-linenumber="131">
             
               <span class="hits">1</span>
             
@@ -16145,7 +16193,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="128">
+          <li class="missed" data-hits="0" data-linenumber="132">
             
 
             
@@ -16157,7 +16205,43 @@
         </div>
       
         <div>
-          <li class="missed-branch" data-hits="0" data-linenumber="129">
+          <li class="missed" data-hits="0" data-linenumber="133">
+            
+
+            
+              
+            
+
+            <code class="ruby">          Rails.logger.warn(</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="134">
+            
+
+            
+              
+            
+
+            <code class="ruby">            &quot;[PublishableDebug] side effects input status=#{validated[:status].inspect} resolved_status=#{status.inspect} publish_at=#{validated[:publish_at].inspect} unpublish_at=#{validated[:unpublish_at].inspect}&quot;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="135">
+            
+
+            
+              
+            
+
+            <code class="ruby">          )</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed-branch" data-hits="0" data-linenumber="136">
             
 
             
@@ -16177,7 +16261,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="130">
+          <li class="never" data-hits="" data-linenumber="137">
             
 
             
@@ -16189,7 +16273,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="131">
+          <li class="missed" data-hits="0" data-linenumber="138">
             
 
             
@@ -16201,7 +16285,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="132">
+          <li class="never" data-hits="" data-linenumber="139">
             
 
             
@@ -16213,7 +16297,7 @@
         </div>
       
         <div>
-          <li class="missed-branch" data-hits="0" data-linenumber="133">
+          <li class="missed-branch" data-hits="0" data-linenumber="140">
             
 
             
@@ -16233,7 +16317,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="134">
+          <li class="missed" data-hits="0" data-linenumber="141">
             
 
             
@@ -16245,7 +16329,7 @@
         </div>
       
         <div>
-          <li class="missed-branch" data-hits="0" data-linenumber="135">
+          <li class="missed-branch" data-hits="0" data-linenumber="142">
             
 
             
@@ -16265,7 +16349,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="136">
+          <li class="missed" data-hits="0" data-linenumber="143">
             
 
             
@@ -16277,7 +16361,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="137">
+          <li class="never" data-hits="" data-linenumber="144">
             
 
             
@@ -16289,7 +16373,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="138">
+          <li class="never" data-hits="" data-linenumber="145">
             
 
             
@@ -16301,7 +16385,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="139">
+          <li class="missed" data-hits="0" data-linenumber="146">
             
 
             
@@ -16313,7 +16397,7 @@
         </div>
       
         <div>
-          <li class="missed" data-hits="0" data-linenumber="140">
+          <li class="missed" data-hits="0" data-linenumber="147">
             
 
             
@@ -16325,7 +16409,55 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="141">
+          <li class="never" data-hits="" data-linenumber="148">
+            
+
+            
+              
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="149">
+            
+
+            
+              
+            
+
+            <code class="ruby">          Rails.logger.warn(</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="150">
+            
+
+            
+              
+            
+
+            <code class="ruby">            &quot;[PublishableDebug] side effects output status=#{validated[:status].inspect} publish_at=#{validated[:publish_at].inspect} unpublish_at=#{validated[:unpublish_at].inspect}&quot;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="151">
+            
+
+            
+              
+            
+
+            <code class="ruby">          )</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="152">
             
 
             
@@ -16337,7 +16469,157 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="142">
+          <li class="never" data-hits="" data-linenumber="153">
+            
+
+            
+              
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="154">
+            
+
+            
+              
+            
+
+            <code class="ruby">        # Normalize UI/API status input to the two persisted enum values.</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="155">
+            
+
+            
+              
+            
+
+            <code class="ruby">        # We treat &quot;scheduled&quot; as &quot;published&quot; with a future publish_at.</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="covered" data-hits="1" data-linenumber="156">
+            
+              <span class="hits">1</span>
+            
+
+            
+              
+            
+
+            <code class="ruby">        def status_from(validated)</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed" data-hits="0" data-linenumber="157">
+            
+
+            
+              
+            
+
+            <code class="ruby">          raw = validated[:status].to_s.strip.downcase</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="158">
+            
+
+            
+              
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed-branch" data-hits="0" data-linenumber="159">
+            
+
+            
+              
+                <span class="hits" title="then branch hit 0 times">
+                  then: 0
+                </span>
+              
+                <span class="hits" title="else branch hit 0 times">
+                  else: 0
+                </span>
+              
+            
+
+            <code class="ruby">          return &quot;draft&quot; if raw == &quot;draft&quot;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="missed-branch" data-hits="0" data-linenumber="160">
+            
+
+            
+              
+                <span class="hits" title="then branch hit 0 times">
+                  then: 0
+                </span>
+              
+                <span class="hits" title="else branch hit 0 times">
+                  else: 0
+                </span>
+              
+            
+
+            <code class="ruby">          return &quot;published&quot; if raw == &quot;published&quot; || raw == &quot;scheduled&quot;</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="161">
+            
+
+            
+              
+            
+
+            <code class="ruby"></code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="162">
+            
+
+            
+              
+            
+
+            <code class="ruby">          nil</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="163">
+            
+
+            
+              
+            
+
+            <code class="ruby">        end</code>
+          </li>
+        </div>
+      
+        <div>
+          <li class="never" data-hits="" data-linenumber="164">
             
 
             
@@ -16349,7 +16631,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="143">
+          <li class="never" data-hits="" data-linenumber="165">
             
 
             
@@ -16361,7 +16643,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="144">
+          <li class="never" data-hits="" data-linenumber="166">
             
 
             
@@ -16373,7 +16655,7 @@
         </div>
       
         <div>
-          <li class="never" data-hits="" data-linenumber="145">
+          <li class="never" data-hits="" data-linenumber="167">
             
 
             

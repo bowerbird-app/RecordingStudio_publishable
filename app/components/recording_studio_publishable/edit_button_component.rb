@@ -50,6 +50,7 @@ module RecordingStudioPublishable
     def button_tone
       publishable = @recording.current_publishable
       return :secondary unless publishable.present?
+      return :warning if publishable.scheduled_for_future?
       return :primary if publishable.published_state?
 
       :secondary
@@ -58,6 +59,7 @@ module RecordingStudioPublishable
     def button_text
       publishable = @recording.current_publishable
       return @label unless publishable.present?
+      return "Scheduled" if publishable.scheduled_for_future?
 
       publishable.published_state? ? "Published" : "Draft"
     end

@@ -42,7 +42,7 @@ class DocsController < ApplicationController
     )
     @header_social_image_url = social_image_preview_url(@header_publishable)
     @header_tag_rows = header_tag_rows
-    @header_tag_code = build_header_code
+    @header_tag_code = build_header_code_from_helper
   end
 
   def components
@@ -223,7 +223,7 @@ class DocsController < ApplicationController
     [
       {
         title: "RecordingStudioPublishable::EditButtonComponent",
-        subtitle: "Status-aware edit button preview showing published and draft states.",
+        subtitle: "Status-aware edit button preview showing draft, scheduled, and published states.",
         entrypoint: "app/components/recording_studio_publishable/edit_button_component.rb",
         params: [
           {
@@ -247,13 +247,18 @@ class DocsController < ApplicationController
         ],
         preview: :edit_button,
         code: <<~ERB
-          <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: @component_demo_recording) %>
-          <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: @component_demo_recording, show_tooltip: true) %>
+          <% @component_demo_edit_button_recordings.each do |recording| %>
+            <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording) %>
+          <% end %>
+
+          <% @component_demo_edit_button_recordings.each do |recording| %>
+            <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording, show_tooltip: true) %>
+          <% end %>
         ERB
       },
       {
         title: "RecordingStudioPublishable::StatusBadge::Component",
-        subtitle: "Shows all publishable status badge states for a publishable recordable.",
+        subtitle: "Shows draft, scheduled, and published badge states for a publishable recordable.",
         entrypoint: "app/components/recording_studio_publishable/status_badge/component.rb",
         params: [
           {
@@ -266,6 +271,7 @@ class DocsController < ApplicationController
         preview: :status_badge,
         code: <<~ERB
           <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: RecordingStudioPublishable::Publishable.new(status: :draft, slug: "draft-demo")) %>
+          <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: RecordingStudioPublishable::Publishable.new(status: :published, slug: "scheduled-demo", publish_at: 1.day.from_now)) %>
           <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: RecordingStudioPublishable::Publishable.new(status: :published, slug: "published-demo")) %>
         ERB
       },
@@ -353,6 +359,16 @@ class DocsController < ApplicationController
     lines.join("\n")
   end
 
+  def build_header_code_from_helper
+    return "" unless @header_parent_recording && @header_publishable
+
+    helpers.publishable_head_tags(
+      publishable_recording: @header_parent_recording,
+      publishable: @header_publishable,
+      public_url: @header_public_url
+    ).to_s
+  end
+
   def component_demo_recording
     RecordingStudio::Recording.where(recordable_type: "Page").includes(:recordable).order(:created_at, :id).first
   end
@@ -375,6 +391,7 @@ class DocsController < ApplicationController
   def component_demo_status_badges
     @component_demo_status_badges ||= [
       RecordingStudioPublishable::Publishable.new(status: :draft, slug: "draft-demo"),
+      RecordingStudioPublishable::Publishable.new(status: :published, slug: "scheduled-demo", publish_at: 1.day.from_now),
       RecordingStudioPublishable::Publishable.new(status: :published, slug: "published-demo")
     ]
   end

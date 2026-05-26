@@ -37,12 +37,7 @@
             <div class="space-y-2">
               <p class="text-xs font-medium uppercase tracking-wide text-(--surface-muted-content-color)">Without tooltip (default)</p>
               <div class="flex flex-wrap gap-3">
-                <% published_shown = false %>
                 <% @component_demo_edit_button_recordings.each do |recording| %>
-                  <% if recording.current_publishable&.published_state? %>
-                    <% next if published_shown %>
-                    <% published_shown = true %>
-                  <% end %>
                   <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording) %>
                 <% end %>
               </div>
