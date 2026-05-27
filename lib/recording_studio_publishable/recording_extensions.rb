@@ -100,7 +100,7 @@ module RecordingStudioPublishable
     def publishable_public_path
       return unless publishable_child_recording && current_publishable
 
-      RecordingStudioPublishable::Routing.path_for(
+      RecordingStudioPublishable::Routing.url_for(
         publishable_recording: publishable_child_recording,
         publishable: current_publishable,
         parent_recordable_type: recordable_type

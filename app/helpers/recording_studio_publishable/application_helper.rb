@@ -72,7 +72,7 @@ module RecordingStudioPublishable
     private
 
     def publishable_public_url(publishable_recording:, publishable:, parent_recordable_type: nil)
-      path = RecordingStudioPublishable::Routing.path_for(
+      path = RecordingStudioPublishable::Routing.url_for(
         publishable_recording: publishable_recording,
         publishable: publishable,
         parent_recordable_type: parent_recordable_type

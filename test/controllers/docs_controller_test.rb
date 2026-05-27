@@ -54,6 +54,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
                     "Tune global addon settings and model-level publishable behavior (routing, schedule, and SEO capabilities)."
     assert_includes response.body, "Available settings"
     assert_includes response.body, "Model-level setup (recommended)"
+    assert_includes response.body, "RecordingStudioPublishable::Configuration"
     assert_includes response.body, "recording_studio_publishable("
     assert_includes response.body, "schedule: false"
     assert_includes response.body, "seo: false"
@@ -90,9 +91,9 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Review the public methods, scopes, and helper entry points exposed by the addon."
-    assert_includes response.body, "RecordingStudioPublishable::Configuration"
+    refute_includes response.body, "RecordingStudioPublishable::Configuration"
     assert_includes response.body, "RecordingStudioPublishable::ParentRecordable"
-    assert_includes response.body, "RecordingStudioPublishable::Publishable"
+    refute_includes response.body, "RecordingStudioPublishable::Publishable"
     assert_includes response.body, "schedule: false"
     assert_includes response.body, "seo: false"
     assert_includes response.body, "RecordingStudioPublishable.configuration.schedule_enabled_for(&quot;Page&quot;)"

@@ -45,7 +45,7 @@ module RecordingStudioPublishable
         )
       end
 
-      def currently_published
+      def published
         joins_publishable_scope.merge(RecordingStudioPublishable::Publishable.currently_published).distinct
       end
 
@@ -82,6 +82,22 @@ module RecordingStudioPublishable
             ON recording_studio_publishable_publishables.id = publishable_recordings.recordable_id
         SQL
       end
+    end
+
+    def published?
+      self.class.published.where(id: id).exists?
+    end
+
+    def draft?
+      self.class.draft.where(id: id).exists?
+    end
+
+    def scheduled?
+      self.class.scheduled.where(id: id).exists?
+    end
+
+    def unpublished?
+      self.class.unpublished.where(id: id).exists?
     end
   end
 end

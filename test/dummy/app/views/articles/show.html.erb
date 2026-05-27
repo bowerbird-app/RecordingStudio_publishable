@@ -1,6 +1,6 @@
 <% page_title = @article&.title.presence || @publishable.seo_title.presence || @publishable.slug.to_s.tr("-", " ").humanize %>
 <% public_renderer = RecordingStudioPublishable.configuration.public_renderer_for(@recording&.recordable_type) %>
-<% resolved_public_path = RecordingStudioPublishable::Routing.path_for(
+<% resolved_public_path = RecordingStudioPublishable::Routing.url_for(
      publishable_recording: @recording,
      publishable: @publishable,
      parent_recordable_type: @recording.parent_recording&.recordable_type

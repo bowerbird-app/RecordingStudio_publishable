@@ -8,6 +8,47 @@
   <div class="space-y-8">
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
+        title: "RecordingStudioPublishable::Configuration",
+        subtitle: "Set global defaults in the initializer and prefer model-level publishable declarations for per-type routing."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :ruby,
+        code: <<~RUBY
+          RecordingStudioPublishable.configure do |config|
+            config.default_time_zone = "America/Los_Angeles"
+            config.layout = "recording_studio_publishable/application"
+            config.canonical_redirect_status = :found
+          end
+
+          class Page < ApplicationRecord
+            include RecordingStudioPublishable::ParentRecordable
+
+            recording_studio_publishable(
+              public_controller: "pages",
+              public_action: :show,
+              schedule: false,
+              seo: false
+            )
+          end
+
+          class Article < ApplicationRecord
+            include RecordingStudioPublishable::ParentRecordable
+
+            recording_studio_publishable(
+              public_controller: "articles",
+              public_action: :show,
+              path: "/blogs/:uuid/:slug",
+              schedule: true,
+              seo: true
+            )
+          end
+        RUBY
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
         title: "Available settings",
         subtitle: "These are the primary configuration points exposed by the addon."
       ) %>

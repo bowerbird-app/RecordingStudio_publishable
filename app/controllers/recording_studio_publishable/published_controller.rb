@@ -34,7 +34,7 @@ module RecordingStudioPublishable
     end
 
     def public_canonical_path_for(publishable_recording)
-      RecordingStudioPublishable::Routing.path_for(
+      RecordingStudioPublishable::Routing.url_for(
         publishable_recording: publishable_recording,
         publishable: @publishable,
         parent_recordable_type: inferred_parent_recordable_type_for(publishable_recording)

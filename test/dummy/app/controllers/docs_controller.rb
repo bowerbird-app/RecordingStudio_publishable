@@ -63,40 +63,6 @@ class DocsController < ApplicationController
   def method_sections
     [
       {
-        title: "RecordingStudioPublishable::Configuration",
-        subtitle: "Set global defaults in the initializer and prefer model-level publishable declarations for per-type routing.",
-        code: <<~RUBY
-          RecordingStudioPublishable.configure do |config|
-            config.default_time_zone = "America/Los_Angeles"
-            config.layout = "recording_studio_publishable/application"
-            config.canonical_redirect_status = :found
-          end
-
-          class Page < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
-
-            recording_studio_publishable(
-              public_controller: "pages",
-              public_action: :show,
-              schedule: false,
-              seo: false
-            )
-          end
-
-          class Article < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
-
-            recording_studio_publishable(
-              public_controller: "articles",
-              public_action: :show,
-              path: "/blogs/:uuid/:slug",
-              schedule: true,
-              seo: true
-            )
-          end
-        RUBY
-      },
-      {
         title: "RecordingStudioPublishable::ParentRecordable",
         subtitle: "Scopes you call on parent models (like Page/Article) that filter by publishable state and still return parent model records, not child Publishable rows.",
         code: <<~RUBY
@@ -116,7 +82,7 @@ class DocsController < ApplicationController
           RecordingStudioPublishable.configuration.seo_enabled_for("Page")
 
           # Returns Page records whose publishable child is live right now.
-          Page.currently_published
+          Page.published
 
           # Returns Page records whose publishable child is scheduled for the future.
           Page.scheduled
@@ -127,9 +93,16 @@ class DocsController < ApplicationController
           # Returns Page records whose publishable child has been explicitly unpublished.
           Page.unpublished
 
+          # Predicate helpers return booleans for one parent recordable.
+          page = Page.find(page_id)
+          page.published?
+          page.scheduled?
+          page.draft?
+          page.unpublished?
+
           # Same query helpers return Article records for any model that includes
           # RecordingStudioPublishable::ParentRecordable.
-          Article.currently_published
+          Article.published
         RUBY
       },
       {
@@ -140,6 +113,7 @@ class DocsController < ApplicationController
           RecordingStudio::Recording.find(recording_id).published?
           RecordingStudio::Recording.find(recording_id).draft?
           RecordingStudio::Recording.find(recording_id).scheduled?
+          RecordingStudio::Recording.find(recording_id).unpublished?
 
           # Query scopes that return RecordingStudio::Recording relations.
           RecordingStudio::Recording.published
@@ -153,22 +127,12 @@ class DocsController < ApplicationController
         RUBY
       },
       {
-        title: "RecordingStudioPublishable::Publishable",
-        subtitle: "Methods on the Publishable child model itself, including scopes for publish state and boolean checks for one publishable record.",
-        code: <<~RUBY
-          # Use current_publishable when you need direct Publishable access.
-          publishable = RecordingStudio::Recording.find(recording_id).current_publishable
-
-          publishable.effective_time_zone
-          publishable.social_image_attachment
-        RUBY
-      },
-      {
         title: "RecordingStudioPublishable::Routing",
-        subtitle: "Build the canonical public path and URL for a publishable child recording.",
+        subtitle: "Build the canonical public path or full URL for a publishable child recording using one API.",
         code: <<~RUBY
           # Returns a path like /published/:uuid/:slug or a configured alternative such as /blogs/:uuid/:slug.
-          RecordingStudioPublishable::Routing.path_for(
+          # When host is omitted, url_for returns the path.
+          RecordingStudioPublishable::Routing.url_for(
             publishable_recording: publishable_recording,
             publishable: publishable_recording.recordable,
             parent_recordable_type: publishable_recording.parent_recording&.recordable_type
