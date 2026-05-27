@@ -92,7 +92,8 @@ module RecordingStudioPublishable
 
       assert_includes RecordingStudio::Recording.scheduled.to_a, @parent_recording
       assert_includes RecordingStudio::Recording.scheduled_in(2.weeks.from_now).to_a, @parent_recording
-      assert_includes RecordingStudio::Recording.scheduled_between(Time.current..2.weeks.from_now).to_a, @parent_recording
+      assert_includes RecordingStudio::Recording.scheduled_between(Time.current..2.weeks.from_now).to_a,
+                      @parent_recording
       refute_includes RecordingStudio::Recording.published.to_a, @parent_recording
       refute_includes RecordingStudio::Recording.draft.to_a, @parent_recording
       refute_includes RecordingStudio::Recording.unpublished.to_a, @parent_recording
