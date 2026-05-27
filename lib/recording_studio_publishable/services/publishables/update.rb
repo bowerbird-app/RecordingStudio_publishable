@@ -159,7 +159,10 @@ module RecordingStudioPublishable
 
           if status == "published"
             validated[:unpublish_at] = nil
-            validated[:publish_at] = Time.current if validated[:publish_at].blank? || validated[:publish_at] <= Time.current
+            if validated[:publish_at].blank? || validated[:publish_at] <= Time.current
+              validated[:publish_at] =
+                Time.current
+            end
             return
           end
 
@@ -188,7 +191,9 @@ module RecordingStudioPublishable
           persisted_attributes = validated_attributes.slice(*permitted_attributes)
           persisted_attributes[:updated_at] = Time.current if publishable.respond_to?(:updated_at)
 
-          publishable.class.unscoped.where(id: publishable.id).update_all(persisted_attributes) if persisted_attributes.present?
+          return unless persisted_attributes.present?
+
+          publishable.class.unscoped.where(id: publishable.id).update_all(persisted_attributes)
         end
       end
     end
