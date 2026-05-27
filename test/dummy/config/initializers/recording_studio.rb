@@ -7,6 +7,7 @@ RecordingStudio.configure do |config|
     "Workspace",
     "Folder",
     "Page",
+    "Article",
     "RecordingStudioPublishable::Publishable",
     "RecordingStudioAttachable::Attachment"
   ]

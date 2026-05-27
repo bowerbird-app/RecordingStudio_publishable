@@ -4,7 +4,7 @@ class Page < ApplicationRecord
   recording_studio_publishable(
     public_controller: "pages",
     public_action: :show,
-    schedule: false,
+    schedule: true,
     seo: false
   )
 end

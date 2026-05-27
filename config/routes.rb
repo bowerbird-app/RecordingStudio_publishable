@@ -7,6 +7,10 @@ RecordingStudioPublishable::Engine.routes.draw do
                                                              as: :transition_recording_publishable
   get "/published/:uuid/:slug", to: "published#show", as: :publication
 
+  # Load configured recordable classes so ParentRecordable macros register
+  # custom publishable paths before we materialize routes.
+  RecordingStudio::RecordableTypesService.filtered_types
+
   RecordingStudioPublishable.configuration.public_path_configs.each do |recordable_type, path_template|
     next if path_template == RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH
 
