@@ -60,128 +60,128 @@
       </div>
     </div>
 
-    <% if schedule_enabled %>
-      <div class="<%= publish_toggle_checked ? "" : "hidden" %>" data-publishable-schedule-fields>
-        <%= render FlatPack::Accordion::Component.new do |accordion| %>
-          <% accordion.item(id: "publishable-schedule-window", title: "Now", open: false) do %>
-            <div class="space-y-4">
+    <%= render FlatPack::Accordion::Component.new do |accordion| %>
+      <% accordion.item(id: "publishable-schedule-window", title: "Now", open: false) do %>
+        <div class="space-y-4">
+          <% if schedule_enabled %>
               <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
               <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
-              <%= render FlatPack::Select::Component.new(
-                name: "publishable[time_zone]",
-                options: @time_zone_options,
-                label: "Time zone",
-                placeholder: "Select a time zone",
-                value: @publishable.time_zone.presence
-              ) %>
-            </div>
           <% end %>
-        <% end %>
-      </div>
-    <% end %>
 
-    <div id="publishable-advanced-panel" class="space-y-8 bg-(--surface-raised-background-color)" data-publishable-advanced-panel>
-      <% if seo_enabled %>
-        <section class="space-y-4">
-          <h2 class="text-sm font-semibold text-(--surface-content-color)">SEO</h2>
-          <div class="grid gap-4 md:grid-cols-2">
-            <div class="space-y-1">
-              <%= render FlatPack::TextInput::Component.new(
-                name: "publishable[seo_title]",
-                id: "publishable-seo-title-input",
-                label: "SEO title",
-                value: @publishable.seo_title,
-                maxlength: seo_title_max_characters,
-                data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
-              ) %>
-              <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
-            </div>
-            <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
-          </div>
-          <%= render FlatPack::TextArea::Component.new(
-            name: "publishable[seo_description]",
-            label: "SEO description",
-            value: @publishable.seo_description,
-            rows: 4,
-            character_count: true,
-            max_characters: 160,
-            placeholder: "Short summary for search engines"
+          <%= render FlatPack::Select::Component.new(
+            name: "publishable[time_zone]",
+            options: @time_zone_options,
+            label: "Time zone",
+            placeholder: "Select a time zone",
+            value: @publishable.time_zone.presence
           ) %>
-          <%= form.hidden_field :meta_robots, value: (normalized_meta_robots.presence || "index,follow"), data: { publishable_meta_robots_value: true } %>
-          <div class="space-y-2">
-            <%= render FlatPack::Select::Component.new(
-              name: "publishable_meta_robots_preset",
-              options: meta_robots_preset_options,
-              label: "Meta robots",
-              value: meta_robots_initial_preset,
-              data: { publishable_meta_robots_preset: true }
-            ) %>
-          </div>
-          <div id="publishable-meta-robots-advanced" class="<%= meta_robots_initial_preset == "__custom__" ? "" : "hidden" %>" data-publishable-meta-robots-advanced>
-            <%= render FlatPack::TextInput::Component.new(
-              name: "publishable_meta_robots_custom",
-              label: "Meta robots (advanced)",
-              value: (normalized_meta_robots.presence || "index,follow"),
-              placeholder: "index,follow",
-              data: { publishable_meta_robots_custom_input: true }
-            ) %>
-          </div>
-        </section>
+        </div>
       <% end %>
 
-      <section class="space-y-4">
-        <h2 class="text-sm font-semibold text-(--surface-content-color)">Details</h2>
-        <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
-        <div class="space-y-4">
-          <div class="space-y-1">
-            <%= render FlatPack::TextInput::Component.new(
-              name: "publishable[social_title]",
-              id: "publishable-social-title-input",
-              label: "Social title",
-              value: @publishable.social_title,
-              maxlength: social_title_max_characters,
-              data: { publishable_title_counter_input: true, publishable_title_counter_target: "social-title", publishable_title_counter_limit: social_title_max_characters }
-            ) %>
-            <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="social-title"></p>
+      <% if seo_enabled %>
+        <% accordion.item(id: "publishable-seo-fields", title: "SEO", open: false) do %>
+          <div class="space-y-8 bg-(--surface-raised-background-color)">
+            <section class="space-y-4">
+              <div class="grid gap-4">
+                <div class="space-y-1">
+                  <%= render FlatPack::TextInput::Component.new(
+                    name: "publishable[seo_title]",
+                    id: "publishable-seo-title-input",
+                    label: "SEO title",
+                    value: @publishable.seo_title,
+                    maxlength: seo_title_max_characters,
+                    data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
+                  ) %>
+                  <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
+                </div>
+                <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
+              </div>
+              <%= render FlatPack::TextArea::Component.new(
+                name: "publishable[seo_description]",
+                label: "SEO description",
+                value: @publishable.seo_description,
+                rows: 4,
+                character_count: true,
+                max_characters: 160,
+                placeholder: "Short summary for search engines"
+              ) %>
+              <%= form.hidden_field :meta_robots, value: (normalized_meta_robots.presence || "index,follow"), data: { publishable_meta_robots_value: true } %>
+              <div class="space-y-2">
+                <%= render FlatPack::Select::Component.new(
+                  name: "publishable_meta_robots_preset",
+                  options: meta_robots_preset_options,
+                  label: "Meta robots",
+                  value: meta_robots_initial_preset,
+                  data: { publishable_meta_robots_preset: true }
+                ) %>
+              </div>
+              <div id="publishable-meta-robots-advanced" class="<%= meta_robots_initial_preset == "__custom__" ? "" : "hidden" %>" data-publishable-meta-robots-advanced>
+                <%= render FlatPack::TextInput::Component.new(
+                  name: "publishable_meta_robots_custom",
+                  label: "Meta robots (advanced)",
+                  value: (normalized_meta_robots.presence || "index,follow"),
+                  placeholder: "index,follow",
+                  data: { publishable_meta_robots_custom_input: true }
+                ) %>
+              </div>
+            </section>
+
+            <section class="space-y-4">
+              <h2 class="text-sm font-semibold text-(--surface-content-color)">Details</h2>
+              <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
+              <div class="space-y-4">
+                <div class="space-y-1">
+                  <%= render FlatPack::TextInput::Component.new(
+                    name: "publishable[social_title]",
+                    id: "publishable-social-title-input",
+                    label: "Social title",
+                    value: @publishable.social_title,
+                    maxlength: social_title_max_characters,
+                    data: { publishable_title_counter_input: true, publishable_title_counter_target: "social-title", publishable_title_counter_limit: social_title_max_characters }
+                  ) %>
+                  <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="social-title"></p>
+                </div>
+                <%= render FlatPack::TextArea::Component.new(
+                  name: "publishable[social_description]",
+                  label: "Social description",
+                  value: @publishable.social_description,
+                  rows: 4,
+                  character_count: true,
+                  max_characters: 200,
+                  placeholder: "Description shown in social previews"
+                ) %>
+              </div>
+            </section>
+
+            <% current_social_image_preview_path = if @publishable.social_image_attached? && @publishable.social_image_attachment&.file_attachment.present?
+              main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
+            end %>
+
+            <section class="space-y-4">
+              <h2 class="text-sm font-semibold text-(--surface-content-color)">Social Image</h2>
+              <div id="publishable-social-image-preview-wrapper" data-publishable-social-image-picker style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+                <%= form.hidden_field :social_image_attachment_recording_id, id: "publishable-social-image-input", data: { publishable_social_image_input: true } %>
+                <img
+                  src="<%= current_social_image_preview_path || "" %>"
+                  alt="Social image"
+                  style="width: 192px; height: 192px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 1px solid var(--surface-border-color);"
+                  class="<%= @publishable.social_image_attached? ? "" : "hidden" %>"
+                  data-publishable-social-image-preview-image
+                  data-action="click->recording-studio-attachable--attachment-image-picker#openSinglePicker">
+                <% unless @publishable.social_image_attached? %>
+                  <div
+                    style="width: 192px; height: 192px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 0.5rem; border: 1px dashed var(--surface-border-color); background: var(--surface-raised-background-color); cursor: pointer;"
+                    data-publishable-social-image-empty
+                    data-action="click->recording-studio-attachable--attachment-image-picker#openSinglePicker">
+                    <span style="font-size: 0.875rem; color: var(--surface-muted-content-color);">Upload Photo</span>
+                  </div>
+                <% end %>
+              </div>
+            </section>
           </div>
-          <%= render FlatPack::TextArea::Component.new(
-            name: "publishable[social_description]",
-            label: "Social description",
-            value: @publishable.social_description,
-            rows: 4,
-            character_count: true,
-            max_characters: 200,
-            placeholder: "Description shown in social previews"
-          ) %>
-        </div>
-      </section>
-
-      <% current_social_image_preview_path = if @publishable.social_image_attached? && @publishable.social_image_attachment&.file_attachment.present?
-        main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
-      end %>
-
-      <section class="space-y-4">
-        <h2 class="text-sm font-semibold text-(--surface-content-color)">Social Image</h2>
-        <div id="publishable-social-image-preview-wrapper" data-publishable-social-image-picker style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
-          <%= form.hidden_field :social_image_attachment_recording_id, id: "publishable-social-image-input", data: { publishable_social_image_input: true } %>
-          <img
-            src="<%= current_social_image_preview_path || "" %>"
-            alt="Social image"
-            style="width: 192px; height: 192px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 1px solid var(--surface-border-color);"
-            class="<%= @publishable.social_image_attached? ? "" : "hidden" %>"
-            data-publishable-social-image-preview-image
-            data-action="click->recording-studio-attachable--attachment-image-picker#openSinglePicker">
-          <% unless @publishable.social_image_attached? %>
-            <div
-              style="width: 192px; height: 192px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 0.5rem; border: 1px dashed var(--surface-border-color); background: var(--surface-raised-background-color); cursor: pointer;"
-              data-publishable-social-image-empty
-              data-action="click->recording-studio-attachable--attachment-image-picker#openSinglePicker">
-              <span style="font-size: 0.875rem; color: var(--surface-muted-content-color);">Upload Photo</span>
-            </div>
-          <% end %>
-        </div>
-      </section>
-    </div>
+        <% end %>
+      <% end %>
+    <% end %>
 
     <div class="publishable-save-actions pt-2">
       <%= form.submit "Save changes", id: "publishable-save-button", class: "inline-flex items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm border border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]", data: { publishable_save_button: true, publishable_save_primary_classes: "border-[var(--button-primary-border-color)] bg-[var(--button-primary-background-color)] hover:bg-[var(--button-primary-hover-background-color)] text-[var(--button-primary-text-color)] shadow-[var(--button-shadow)]", publishable_save_secondary_classes: "border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]" } %>
@@ -207,6 +207,18 @@
     background-color: currentColor;
     -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z'/%3E%3C/svg%3E") no-repeat center / contain;
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z'/%3E%3C/svg%3E") no-repeat center / contain;
+  }
+
+  .publishable-edit-form button[aria-controls="publishable-seo-fields-content"] > span.font-medium::before {
+    content: "";
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    vertical-align: -0.125rem;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 6.75A2.25 2.25 0 014.5 4.5h15A2.25 2.25 0 0121.75 6.75v9A2.25 2.25 0 0119.5 18h-15a2.25 2.25 0 01-2.25-2.25v-9zM8.25 21h7.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 6.75A2.25 2.25 0 014.5 4.5h15A2.25 2.25 0 0121.75 6.75v9A2.25 2.25 0 0119.5 18h-15a2.25 2.25 0 01-2.25-2.25v-9zM8.25 21h7.5'/%3E%3C/svg%3E") no-repeat center / contain;
   }
 
   .publishable-edit-form input[name="publish_toggle"]:not(:checked) + div[role="switch"] {
@@ -275,6 +287,77 @@
     return offsetDate.toISOString().slice(0, 16);
   }
 
+  function formatRelativePublishLabel(publishAtValue) {
+    if (!publishAtValue) {
+      return "Now";
+    }
+
+    var publishAt = new Date(publishAtValue);
+    if (isNaN(publishAt.getTime())) {
+      return "Now";
+    }
+
+    var diffMs = publishAt.getTime() - Date.now();
+    if (diffMs <= 0) {
+      return "Now";
+    }
+
+    var minutes = Math.round(diffMs / 60000);
+    if (minutes < 60) {
+      return "Publish in " + minutes + " minute" + (minutes === 1 ? "" : "s");
+    }
+
+    var hours = Math.round(minutes / 60);
+    if (hours < 24) {
+      return "Publish in " + hours + " hour" + (hours === 1 ? "" : "s");
+    }
+
+    var days = Math.round(hours / 24);
+    if (days < 30) {
+      return "Publish in " + days + " day" + (days === 1 ? "" : "s");
+    }
+
+    var months = Math.round(days / 30);
+    if (months < 12) {
+      return "Publish in " + months + " month" + (months === 1 ? "" : "s");
+    }
+
+    var years = Math.round(days / 365);
+    return "Publish in " + years + " year" + (years === 1 ? "" : "s");
+  }
+
+  function updatePublishableScheduleLabel(form) {
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
+    var label = formatRelativePublishLabel(publishAtInput ? publishAtInput.value : "");
+    var triggerLabel = form.querySelector('button[aria-controls="publishable-schedule-window-content"] > span.font-medium');
+
+    if (triggerLabel) {
+      triggerLabel.textContent = label;
+    }
+  }
+
+  function updatePublishableScheduleLabelForTarget(target) {
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    var form = target.closest("form.publishable-edit-form");
+    if (!form) {
+      return;
+    }
+
+    var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
+    if (!publishAtInput) {
+      return;
+    }
+
+    updatePublishableScheduleLabel(form);
+  }
+
   function setPublishableStatusMode(form, mode, options) {
     if (!(form instanceof HTMLFormElement) || !form.classList.contains("publishable-edit-form")) {
       return;
@@ -302,10 +385,6 @@
     var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
     var unpublishAtInput = form.querySelector('[name="publishable[unpublish_at]"]');
     var scheduleFields = form.querySelector("[data-publishable-schedule-fields]");
-
-    if (scheduleFields) {
-      scheduleFields.classList.toggle("hidden", mode !== "published");
-    }
 
     if (mode === "draft") {
       if (publishAtInput) publishAtInput.value = "";
@@ -496,6 +575,7 @@
     document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
       var initialMode = form.dataset.publishableInitialMode || "draft";
       setPublishableStatusMode(form, initialMode, { preserveInputs: true });
+      updatePublishableScheduleLabel(form);
     });
   }
 
@@ -513,9 +593,18 @@
     initializePublishableMetaRobotsControls();
     initializePublishableTitleCounters();
     initializePublishableDirtyTracking();
+    document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
+      updatePublishableScheduleLabel(form);
+    });
+  });
+
+  document.addEventListener("input", function(event) {
+    updatePublishableScheduleLabelForTarget(event.target);
   });
 
   document.addEventListener("change", function(event) {
+    updatePublishableScheduleLabelForTarget(event.target);
+
     if (!(event.target instanceof HTMLInputElement) || event.target.name !== "publish_toggle") {
       return;
     }
@@ -527,6 +616,10 @@
     }
 
     setPublishableStatusMode(toggleForm, statusToggle.checked ? "published" : "draft");
+  });
+
+  document.addEventListener("keyup", function(event) {
+    updatePublishableScheduleLabelForTarget(event.target);
   });
 
   document.addEventListener("recording-studio-attachable--attachment-image-picker:selected", function(event) {

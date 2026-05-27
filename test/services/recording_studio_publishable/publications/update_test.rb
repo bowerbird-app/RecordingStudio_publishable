@@ -11,7 +11,7 @@ module RecordingStudioPublishable
       class UpdateTest < ActiveSupport::TestCase
         setup do
           @root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Workspace"))
-          @parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Landing"),
+          @parent_recording = RecordingStudio::Recording.create!(recordable: Article.create!(title: "Landing"),
                                                                  parent_recording: @root)
         end
 
@@ -68,6 +68,28 @@ module RecordingStudioPublishable
             result = Update.call(
               parent_recording: @parent_recording,
               attributes: { slug: "landing-page", status: "published" }
+            )
+
+            assert result.success?
+            publishable = result.value.reload.recordable
+            assert_equal "published", publishable.status
+            assert_in_delta Time.current.to_f, publishable.publish_at.to_f, 1.0
+            assert_nil publishable.unpublish_at
+          end
+        end
+
+        test "published status with a past publish_at saves it as now" do
+          freeze_time do
+            past_publish_at = 1.hour.ago.utc.strftime("%Y-%m-%dT%H:%M")
+
+            result = Update.call(
+              parent_recording: @parent_recording,
+              attributes: {
+                slug: "landing-page",
+                status: "published",
+                publish_at: past_publish_at,
+                time_zone: "UTC"
+              }
             )
 
             assert result.success?

@@ -18,6 +18,8 @@ module RecordingStudioPublishable
       published: "published"
     }, default: :draft, validate: true
 
+    before_validation :normalize_publish_window
+
     validates :slug, presence: true
     validates :slug,
               format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/, message: "must use URL-safe lowercase slug segments" }
@@ -97,6 +99,14 @@ module RecordingStudioPublishable
       return if publish_at.blank? || unpublish_at.blank? || publish_at < unpublish_at
 
       errors.add(:unpublish_at, "must be later than publish at")
+    end
+
+    def normalize_publish_window
+      return unless published_state?
+      return if publish_at.blank?
+      return if publish_at > Time.current
+
+      self.publish_at = Time.current
     end
   end
 end

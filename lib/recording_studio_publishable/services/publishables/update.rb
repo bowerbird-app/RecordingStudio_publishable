@@ -32,6 +32,8 @@ module RecordingStudioPublishable
             assign_attributes(publishable, validated_attributes.value)
           end
 
+          persist_publishable_attributes!(updated_recording.recordable, validated_attributes.value)
+
           success(updated_recording)
         rescue StandardError => e
           failure(e)
@@ -42,10 +44,12 @@ module RecordingStudioPublishable
         end
 
         def assign_attributes(publishable, validated_attributes)
-          permitted_attributes.each do |attribute|
-            next unless validated_attributes.key?(attribute)
+          normalized_attributes = validated_attributes.to_h.symbolize_keys
 
-            publishable.public_send("#{attribute}=", validated_attributes[attribute])
+          permitted_attributes.each do |attribute|
+            next unless normalized_attributes.key?(attribute)
+
+            publishable.public_send("#{attribute}=", normalized_attributes[attribute])
           end
 
           publishable.slug = publishable.slug.to_s.parameterize.presence ||
@@ -155,7 +159,7 @@ module RecordingStudioPublishable
 
           if status == "published"
             validated[:unpublish_at] = nil
-            validated[:publish_at] = Time.current if validated[:publish_at].blank?
+            validated[:publish_at] = Time.current if validated[:publish_at].blank? || validated[:publish_at] <= Time.current
             return
           end
 
@@ -176,6 +180,15 @@ module RecordingStudioPublishable
           return "published" if %w[published scheduled].include?(raw)
 
           nil
+        end
+
+        def persist_publishable_attributes!(publishable, validated_attributes)
+          return unless publishable&.persisted?
+
+          persisted_attributes = validated_attributes.slice(*permitted_attributes)
+          persisted_attributes[:updated_at] = Time.current if publishable.respond_to?(:updated_at)
+
+          publishable.class.unscoped.where(id: publishable.id).update_all(persisted_attributes) if persisted_attributes.present?
         end
       end
     end
