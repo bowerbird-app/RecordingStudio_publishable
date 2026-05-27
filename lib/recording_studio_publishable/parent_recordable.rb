@@ -8,13 +8,11 @@ module RecordingStudioPublishable
 
     included do
       class_attribute :recording_studio_publishable_path_template,
-                      :recording_studio_publishable_url_enabled,
                       :recording_studio_publishable_schedule_enabled,
                       :recording_studio_publishable_seo_enabled,
                       instance_writer: false,
                       default: RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH
 
-      self.recording_studio_publishable_url_enabled = true
       self.recording_studio_publishable_schedule_enabled = true
       self.recording_studio_publishable_seo_enabled = true
     end
@@ -25,7 +23,6 @@ module RecordingStudioPublishable
         public_controller: nil,
         public_action: nil,
         public_layout: nil,
-        url: true,
         schedule: true,
         seo: true
       )
@@ -36,7 +33,6 @@ module RecordingStudioPublishable
         end
 
         self.recording_studio_publishable_path_template = effective_path
-        self.recording_studio_publishable_url_enabled = url != false
         self.recording_studio_publishable_schedule_enabled = schedule != false
         self.recording_studio_publishable_seo_enabled = seo != false
 
@@ -45,8 +41,7 @@ module RecordingStudioPublishable
           controller: public_controller,
           action: public_action,
           layout: public_layout,
-          path: effective_path,
-          url_enabled: (url != false)
+          path: effective_path
         )
       end
 

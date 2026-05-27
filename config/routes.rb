@@ -10,13 +10,6 @@ RecordingStudioPublishable::Engine.routes.draw do
   RecordingStudioPublishable.configuration.public_path_configs.each do |recordable_type, path_template|
     next if path_template == RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH
 
-    url_enabled = if RecordingStudioPublishable.configuration.respond_to?(:public_url_enabled_for)
-                    RecordingStudioPublishable.configuration.public_url_enabled_for(recordable_type)
-                  else
-                    true
-                  end
-    next unless url_enabled
-
     get path_template, to: "published#show", defaults: { parent_recordable_type: recordable_type }
   end
 end

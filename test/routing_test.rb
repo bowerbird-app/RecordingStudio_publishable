@@ -43,29 +43,4 @@ class RoutingTest < Minitest::Test
     assert_equal "/blogs/123/hello-world",
                  RecordingStudioPublishable::Routing.path_for(publishable_recording: recording)
   end
-
-  def test_path_for_returns_nil_when_public_url_is_disabled
-    RecordingStudioPublishable.configuration.register_public_renderer(
-      "Article",
-      controller: "articles",
-      action: :show,
-      path: "/blogs/:uuid/:slug",
-      url_enabled: false
-    )
-
-    recording = PublishableRecording.new("123", Publishable.new("hello-world"), ParentRecording.new("Article"))
-
-    assert_nil RecordingStudioPublishable::Routing.path_for(publishable_recording: recording)
-  end
-
-  def test_url_for_returns_nil_when_public_url_is_disabled
-    RecordingStudioPublishable.configuration.register_public_url("Article", enabled: false)
-    recording = PublishableRecording.new("123", Publishable.new("hello-world"), ParentRecording.new("Article"))
-
-    assert_nil RecordingStudioPublishable::Routing.url_for(
-      publishable_recording: recording,
-      host: "example.test",
-      protocol: "https"
-    )
-  end
 end

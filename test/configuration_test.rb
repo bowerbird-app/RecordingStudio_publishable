@@ -102,10 +102,8 @@ class ConfigurationTest < Minitest::Test
       recording_studio_publishable
     end
 
-    assert_equal true, klass.recording_studio_publishable_url_enabled
     assert_equal true, klass.recording_studio_publishable_schedule_enabled
     assert_equal true, klass.recording_studio_publishable_seo_enabled
-    assert_equal true, RecordingStudioPublishable.configuration.public_url_enabled_for(klass)
     assert_equal true, RecordingStudioPublishable.configuration.schedule_enabled_for(klass)
     assert_equal true, RecordingStudioPublishable.configuration.seo_enabled_for(klass)
   end
@@ -125,31 +123,6 @@ class ConfigurationTest < Minitest::Test
     assert_equal false, klass.recording_studio_publishable_seo_enabled
     assert_equal false, RecordingStudioPublishable.configuration.schedule_enabled_for(klass)
     assert_equal false, RecordingStudioPublishable.configuration.seo_enabled_for(klass)
-  end
-
-  def test_public_url_can_be_disabled_from_model_dsl
-    klass = Class.new do
-      def self.name
-        "UrlDisabledType"
-      end
-
-      include RecordingStudioPublishable::ParentRecordable
-
-      recording_studio_publishable(url: false)
-    end
-
-    assert_equal false, klass.recording_studio_publishable_url_enabled
-    assert_equal false, RecordingStudioPublishable.configuration.public_url_enabled_for(klass)
-  end
-
-  def test_public_url_defaults_to_enabled
-    assert_equal true, RecordingStudioPublishable.configuration.public_url_enabled_for("UnknownType")
-  end
-
-  def test_register_public_url_can_disable_urls_for_a_type
-    RecordingStudioPublishable.configuration.register_public_url("Page", enabled: false)
-
-    assert_equal false, RecordingStudioPublishable.configuration.public_url_enabled_for("Page")
   end
 
   def test_merge_updates_known_attributes

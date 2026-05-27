@@ -19,7 +19,7 @@ module RecordingStudioPublishable
                   :default_time_zone,
                   :layout,
                   :canonical_redirect_status
-    attr_reader :hooks, :public_path_configs, :public_renderer_configs, :public_url_enabled_configs
+    attr_reader :hooks, :public_path_configs, :public_renderer_configs
 
     def initialize
       @current_actor_resolver = method(:default_current_actor_resolver)
@@ -29,7 +29,6 @@ module RecordingStudioPublishable
       @canonical_redirect_status = :found
       @public_path_configs = {}
       @public_renderer_configs = {}
-      @public_url_enabled_configs = {}
       @hooks = Hooks.new
     end
 
@@ -39,7 +38,6 @@ module RecordingStudioPublishable
         layout: layout,
         canonical_redirect_status: canonical_redirect_status,
         public_path_configs: public_path_configs.dup,
-        public_url_enabled_configs: public_url_enabled_configs.dup,
         public_renderer_configs: public_renderer_configs.transform_values(&:to_h),
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
       }
@@ -59,33 +57,15 @@ module RecordingStudioPublishable
       public_path_configs[normalize_recordable_type(recordable_type)] = validated_path
     end
 
-    def register_public_url(recordable_type, enabled: true)
-      public_url_enabled_configs[normalize_recordable_type(recordable_type)] = (enabled != false)
-    end
-
     def public_path_for(recordable_type)
       public_path_configs[normalize_recordable_type(recordable_type)] || DEFAULT_PUBLIC_PATH
     end
 
-    def public_url_enabled_for(recordable_type)
-      recordable_class = recordable_type_class(recordable_type)
-
-      if recordable_class.present? && recordable_class.respond_to?(:recording_studio_publishable_url_enabled)
-        return recordable_class.recording_studio_publishable_url_enabled != false
-      end
-
-      public_url_enabled_configs.fetch(normalize_recordable_type(recordable_type), true)
-    rescue StandardError
-      true
-    end
-
-    def register_public_renderer(recordable_type, controller: nil, action: nil, layout: nil, path: nil,
-                                 url_enabled: nil)
+    def register_public_renderer(recordable_type, controller: nil, action: nil, layout: nil, path: nil)
       normalized_type = normalize_recordable_type(recordable_type)
       default_renderer = default_public_renderer_for(normalized_type)
 
       register_public_path(normalized_type, path: path) if path.present?
-      register_public_url(normalized_type, enabled: url_enabled) unless url_enabled.nil?
 
       public_renderer_configs[normalized_type] = PublicRenderer.new(
         controller: controller.presence || default_renderer.controller,

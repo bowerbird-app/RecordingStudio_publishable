@@ -6,7 +6,6 @@ module RecordingStudioPublishable
       def path_for(publishable_recording:, publishable: nil, parent_recordable_type: nil)
         publishable ||= publishable_recording.recordable
         parent_recordable_type ||= publishable_recording.parent_recording&.recordable_type
-        return unless RecordingStudioPublishable.configuration.public_url_enabled_for(parent_recordable_type)
 
         template = RecordingStudioPublishable.configuration.public_path_for(parent_recordable_type)
 

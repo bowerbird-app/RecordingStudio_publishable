@@ -8,8 +8,6 @@ module RecordingStudioPublishable
       publishable_recording = find_publishable_recording
       return head :not_found unless publishable_recording
 
-      return head :not_found unless public_url_enabled_for?(publishable_recording)
-
       @publishable_recording = publishable_recording
       @publishable = publishable_recording.recordable
       return head :not_found unless @publishable.currently_published?
@@ -65,17 +63,6 @@ module RecordingStudioPublishable
 
     def inferred_parent_recordable_type_for(publishable_recording)
       params[:parent_recordable_type].presence || publishable_recording.parent_recording&.recordable_type
-    end
-
-    def public_url_enabled_for?(publishable_recording)
-      inferred_type = inferred_parent_recordable_type_for(publishable_recording)
-      actual_type = publishable_recording.parent_recording&.recordable_type
-
-      if params[:parent_recordable_type].present? && actual_type.present? && inferred_type.to_s != actual_type.to_s
-        return false
-      end
-
-      RecordingStudioPublishable.configuration.public_url_enabled_for(inferred_type)
     end
 
     def public_renderer
