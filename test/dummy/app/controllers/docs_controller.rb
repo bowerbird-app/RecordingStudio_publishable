@@ -12,7 +12,7 @@ class DocsController < ApplicationController
   end
 
   def recordings_tree
-    recordings = RecordingStudio::Recording.includes(:recordable).reorder(:created_at, :id).to_a
+    recordings = RecordingStudio::Recording.reorder(:created_at, :id).to_a
     recordings_by_parent_id = recordings.group_by(&:parent_recording_id)
 
     @recording_tree = recordings_by_parent_id.fetch(nil, []).map do |recording|
@@ -406,9 +406,15 @@ class DocsController < ApplicationController
 
   def recording_label(recording)
     type_label = recording.recordable_type.to_s.demodulize.underscore.humanize
-    identifier = recordable_identifier(recording.recordable)
+    identifier = recordable_identifier(safe_recordable_for(recording))
 
     "#{type_label}: #{identifier}"
+  end
+
+  def safe_recordable_for(recording)
+    recording.recordable
+  rescue NameError
+    nil
   end
 
   def recordable_identifier(recordable)
