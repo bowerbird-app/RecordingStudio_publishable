@@ -97,8 +97,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "seo: false"
     assert_includes response.body, "RecordingStudioPublishable.configuration.schedule_enabled_for(&quot;Page&quot;)"
     assert_includes response.body, "Returns Page records whose publishable child is live right now."
-    assert_includes response.body, "Returns publishable records that are live right now."
-    assert_includes response.body, "recording.publishable_public_url(host: &quot;example.test&quot;)"
+    assert_includes response.body, "RecordingStudio::Recording.find(recording_id).published?"
+    assert_includes response.body, "RecordingStudio::Recording.scheduled_between(Time.current..2.weeks.from_now)"
     assert_includes response.body, "RecordingStudioPublishable::Routing.url_for"
     refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"
   end

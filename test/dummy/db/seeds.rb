@@ -1,4 +1,9 @@
-user = User.find_or_create_by!(email: "admin@admin.com") do |u|
+admin_user = User.find_or_create_by!(email: "admin@admin.com") do |u|
+  u.password = "Password"
+  u.password_confirmation = "Password"
+end
+
+viewer_user = User.find_or_create_by!(email: "viewer@admin.com") do |u|
   u.password = "Password"
   u.password_confirmation = "Password"
 end
@@ -19,14 +24,26 @@ page_recording = RecordingStudio::Recording.unscoped.find_or_create_by!(root_rec
 article_recording = RecordingStudio::Recording.unscoped.find_or_create_by!(root_recording_id: root_recording.id, parent_recording_id: folder_recording.id, recordable: article)
 widget_recording = RecordingStudio::Recording.unscoped.find_or_create_by!(root_recording_id: root_recording.id, parent_recording_id: folder_recording.id, recordable: widget)
 
-Current.actor = RecordingStudio::ActorResolver.resolve_actor.call(user)
+Current.actor = RecordingStudio::ActorResolver.resolve_actor.call(admin_user)
 Current.impersonator = nil
-access = RecordingStudio::Access.find_or_create_by!(actor: user, role: :admin)
-RecordingStudio::Recording.unscoped.find_or_create_by!(root_recording_id: root_recording.id, parent_recording_id: root_recording.id, recordable: access)
+
+admin_access = RecordingStudio::Access.find_or_create_by!(actor: admin_user, role: :admin)
+viewer_access = RecordingStudio::Access.find_or_create_by!(actor: viewer_user, role: :view)
+
+RecordingStudio::Recording.unscoped.find_or_create_by!(
+  root_recording_id: root_recording.id,
+  parent_recording_id: root_recording.id,
+  recordable: admin_access
+)
+RecordingStudio::Recording.unscoped.find_or_create_by!(
+  root_recording_id: root_recording.id,
+  parent_recording_id: root_recording.id,
+  recordable: viewer_access
+)
 
 publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
   parent_recording: page_recording,
-  actor: user,
+  actor: admin_user,
   attributes: {
     slug: "launch-checklist",
     status: "published",
@@ -40,7 +57,7 @@ publishable_recording = RecordingStudioPublishable::Services::Publishables::Upda
 
 article_publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
   parent_recording: article_recording,
-  actor: user,
+  actor: admin_user,
   attributes: {
     slug: "spring-release-notes",
     status: "published",
@@ -54,7 +71,7 @@ article_publishable_recording = RecordingStudioPublishable::Services::Publishabl
 
 widget_publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
   parent_recording: widget_recording,
-  actor: user,
+  actor: admin_user,
   attributes: {
     status: "published",
     publish_at: 2.days.from_now.iso8601,
@@ -64,6 +81,7 @@ widget_publishable_recording = RecordingStudioPublishable::Services::Publishable
 ).value!
 
 puts "Seeded: admin@admin.com / Password"
+puts "Seeded: viewer@admin.com / Password"
 puts "Seeded: Workspace '#{workspace.name}' with root recording ##{root_recording.id}"
 puts "Seeded: Page '#{page.title}' with publishable child ##{publishable_recording.id}"
 puts "Seeded: Article '#{article.title}' with publishable child ##{article_publishable_recording.id}"

@@ -4,7 +4,7 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 
 ## What it demonstrates
 
-- Devise authentication with a seeded admin user
+- Devise authentication with seeded admin and viewer users
 - `Current.actor` wiring for Recording Studio events
 - a parent `Page` recording with one publishable child recording
 - the FlatPack-based **Edit publishable info** screen
@@ -24,6 +24,13 @@ Sign in with:
 
 - Email: `admin@admin.com`
 - Password: `Password`
+
+Or test unauthorized edit behavior with:
+
+- Email: `viewer@admin.com`
+- Password: `Password`
+
+The admin account has edit/admin access through RecordingStudio Accessible. The viewer account has view-only access and should be unauthorized for publishable edit actions.
 
 ## Useful Routes
 

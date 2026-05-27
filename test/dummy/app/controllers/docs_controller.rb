@@ -136,86 +136,31 @@ class DocsController < ApplicationController
         title: "RecordingStudioPublishable::RecordingExtensions",
         subtitle: "Methods you call directly on RecordingStudio::Recording to filter recordings by publishable state and access publishable-related helpers on each recording.",
         code: <<~RUBY
-          # Returns recordings whose publishable child is live right now.
-          RecordingStudio::Recording.currently_published
+          # Boolean predicates for a single recording.
+          RecordingStudio::Recording.find(recording_id).published?
+          RecordingStudio::Recording.find(recording_id).draft?
+          RecordingStudio::Recording.find(recording_id).scheduled?
 
-          # Returns recordings whose publishable child is scheduled for the future.
-          RecordingStudio::Recording.scheduled_publishables
+          # Query scopes that return RecordingStudio::Recording relations.
+          RecordingStudio::Recording.published
+          RecordingStudio::Recording.draft
+          RecordingStudio::Recording.scheduled
+          RecordingStudio::Recording.unpublished
 
-          # Returns recordings whose publishable child is still a draft.
-          RecordingStudio::Recording.draft_publishables
-
-          # Returns recordings whose publishable child was previously live and is now unpublished.
-          RecordingStudio::Recording.unpublished_publishables
-
-          recording = RecordingStudio::Recording.find(recording_id)
-
-          # Returns the publishable child recording (RecordingStudio::Recording).
-          recording.publishable_child_recording
-
-          # Returns the current publishable recordable (e.g., Publishable).
-          recording.current_publishable
-
-          # Returns true if the recording is currently published.
-          recording.currently_published?
-
-          # Returns the public path for the publishable recording.
-          recording.publishable_public_path
-
-          # Returns the public URL for the publishable recording, given a host.
-          recording.publishable_public_url(host: "example.test")
+          # Scheduled-window helpers that also return RecordingStudio::Recording relations.
+          RecordingStudio::Recording.scheduled_in(2.weeks.from_now)
+          RecordingStudio::Recording.scheduled_between(Time.current..2.weeks.from_now)
         RUBY
       },
       {
         title: "RecordingStudioPublishable::Publishable",
         subtitle: "Methods on the Publishable child model itself, including scopes for publish state and boolean checks for one publishable record.",
         code: <<~RUBY
-          publishable = RecordingStudioPublishable::Publishable.find(publishable_id)
+          # Use current_publishable when you need direct Publishable access.
+          publishable = RecordingStudio::Recording.find(recording_id).current_publishable
 
-          # Returns publishable records that are live right now.
-          RecordingStudioPublishable::Publishable.currently_published
-
-          # Returns publishable records scheduled for a future publish_at time.
-          RecordingStudioPublishable::Publishable.scheduled
-
-          # Returns publishable records with draft status.
-          RecordingStudioPublishable::Publishable.draft
-
-          # Returns publishable records that were previously live and are now unpublished.
-          RecordingStudioPublishable::Publishable.unpublished
-
-          # Returns true when the normalized status is published.
-          publishable.published_state?
-
-          # Returns true when the normalized status is draft.
-          publishable.draft_state?
-
-          # Returns true when this publishable is currently live.
-          publishable.currently_published?
-
-          # Returns the same boolean as currently_published?.
-          publishable.published?
-
-          # Returns true when status is published and publish_at is in the future.
-          publishable.scheduled_for_future?
-
-          # Returns true when this record was published before and is no longer live.
-          publishable.previously_published?
-
-          # Returns true when this record is no longer live and counts as unpublished.
-          publishable.unpublished?
-
-          # Returns the configured time zone for this publishable, or the addon default.
           publishable.effective_time_zone
-
-          # Returns true when the social image attachment integration is available.
-          publishable.social_image_supported?
-
-          # Returns the attached social image recordable, when present.
           publishable.social_image_attachment
-
-          # Returns true when a social image attachment has been linked.
-          publishable.social_image_attached?
         RUBY
       },
       {

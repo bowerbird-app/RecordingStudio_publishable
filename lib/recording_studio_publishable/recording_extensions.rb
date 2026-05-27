@@ -22,6 +22,27 @@ module RecordingStudioPublishable
       scope :scheduled_publishables, -> { with_publishable_child.merge(RecordingStudioPublishable::Publishable.scheduled).distinct }
       scope :draft_publishables, -> { with_publishable_child.merge(RecordingStudioPublishable::Publishable.draft).distinct }
       scope :unpublished_publishables, -> { with_publishable_child.merge(RecordingStudioPublishable::Publishable.unpublished).distinct }
+
+      scope :published, -> { currently_published }
+      scope :scheduled, -> { scheduled_publishables }
+      scope :draft, -> { draft_publishables }
+      scope :unpublished, -> { unpublished_publishables }
+
+      scope :scheduled_in, lambda { |at_or_before|
+        next none if at_or_before.blank?
+
+        if at_or_before.is_a?(Range)
+          scheduled_between(at_or_before)
+        else
+          scheduled_between(Time.current..at_or_before)
+        end
+      }
+
+      scope :scheduled_between, lambda { |publish_window|
+        next none unless publish_window.is_a?(Range)
+
+        scheduled.where(recording_studio_publishable_publishables: { publish_at: publish_window })
+      }
     end
 
     def publishable_child_recording
@@ -34,6 +55,46 @@ module RecordingStudioPublishable
 
     def currently_published?
       current_publishable&.currently_published? || false
+    end
+
+    def published?
+      current_publishable&.published? || false
+    end
+
+    def draft?
+      current_publishable&.draft_state? || false
+    end
+
+    def scheduled?
+      current_publishable&.scheduled_for_future? || false
+    end
+
+    def published_state?
+      current_publishable&.published_state? || false
+    end
+
+    def draft_state?
+      current_publishable&.draft_state? || false
+    end
+
+    def scheduled_for_future?
+      current_publishable&.scheduled_for_future? || false
+    end
+
+    def previously_published?
+      current_publishable&.previously_published? || false
+    end
+
+    def unpublished?
+      current_publishable&.unpublished? || false
+    end
+
+    def social_image_supported?
+      current_publishable&.social_image_supported? || false
+    end
+
+    def social_image_attached?
+      current_publishable&.social_image_attached? || false
     end
 
     def publishable_public_path
