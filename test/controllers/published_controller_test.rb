@@ -114,5 +114,4 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Blog post"
   end
-
 end
