@@ -13,7 +13,7 @@ Recording Studio Publishable adds a reusable **publishable child recording** to 
 - canonical public path and URL helpers for publishable child recordings
 - a FlatPack-based **Edit publishable info** screen
 - reusable publishable ViewComponents for a status badge, quick actions, and a summary card
-- a dummy app that demonstrates a `Page` recording with a publishable child recording
+- a dummy app that demonstrates `Page`, `Article`, and `Widget` recordable types with publishable child recordings
 
 Public rendering always uses the parent recording's latest/current recordable. The publishable recordable stores the current public configuration only; audit history belongs in RecordingStudio events.
 
@@ -30,8 +30,9 @@ Public rendering always uses the parent recording's latest/current recordable. T
 The dummy app seeds:
 
 - one workspace root recording
-- a folder and a page beneath that root
-- one publishable child recording for the page
+- a folder plus page/article/widget records beneath that root
+- publishable child recordings for page/article/widget
+- a widget configured for placement publishing (`url: false`, `schedule: true`, `seo: false`)
 - a mounted edit flow and default public route
 
 Useful routes:
@@ -39,6 +40,7 @@ Useful routes:
 - `/` - demo landing page
 - `/recordings/:recording_id/publishable/edit` - edit publishable info for a parent recording
 - `/published/:uuid/:slug` - default public route
+- `/blogs/:uuid/:slug` - article public route from the custom article path mapping
 - `/docs/*` - dummy app supporting docs
 
 ## Host app setup
@@ -66,17 +68,25 @@ bin/rails db:migrate
 
 Public rendering defaults to the parent recordable type convention, for example `Page -> pages#show`. You can override that per type in the generated initializer with `config.register_public_renderer(...)` to choose which host controller/action prepares the published page while keeping the same public URL.
 
+You can also disable URLs by type from the initializer:
+
+```ruby
+RecordingStudioPublishable.configure do |config|
+	config.register_public_url("FeaturedItem", enabled: false)
+end
+```
+
 You can disable standalone public URLs for a recordable type while still using publish state and scheduling for internal placements:
 
 ```ruby
 class FeaturedItem < ApplicationRecord
-	include RecordingStudioPublishable::ParentRecordable
+  include RecordingStudioPublishable::ParentRecordable
 
-	recording_studio_publishable(url: false, schedule: true, seo: false)
+  recording_studio_publishable(url: false, schedule: true, seo: false)
 end
 ```
 
-When `url: false`, publishables still support draft/published/scheduled workflow, but no public path or URL is generated and published endpoints return `404`.
+When `url: false`, publishables still support draft/published/scheduled workflow, but no public path or URL is generated and published endpoints return `404`. In the default edit UI, URL-related advanced controls are hidden for URL-disabled types.
 
 Gem-managed screens use `config.layout` (default: `recording_studio_publishable/application`).
 
