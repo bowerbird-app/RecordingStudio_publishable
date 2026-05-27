@@ -61,18 +61,22 @@
     </div>
 
     <% if schedule_enabled %>
-      <div class="<%= publish_toggle_checked ? "" : "hidden" %> grid gap-4 md:grid-cols-3" data-publishable-schedule-fields>
-        <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
-        <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
-        <div class="space-y-2">
-          <%= render FlatPack::Select::Component.new(
-            name: "publishable[time_zone]",
-            options: @time_zone_options,
-            label: "Time zone",
-            placeholder: "Select a time zone",
-            value: @publishable.time_zone.presence
-          ) %>
-        </div>
+      <div class="<%= publish_toggle_checked ? "" : "hidden" %>" data-publishable-schedule-fields>
+        <%= render FlatPack::Accordion::Component.new do |accordion| %>
+          <% accordion.item(id: "publishable-schedule-window", title: "Now", open: false) do %>
+            <div class="space-y-4">
+              <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
+              <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
+              <%= render FlatPack::Select::Component.new(
+                name: "publishable[time_zone]",
+                options: @time_zone_options,
+                label: "Time zone",
+                placeholder: "Select a time zone",
+                value: @publishable.time_zone.presence
+              ) %>
+            </div>
+          <% end %>
+        <% end %>
       </div>
     <% end %>
 
@@ -193,6 +197,18 @@
 </div>
 
 <style>
+  .publishable-edit-form button[aria-controls="publishable-schedule-window-content"] > span.font-medium::before {
+    content: "";
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    vertical-align: -0.125rem;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z'/%3E%3C/svg%3E") no-repeat center / contain;
+  }
+
   .publishable-edit-form input[name="publish_toggle"]:not(:checked) + div[role="switch"] {
     background-color: var(--switch-track-background-color) !important;
   }
