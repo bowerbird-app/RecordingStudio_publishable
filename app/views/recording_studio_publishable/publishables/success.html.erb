@@ -1,0 +1,63 @@
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+  <%= render FlatPack::Breadcrumb::Component.new(
+    show_back: true,
+    back_text: "Back",
+    back_href: main_app.root_path,
+    items: []
+  ) %>
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <%= render FlatPack::PageTitle::Component.new(
+      title: "Published!",
+      subtitle: @recordable_name,
+      variant: :h1
+    ) %>
+  </div>
+
+  <div class="flex max-w-md flex-col gap-3">
+    <button
+      type="button"
+      class="inline-flex w-full items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm border border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]"
+      data-publishable-success-copy-button
+      data-publishable-success-copy-url="<%= @public_url %>">
+      Copy link
+    </button>
+
+    <%= link_to "View",
+                @public_url,
+                class: "inline-flex w-full items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm border border-[var(--button-primary-border-color)] bg-[var(--button-primary-background-color)] hover:bg-[var(--button-primary-hover-background-color)] text-[var(--button-primary-text-color)] shadow-[var(--button-shadow)]" %>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("click", function(event) {
+    var button = event.target.closest("[data-publishable-success-copy-button]");
+    if (!button) {
+      return;
+    }
+
+    var url = button.dataset.publishableSuccessCopyUrl;
+    if (!url) {
+      return;
+    }
+
+    function restoreLabel(originalText) {
+      window.setTimeout(function() {
+        button.textContent = originalText;
+      }, 1200);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function() {
+        var originalText = button.textContent;
+        button.textContent = "Copied";
+        restoreLabel(originalText);
+      }).catch(function() {
+        window.prompt("Copy link", url);
+      });
+      return;
+    }
+
+    window.prompt("Copy link", url);
+  });
+</script>

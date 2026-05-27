@@ -12,7 +12,14 @@ module RecordingStudioPublishable
       assign_publishable_form_state
     end
 
+    def success
+      return redirect_to_edit unless flash[:publishable_success]
+
+      assign_publishable_success_state
+    end
+
     def update
+      previous_publishable = @parent_recording.publishable_child_recording&.recordable&.dup
       incoming = params.fetch(:publishable, {}).to_unsafe_h.slice(
         "status",
         "publish_at",
@@ -54,6 +61,8 @@ module RecordingStudioPublishable
           "[PublishableDebug] update success(html) recording_id=#{@parent_recording.id} status=#{publishable&.status.inspect} publish_at=#{publishable&.publish_at.inspect} unpublish_at=#{publishable&.unpublish_at.inspect} tz=#{publishable&.time_zone.inspect}"
         )
 
+        return redirect_to_publish_success if publish_success_transition?(previous_publishable, publishable)
+
         return redirect_to_edit(notice: "Publishable info saved")
       end
 
@@ -64,6 +73,7 @@ module RecordingStudioPublishable
     end
 
     def transition
+      previous_publishable = @parent_recording.publishable_child_recording&.recordable&.dup
       result = RecordingStudioPublishable::Services::Publishables::Transition.call(
         parent_recording: @parent_recording,
         transition: params[:transition],
@@ -90,6 +100,11 @@ module RecordingStudioPublishable
           time_zone: publishable.time_zone
         }
       end
+
+      publishable = @parent_recording.reload.publishable_child_recording&.recordable
+      return redirect_to_edit(alert: "Publishable not found") if publishable.blank?
+
+      return redirect_to_publish_success if publish_success_transition?(previous_publishable, publishable)
 
       redirect_to_edit(notice: transition_notice(result), alert: transition_alert(result))
     end
@@ -152,6 +167,26 @@ module RecordingStudioPublishable
       @social_image_attachments = direct_image_attachments_for(@publishable_recording)
     end
 
+    def assign_publishable_success_state
+      @publishable_recording = @parent_recording.publishable_child_recording
+      @publishable = @publishable_recording.recordable
+      @recordable_name = @parent_recording.recordable.try(:title).presence ||
+                         @parent_recording.recordable.try(:name).presence ||
+                         @parent_recording.recordable_type.to_s.demodulize.humanize
+      @public_path = RecordingStudioPublishable::Routing.url_for(
+        publishable_recording: @publishable_recording,
+        publishable: @publishable,
+        parent_recordable_type: @parent_recording.recordable_type
+      )
+      @public_url = RecordingStudioPublishable::Routing.url_for(
+        publishable_recording: @publishable_recording,
+        publishable: @publishable,
+        parent_recordable_type: @parent_recording.recordable_type,
+        host: request.host_with_port,
+        protocol: request.protocol.delete_suffix("://")
+      )
+    end
+
     def schedule_enabled_for_recordable?
       RecordingStudioPublishable.configuration.schedule_enabled_for(@parent_recording.recordable_type)
     end
@@ -180,6 +215,11 @@ module RecordingStudioPublishable
       )
     end
 
+    def redirect_to_publish_success
+      flash[:publishable_success] = true
+      redirect_to publishable_success_path(recording_id: @parent_recording.id), status: :see_other
+    end
+
     def transition_notice(result)
       result.success? ? "Publishable status updated" : nil
     end
@@ -205,6 +245,15 @@ module RecordingStudioPublishable
       return nil if value.blank?
 
       value.in_time_zone(publishable.effective_time_zone).strftime("%Y-%m-%dT%H:%M")
+    end
+
+    def publish_success_transition?(previous_publishable, current_publishable)
+      return false if previous_publishable.blank? || current_publishable.blank?
+      return false if previous_publishable.published_state?
+      return false unless current_publishable.published_state?
+      return false if current_publishable.scheduled_for_future?
+
+      true
     end
   end
 end
