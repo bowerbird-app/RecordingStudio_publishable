@@ -22,8 +22,6 @@
 
   <% recordable = @parent_recording.recordable %>
   <% recordable_name = recordable.try(:title).presence || recordable.try(:name).presence || @parent_recording.recordable_type.to_s.demodulize.humanize %>
-  <% pill_active_classes = FlatPack::Button::Pill::Component::ITEM_ACTIVE_CLASSES %>
-  <% pill_inactive_classes = FlatPack::Button::Pill::Component::ITEM_INACTIVE_CLASSES %>
   <% published_state = @publishable.published_state? %>
   <% scheduled_for_future = @publishable.scheduled_for_future? %>
   <% schedule_enabled = @schedule_enabled != false %>
@@ -40,13 +38,7 @@
   <% meta_robots_initial_preset = meta_robots_preset_values.include?(normalized_meta_robots) ? normalized_meta_robots : "__custom__" %>
   <% seo_title_max_characters = 60 %>
   <% social_title_max_characters = 70 %>
-  <% active_status_pill = if schedule_enabled && scheduled_for_future
-                            "scheduled"
-                          elsif published_state
-                            "published"
-                          else
-                            "draft"
-                          end %>
+  <% publish_toggle_checked = published_state || scheduled_for_future || @publishable.status.to_s == "published" %>
 
   <div class="flex flex-wrap items-center justify-between gap-3">
     <%= render FlatPack::PageTitle::Component.new(
@@ -56,62 +48,20 @@
     ) %>
   </div>
 
-  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true }, data: { publishable_initial_mode: active_status_pill, publishable_pill_active_classes: pill_active_classes, publishable_pill_inactive_classes: pill_inactive_classes, publishable_schedule_enabled: schedule_enabled } do |form| %>
-    <div hidden data-publishable-unsaved-warning-wrapper>
-      <%= render FlatPack::Alert::Component.new(
-        title: "You have unsaved changes",
-        style: :warning,
-        data: { publishable_unsaved_warning: true }
-      ) %>
-    </div>
-
+  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true }, data: { publishable_initial_mode: (publish_toggle_checked ? "published" : "draft"), publishable_schedule_enabled: schedule_enabled } do |form| %>
     <div class="space-y-2">
-      <%= form.hidden_field :status, value: (published_state ? "published" : "draft"), data: { publishable_status_field: true } %>
+      <%= form.hidden_field :status, value: (publish_toggle_checked ? "published" : "draft"), data: { publishable_status_field: true } %>
       <div class="flex flex-wrap items-center gap-2">
-        <div data-publishable-status-pill-group>
-          <%= render FlatPack::Button::Pill::Component.new(
-            items: [
-              {
-                text: "Draft",
-                href: "#",
-                active: active_status_pill == "draft",
-                data: { publishable_status_pill: "draft" },
-                aria: { pressed: active_status_pill == "draft" }
-              },
-              (if schedule_enabled
-                {
-                  text: "Scheduled",
-                  href: "#",
-                  active: active_status_pill == "scheduled",
-                  data: { publishable_status_pill: "scheduled" },
-                  aria: { pressed: active_status_pill == "scheduled" }
-                }
-              end),
-              {
-                text: "Published",
-                href: "#",
-                active: active_status_pill == "published",
-                data: { publishable_status_pill: "published" },
-                aria: { pressed: active_status_pill == "published" }
-              }
-            ].compact,
-            aria: { label: "Publish status" }
-          ) %>
-        </div>
-        <%= render FlatPack::Button::Component.new(
-          icon: "cog-6-tooth",
-          icon_only: true,
-          style: :ghost,
-          size: :sm,
-          type: "button",
-          data: { publishable_advanced_toggle: true },
-          aria: { label: "Toggle publish settings", expanded: "false", controls: "publishable-advanced-panel" }
+        <%= render FlatPack::Switch::Component.new(
+          name: "publish_toggle",
+          label: "Publish",
+          checked: publish_toggle_checked
         ) %>
       </div>
     </div>
 
     <% if schedule_enabled %>
-      <div class="<%= active_status_pill == "scheduled" ? "" : "hidden" %> grid gap-4 md:grid-cols-3" data-publishable-schedule-fields>
+      <div class="<%= publish_toggle_checked ? "" : "hidden" %> grid gap-4 md:grid-cols-3" data-publishable-schedule-fields>
         <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
         <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
         <div class="space-y-2">
@@ -126,7 +76,7 @@
       </div>
     <% end %>
 
-    <div id="publishable-advanced-panel" class="hidden space-y-8 bg-(--surface-raised-background-color)" data-publishable-advanced-panel>
+    <div id="publishable-advanced-panel" class="space-y-8 bg-(--surface-raised-background-color)" data-publishable-advanced-panel>
       <% if seo_enabled %>
         <section class="space-y-4">
           <h2 class="text-sm font-semibold text-(--surface-content-color)">SEO</h2>
@@ -243,6 +193,14 @@
 </div>
 
 <style>
+  .publishable-edit-form input[name="publish_toggle"]:not(:checked) + div[role="switch"] {
+    background-color: var(--switch-track-background-color) !important;
+  }
+
+  .publishable-edit-form input[name="publish_toggle"]:checked + div[role="switch"] {
+    background-color: var(--switch-track-checked-background-color) !important;
+  }
+
   .publishable-edit-form .publishable-save-actions {
     position: relative;
     z-index: 1;
@@ -318,27 +276,19 @@
       statusField.value = mode;
     }
 
-    var activeClasses = form.dataset.publishablePillActiveClasses || "";
-    var inactiveClasses = form.dataset.publishablePillInactiveClasses || "";
-
-    form.querySelectorAll("[data-publishable-status-pill]").forEach(function(pill) {
-      var active = pill.getAttribute("data-publishable-status-pill") === mode;
-      applyClassTokens(pill, activeClasses, active);
-      applyClassTokens(pill, inactiveClasses, !active);
-      pill.setAttribute("aria-pressed", active ? "true" : "false");
-      if (active) {
-        pill.setAttribute("aria-current", "page");
-      } else {
-        pill.removeAttribute("aria-current");
-      }
-    });
+    var statusToggle = form.querySelector('[name="publish_toggle"]');
+    if (statusToggle) {
+      var published = mode === "published";
+      statusToggle.checked = published;
+      statusToggle.setAttribute("aria-checked", published ? "true" : "false");
+    }
 
     var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
     var unpublishAtInput = form.querySelector('[name="publishable[unpublish_at]"]');
     var scheduleFields = form.querySelector("[data-publishable-schedule-fields]");
 
     if (scheduleFields) {
-      scheduleFields.classList.toggle("hidden", mode !== "scheduled");
+      scheduleFields.classList.toggle("hidden", mode !== "published");
     }
 
     if (mode === "draft") {
@@ -373,11 +323,6 @@
   function updatePublishableDirtyState(form, dirty) {
     if (!(form instanceof HTMLFormElement)) {
       return;
-    }
-
-    var warning = form.querySelector("[data-publishable-unsaved-warning-wrapper]");
-    if (warning) {
-      warning.hidden = !dirty;
     }
 
     var saveButton = form.querySelector("[data-publishable-save-button]");
@@ -554,58 +499,18 @@
     initializePublishableDirtyTracking();
   });
 
-  document.addEventListener("click", function(event) {
-    var pill = event.target.closest("[data-publishable-status-pill]");
-    if (pill) {
-      event.preventDefault();
-
-      var pillForm = pill.closest("form.publishable-edit-form");
-      if (pillForm) {
-        setPublishableStatusMode(pillForm, pill.getAttribute("data-publishable-status-pill"));
-      }
-
+  document.addEventListener("change", function(event) {
+    if (!(event.target instanceof HTMLInputElement) || event.target.name !== "publish_toggle") {
       return;
     }
 
-    var pillGroupLink = event.target.closest("[data-publishable-status-pill-group] a");
-    if (pillGroupLink) {
-      event.preventDefault();
-
-      var fallbackForm = pillGroupLink.closest("form.publishable-edit-form");
-      if (!fallbackForm) {
-        return;
-      }
-
-      var explicitMode = pillGroupLink.getAttribute("data-publishable-status-pill");
-      var labelMode = (pillGroupLink.textContent || "").trim().toLowerCase();
-      var fallbackMode = explicitMode || labelMode;
-
-      if (["draft", "scheduled", "published"].indexOf(fallbackMode) !== -1) {
-        setPublishableStatusMode(fallbackForm, fallbackMode);
-      }
-
+    var statusToggle = event.target;
+    var toggleForm = statusToggle.closest("form.publishable-edit-form");
+    if (!toggleForm) {
       return;
     }
 
-    var advancedToggleButton = event.target.closest("[data-publishable-advanced-toggle]");
-    if (advancedToggleButton) {
-      event.preventDefault();
-
-      var advancedForm = advancedToggleButton.closest("form.publishable-edit-form");
-      if (!advancedForm) {
-        return;
-      }
-
-      var advancedPanel = advancedForm.querySelector("[data-publishable-advanced-panel]");
-      if (!advancedPanel) {
-        return;
-      }
-
-      var isHidden = advancedPanel.classList.contains("hidden");
-      advancedPanel.classList.toggle("hidden", !isHidden);
-      advancedToggleButton.setAttribute("aria-expanded", isHidden ? "true" : "false");
-      return;
-    }
+    setPublishableStatusMode(toggleForm, statusToggle.checked ? "published" : "draft");
   });
 
   document.addEventListener("recording-studio-attachable--attachment-image-picker:selected", function(event) {
@@ -631,7 +536,7 @@
 
     var image = host.querySelector("[data-publishable-social-image-preview-image]");
     var emptyState = host.querySelector("[data-publishable-social-image-empty]");
-le
+
     if (image) {
       var primaryUrl = attachment.thumbnail_url || attachment.insert_url || "";
       var fallbackUrl = attachment.insert_url || "";
