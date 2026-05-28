@@ -159,6 +159,7 @@ module RecordingStudioPublishable
     def assign_publishable_form_state
       @publishable_recording = @parent_recording.publishable_child_recording
       @publishable = @publishable_recording.recordable
+      @management_close_url = management_close_url
       @schedule_enabled = schedule_enabled_for_recordable?
       @seo_enabled = seo_enabled_for_recordable?
       @time_zone_options = ActiveSupport::TimeZone.all.map do |zone|
@@ -170,6 +171,7 @@ module RecordingStudioPublishable
     def assign_publishable_success_state
       @publishable_recording = @parent_recording.publishable_child_recording
       @publishable = @publishable_recording.recordable
+      @management_close_url = management_close_url
       @recordable_name = @parent_recording.recordable.try(:title).presence ||
                          @parent_recording.recordable.try(:name).presence ||
                          @parent_recording.recordable_type.to_s.demodulize.humanize
@@ -193,6 +195,13 @@ module RecordingStudioPublishable
 
     def seo_enabled_for_recordable?
       RecordingStudioPublishable.configuration.seo_enabled_for(@parent_recording.recordable_type)
+    end
+
+    def management_close_url
+      RecordingStudioPublishable.configuration.management_close_url_for(
+        controller: self,
+        recording: @parent_recording
+      )
     end
 
     def direct_image_attachments_for(publishable_recording)

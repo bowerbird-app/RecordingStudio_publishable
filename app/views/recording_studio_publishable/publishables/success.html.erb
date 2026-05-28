@@ -1,23 +1,19 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-  <%= render FlatPack::Breadcrumb::Component.new(
-    show_back: true,
-    back_text: "Back",
-    back_href: main_app.root_path,
-    items: []
-  ) %>
+  <%= render FlatPack::PageNav::Component.new(close_url: @management_close_url) %>
 
   <div class="flex flex-wrap items-center justify-between gap-3">
     <%= render FlatPack::PageTitle::Component.new(
       title: "Published!",
       subtitle: @recordable_name,
-      variant: :h1
+      variant: :h1,
+      large_subtitle: true
     ) %>
   </div>
 
   <div class="flex max-w-md flex-col gap-3">
     <button
       type="button"
-      class="inline-flex w-full items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm border border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]"
+      class="inline-flex w-full items-center justify-center gap-2 rounded-(--button-border-radius) font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--button-focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-(--button-focus-ring-offset-color) px-(--button-padding-x-md) py-(--button-padding-y-md) text-sm border border-(--button-secondary-border-color) bg-(--button-secondary-background-color) text-(--button-secondary-text-color)"
       data-publishable-success-copy-button
       data-publishable-success-copy-url="<%= @public_url %>">
       Copy link
@@ -25,7 +21,7 @@
 
     <%= link_to "View",
                 @public_url,
-                class: "inline-flex w-full items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm border border-[var(--button-primary-border-color)] bg-[var(--button-primary-background-color)] hover:bg-[var(--button-primary-hover-background-color)] text-[var(--button-primary-text-color)] shadow-[var(--button-shadow)]" %>
+                class: "inline-flex w-full items-center justify-center gap-2 rounded-(--button-border-radius) font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--button-focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-(--button-focus-ring-offset-color) px-(--button-padding-x-md) py-(--button-padding-y-md) text-sm border border-(--button-primary-border-color) bg-(--button-primary-background-color) hover:bg-(--button-primary-hover-background-color) text-(--button-primary-text-color) shadow-[var(--button-shadow)]" %>
   </div>
 </div>
 

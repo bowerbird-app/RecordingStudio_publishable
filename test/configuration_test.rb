@@ -146,4 +146,30 @@ class ConfigurationTest < Minitest::Test
 
     assert_equal false, result
   end
+
+  def test_management_close_url_defaults_to_root_path
+    main_app = Struct.new(:root_path).new("/dashboard")
+    controller = Struct.new(:main_app).new(main_app)
+
+    result = RecordingStudioPublishable.configuration.management_close_url_for(
+      controller: controller,
+      recording: nil
+    )
+
+    assert_equal "/dashboard", result
+  end
+
+  def test_management_close_url_can_be_overridden
+    RecordingStudioPublishable.configuration.management_close_url_resolver = lambda do |controller:, recording:|
+      "/workspace/#{recording.id}"
+    end
+
+    recording = Struct.new(:id).new(42)
+    result = RecordingStudioPublishable.configuration.management_close_url_for(
+      controller: Object.new,
+      recording: recording
+    )
+
+    assert_equal "/workspace/42", result
+  end
 end

@@ -7,4 +7,8 @@ RecordingStudioPublishable.configure do |config|
       defined?(RecordingStudioAccessible) &&
       RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :edit)
   end
+
+  config.management_close_url_resolver = lambda do |controller:, recording:, **|
+    controller.main_app.root_path
+  end
 end

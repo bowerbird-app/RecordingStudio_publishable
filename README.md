@@ -7,7 +7,7 @@ Recording Studio Publishable adds a reusable **publishable child recording** to 
 - a `RecordingStudioPublishable::Publishable` recordable for public metadata and publish state
 - one publishable child recording per parent recording
 - current-state helpers for draft, scheduled, published, and unpublished content
-- a default public route at `/published/:uuid/:slug`
+- a default public route at `/published/:uuid/:slug` (within the engine mount path)
 - conventional public rendering for parent types such as `Page -> pages#show`, with override hooks
 - canonical public path and URL helpers for publishable child recordings
 - a FlatPack-based **Edit publishable info** screen
@@ -37,7 +37,7 @@ Useful routes:
 
 - `/` - demo landing page
 - `/recordings/:recording_id/publishable/edit` - edit publishable info for a parent recording
-- `/published/:uuid/:slug` - default public route
+- `/published/:uuid/:slug` - default public route when mounted at `/` (otherwise prefixed by the mount path)
 - `/blogs/:uuid/:slug` - article public route from the custom article path mapping
 - `/docs/*` - dummy app supporting docs
 

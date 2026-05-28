@@ -16,6 +16,7 @@ module RecordingStudioPublishable
 
     attr_accessor :current_actor_resolver,
                   :management_authorizer,
+                  :management_close_url_resolver,
                   :default_time_zone,
                   :layout,
                   :canonical_redirect_status
@@ -24,6 +25,7 @@ module RecordingStudioPublishable
     def initialize
       @current_actor_resolver = method(:default_current_actor_resolver)
       @management_authorizer = method(:default_management_authorizer)
+      @management_close_url_resolver = method(:default_management_close_url_resolver)
       @default_time_zone = default_rails_time_zone
       @layout = "recording_studio_publishable/application"
       @canonical_redirect_status = :found
@@ -37,6 +39,7 @@ module RecordingStudioPublishable
         default_time_zone: default_time_zone,
         layout: layout,
         canonical_redirect_status: canonical_redirect_status,
+        management_close_url_resolver: management_close_url_resolver.class.name,
         public_path_configs: public_path_configs.dup,
         public_renderer_configs: public_renderer_configs.transform_values(&:to_h),
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
@@ -138,6 +141,19 @@ module RecordingStudioPublishable
       resolve_callable(current_actor_resolver, controller: controller)
     end
 
+    def management_close_url_for(controller:, recording: nil)
+      resolver = management_close_url_resolver
+      if resolver.respond_to?(:call)
+        resolved = resolve_callable(resolver, controller: controller, recording: recording)
+      else
+        resolved = resolver
+      end
+
+      resolved.presence || default_management_close_url(controller)
+    rescue StandardError
+      default_management_close_url(controller)
+    end
+
     private
 
     def default_current_actor_resolver(controller: nil)
@@ -161,6 +177,21 @@ module RecordingStudioPublishable
       false
     rescue StandardError
       false
+    end
+
+    def default_management_close_url_resolver(controller:, recording: nil)
+      _ = recording
+      default_management_close_url(controller)
+    end
+
+    def default_management_close_url(controller)
+      return "/" unless controller
+      return "/" unless controller.respond_to?(:main_app)
+      return "/" unless controller.main_app.respond_to?(:root_path)
+
+      controller.main_app.root_path
+    rescue StandardError
+      "/"
     end
 
     def default_rails_time_zone

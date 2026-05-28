@@ -13,12 +13,18 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
   TEST_PASSWORD = "PublishablesTestPassword!2026"
 
   setup do
+    @original_close_url_resolver = RecordingStudioPublishable.configuration.management_close_url_resolver
+
     @user = User.find_or_create_by!(email: "publishables-test@example.com") do |user|
       user.password = TEST_PASSWORD
       user.password_confirmation = TEST_PASSWORD
     end
 
     sign_in @user
+  end
+
+  teardown do
+    RecordingStudioPublishable.configuration.management_close_url_resolver = @original_close_url_resolver
   end
 
   test "publish transition shows the success page" do
@@ -81,6 +87,24 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     get recording_studio_publishable.publishable_success_path(recording_id: parent_recording.id)
 
     assert_redirected_to recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+  end
+
+  test "edit and success pages use configured page nav close url" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    RecordingStudioPublishable.configuration.management_close_url_resolver = lambda do |recording:, **|
+      "/workspace/#{recording.id}"
+    end
+
+    get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+    assert_response :success
+    assert_includes response.body, "href=\"/workspace/#{parent_recording.id}\""
+
+    patch recording_studio_publishable.transition_recording_publishable_path(recording_id: parent_recording.id,
+                                                                             transition: "publish")
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "href=\"/workspace/#{parent_recording.id}\""
   end
 
   private

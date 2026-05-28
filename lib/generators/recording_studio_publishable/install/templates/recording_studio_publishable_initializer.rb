@@ -16,6 +16,10 @@ RecordingStudioPublishable.configure do |config|
   # Override the engine layout used by all gem-managed screens.
   # config.layout = "application"
 
+  # Configure the PageNav close URL used on publishable edit/success screens.
+  # Defaults to the host app root path.
+  # config.management_close_url_resolver = ->(controller:, recording:) { controller.main_app.root_path }
+
   # Override the backend controller/action used to prepare and render a parent type
   # on the published route without changing the public URL.
   # The default convention resolves Page -> pages#show, Article -> articles#show.
