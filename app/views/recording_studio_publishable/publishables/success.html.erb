@@ -11,17 +11,25 @@
   </div>
 
   <div class="flex max-w-md flex-col gap-3">
-    <button
-      type="button"
-      class="inline-flex w-full items-center justify-center gap-2 rounded-(--button-border-radius) font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--button-focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-(--button-focus-ring-offset-color) px-(--button-padding-x-md) py-(--button-padding-y-md) text-sm border border-(--button-secondary-border-color) bg-(--button-secondary-background-color) text-(--button-secondary-text-color)"
-      data-publishable-success-copy-button
-      data-publishable-success-copy-url="<%= @public_url %>">
-      Copy link
-    </button>
+    <%= render FlatPack::Button::Component.new(
+      text: "Copy link",
+      style: :secondary,
+      size: :md,
+      type: "button",
+      class: "w-full",
+      data: {
+        publishable_success_copy_button: true,
+        publishable_success_copy_url: @public_url
+      }
+    ) %>
 
-    <%= link_to "View",
-                @public_url,
-                class: "inline-flex w-full items-center justify-center gap-2 rounded-(--button-border-radius) font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-(--button-focus-ring-color) focus-visible:ring-offset-2 focus-visible:ring-offset-(--button-focus-ring-offset-color) px-(--button-padding-x-md) py-(--button-padding-y-md) text-sm border border-(--button-primary-border-color) bg-(--button-primary-background-color) hover:bg-(--button-primary-hover-background-color) text-(--button-primary-text-color) shadow-[var(--button-shadow)]" %>
+    <%= render FlatPack::Button::Component.new(
+      text: "View",
+      style: :primary,
+      size: :md,
+      url: @public_url,
+      class: "w-full"
+    ) %>
   </div>
 </div>
 

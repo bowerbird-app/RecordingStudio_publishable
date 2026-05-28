@@ -78,7 +78,7 @@ module RecordingStudioPublishable
           end
         end
 
-        test "published status with a past publish_at saves it as now" do
+        test "published status with a past publish_at preserves the provided time" do
           freeze_time do
             past_publish_at = 1.hour.ago.utc.strftime("%Y-%m-%dT%H:%M")
 
@@ -95,8 +95,71 @@ module RecordingStudioPublishable
             assert result.success?
             publishable = result.value.recordable
             assert_equal "published", publishable.status
-            assert_in_delta Time.current.to_f, publishable.publish_at.to_f, 1.0
+            assert_equal Time.zone.parse(past_publish_at).utc.to_i, publishable.publish_at.to_i
             assert_nil publishable.unpublish_at
+          end
+        end
+
+        test "published update preserves existing past publish_at when publish_at is omitted" do
+          freeze_time do
+            initial_publish_at = 7.hours.ago
+
+            create_result = Update.call(
+              parent_recording: @parent_recording,
+              attributes: {
+                slug: "landing-page",
+                status: "published",
+                publish_at: initial_publish_at.utc.strftime("%Y-%m-%dT%H:%M"),
+                time_zone: "UTC"
+              }
+            )
+            assert create_result.success?
+
+            update_result = Update.call(
+              parent_recording: @parent_recording,
+              attributes: {
+                slug: "landing-page-updated",
+                status: "published",
+                time_zone: "UTC"
+              }
+            )
+
+            assert update_result.success?
+            publishable = update_result.value.recordable
+            assert_equal "published", publishable.status
+            assert_equal initial_publish_at.to_i, publishable.publish_at.to_i
+          end
+        end
+
+        test "published update with cleared publish_at sets publish_at now" do
+          freeze_time do
+            initial_publish_at = 7.hours.ago
+
+            create_result = Update.call(
+              parent_recording: @parent_recording,
+              attributes: {
+                slug: "landing-page",
+                status: "published",
+                publish_at: initial_publish_at.utc.strftime("%Y-%m-%dT%H:%M"),
+                time_zone: "UTC"
+              }
+            )
+            assert create_result.success?
+
+            update_result = Update.call(
+              parent_recording: @parent_recording,
+              attributes: {
+                slug: "landing-page-updated",
+                status: "published",
+                publish_at: "",
+                time_zone: "UTC"
+              }
+            )
+
+            assert update_result.success?
+            publishable = update_result.value.recordable
+            assert_equal "published", publishable.status
+            assert_in_delta Time.current.to_f, publishable.publish_at.to_f, 1.0
           end
         end
 

@@ -41,6 +41,16 @@ module RecordingStudioPublishable
       refute publishable.scheduled_for_future?
     end
 
+    test "saving published record preserves past publish_at" do
+      freeze_time do
+        past_time = 7.hours.ago.change(sec: 0)
+        publishable = Publishable.create!(status: :published, publish_at: past_time, slug: "demo-past")
+
+        publishable.reload
+        assert_equal past_time.to_i, publishable.publish_at.to_i
+      end
+    end
+
     test "publish window validation rejects inverted windows" do
       publishable = Publishable.new(slug: "demo", status: :published, publish_at: 2.hours.from_now,
                                     unpublish_at: 1.hour.from_now)

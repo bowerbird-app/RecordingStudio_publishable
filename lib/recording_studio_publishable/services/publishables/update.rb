@@ -159,9 +159,15 @@ module RecordingStudioPublishable
 
           if status == "published"
             validated[:unpublish_at] = nil
-            if validated[:publish_at].blank? || validated[:publish_at] <= Time.current
-              validated[:publish_at] =
-                Time.current
+            publish_at_submitted = attributes.key?(:publish_at)
+            publish_at_cleared = publish_at_submitted && attributes[:publish_at].to_s.strip.empty?
+
+            if publish_at_cleared
+              # User explicitly cleared publish_at, so publish immediately.
+              validated[:publish_at] = Time.current
+            elsif validated[:publish_at].blank?
+              # publish_at omitted from payload; preserve current value when present.
+              validated[:publish_at] = parent_recording.current_publishable&.publish_at || Time.current
             end
             return
           end

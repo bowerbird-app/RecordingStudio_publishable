@@ -21,19 +21,52 @@
   <% scheduled_for_future = @publishable.scheduled_for_future? %>
   <% schedule_enabled = @schedule_enabled != false %>
   <% seo_enabled = @seo_enabled != false %>
-  <% normalized_meta_robots = @publishable.meta_robots.to_s.split(",").map { |token| token.strip.downcase }.reject(&:blank?).join(",") %>
-  <% meta_robots_preset_options = [
-       ["Default (index,follow)", "index,follow"],
-       ["No index", "noindex,follow"],
-       ["No index, no follow", "noindex,nofollow"],
-       ["Index, no follow", "index,nofollow"],
-       ["Custom", "__custom__"]
-     ] %>
-  <% meta_robots_preset_values = meta_robots_preset_options.to_h.values - ["__custom__"] %>
-  <% meta_robots_initial_preset = meta_robots_preset_values.include?(normalized_meta_robots) ? normalized_meta_robots : "__custom__" %>
   <% seo_title_max_characters = 60 %>
   <% social_title_max_characters = 70 %>
   <% publish_toggle_checked = published_state || scheduled_for_future || @publishable.status.to_s == "published" %>
+  <% publish_toggle_label = @publishable.draft_state? ? "Publish" : (@publishable.publish_at.present? ? "Published" : "Publish") %>
+  <% schedule_title = begin
+       publish_at = @publishable.publish_at
+       if publish_at.blank?
+         "Now"
+       else
+         zone = ActiveSupport::TimeZone[@publishable.effective_time_zone] || Time.zone || ActiveSupport::TimeZone["UTC"]
+         publish_in_zone = publish_at.in_time_zone(zone)
+         now_in_zone = Time.current.in_time_zone(zone)
+         diff_seconds = (publish_in_zone - now_in_zone).to_i
+         is_past = diff_seconds < 0
+         distance_minutes = [(diff_seconds.abs / 60.0).round, 1].max
+
+         if distance_minutes < 60
+           unit = "minute"
+           amount = distance_minutes
+         else
+           distance_hours = [(distance_minutes / 60.0).round, 1].max
+           if distance_hours < 24
+             unit = "hour"
+             amount = distance_hours
+           else
+             distance_days = [(distance_hours / 24.0).round, 1].max
+             if distance_days < 30
+               unit = "day"
+               amount = distance_days
+             else
+               distance_months = [(distance_days / 30.0).round, 1].max
+               if distance_months < 12
+                 unit = "month"
+                 amount = distance_months
+               else
+                 unit = "year"
+                 amount = [(distance_days / 365.0).round, 1].max
+               end
+             end
+           end
+         end
+
+         suffix = amount == 1 ? unit : "#{unit}s"
+         is_past ? "Published #{amount} #{suffix} ago" : "Publish in #{amount} #{suffix}"
+       end
+     end %>
 
   <div class="flex flex-wrap items-center justify-between gap-3">
     <%= render FlatPack::PageTitle::Component.new(
@@ -50,14 +83,14 @@
       <div class="flex flex-wrap items-center gap-2">
         <%= render FlatPack::Switch::Component.new(
           name: "publish_toggle",
-          label: "Publish",
+          label: publish_toggle_label,
           checked: publish_toggle_checked
         ) %>
       </div>
     </div>
 
     <%= render FlatPack::Accordion::Component.new do |accordion| %>
-      <% accordion.item(id: "publishable-schedule-window", title: "Now", open: false) do %>
+      <% accordion.item(id: "publishable-schedule-window", title: schedule_title, open: false) do %>
         <div class="space-y-4">
           <% if schedule_enabled %>
               <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
@@ -90,7 +123,7 @@
                   ) %>
                   <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
                 </div>
-                <%= render FlatPack::TextInput::Component.new(name: "publishable[canonical_url]", label: "Canonical URL", value: @publishable.canonical_url) %>
+                <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
               </div>
               <%= render FlatPack::TextArea::Component.new(
                 name: "publishable[seo_description]",
@@ -101,30 +134,18 @@
                 max_characters: 160,
                 placeholder: "Short summary for search engines"
               ) %>
-              <%= form.hidden_field :meta_robots, value: (normalized_meta_robots.presence || "index,follow"), data: { publishable_meta_robots_value: true } %>
-              <div class="space-y-2">
-                <%= render FlatPack::Select::Component.new(
-                  name: "publishable_meta_robots_preset",
-                  options: meta_robots_preset_options,
-                  label: "Meta robots",
-                  value: meta_robots_initial_preset,
-                  data: { publishable_meta_robots_preset: true }
-                ) %>
-              </div>
-              <div id="publishable-meta-robots-advanced" class="<%= meta_robots_initial_preset == "__custom__" ? "" : "hidden" %>" data-publishable-meta-robots-advanced>
-                <%= render FlatPack::TextInput::Component.new(
-                  name: "publishable_meta_robots_custom",
-                  label: "Meta robots (advanced)",
-                  value: (normalized_meta_robots.presence || "index,follow"),
-                  placeholder: "index,follow",
-                  data: { publishable_meta_robots_custom_input: true }
-                ) %>
-              </div>
+              <%= form.hidden_field :meta_robots, value: "index,follow" %>
             </section>
+          </div>
+        <% end %>
 
+        <% current_social_image_preview_path = if @publishable.social_image_attached? && @publishable.social_image_attachment&.file_attachment.present?
+          main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
+        end %>
+
+        <% accordion.item(id: "publishable-social-fields", title: "Social", open: false) do %>
+          <div class="space-y-8 bg-(--surface-raised-background-color)">
             <section class="space-y-4">
-              <h2 class="text-sm font-semibold text-(--surface-content-color)">Details</h2>
-              <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
               <div class="space-y-4">
                 <div class="space-y-1">
                   <%= render FlatPack::TextInput::Component.new(
@@ -148,10 +169,6 @@
                 ) %>
               </div>
             </section>
-
-            <% current_social_image_preview_path = if @publishable.social_image_attached? && @publishable.social_image_attachment&.file_attachment.present?
-              main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
-            end %>
 
             <section class="space-y-4">
               <h2 class="text-sm font-semibold text-(--surface-content-color)">Social Image</h2>
@@ -283,43 +300,211 @@
     return offsetDate.toISOString().slice(0, 16);
   }
 
-  function formatRelativePublishLabel(publishAtValue) {
-    if (!publishAtValue) {
+  function parsePublishAtDate(publishAtInput) {
+    if (!(publishAtInput instanceof HTMLInputElement)) {
+      return null;
+    }
+
+    if (!publishAtInput.value) {
+      return null;
+    }
+
+    // datetime-local inputs expose a native millisecond timestamp in local time.
+    if (typeof publishAtInput.valueAsNumber === "number" && !isNaN(publishAtInput.valueAsNumber)) {
+      return new Date(publishAtInput.valueAsNumber);
+    }
+
+    var raw = String(publishAtInput.value || "").trim();
+    if (!raw) {
+      return null;
+    }
+
+    var parsed = new Date(raw);
+    if (!isNaN(parsed.getTime())) {
+      return parsed;
+    }
+
+    // Normalize common Rails datetime string shapes for browser parsing.
+    var normalized = raw
+      .replace(/^([0-9]{4}-[0-9]{2}-[0-9]{2})\s+([0-9]{2}:[0-9]{2}(?::[0-9]{2})?)/, "$1T$2")
+      .replace(/\s+UTC$/, "Z")
+      .replace(/\s+([+-][0-9]{2})([0-9]{2})$/, "$1:$2");
+
+    parsed = new Date(normalized);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function parseDateTimeLocalParts(value) {
+    var match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!match) {
+      return null;
+    }
+
+    return {
+      year: parseInt(match[1], 10),
+      month: parseInt(match[2], 10),
+      day: parseInt(match[3], 10),
+      hour: parseInt(match[4], 10),
+      minute: parseInt(match[5], 10)
+    };
+  }
+
+  function selectedTimeZoneOffsetMinutes(form) {
+    if (!(form instanceof HTMLFormElement)) {
+      return null;
+    }
+
+    var timeZoneSelect = form.querySelector('[name="publishable[time_zone]"]');
+    if (!(timeZoneSelect instanceof HTMLSelectElement) || timeZoneSelect.selectedIndex < 0) {
+      return null;
+    }
+
+    var selectedOption = timeZoneSelect.options[timeZoneSelect.selectedIndex];
+    if (!selectedOption) {
+      return null;
+    }
+
+    var optionText = selectedOption.text || "";
+    var match = optionText.match(/\(UTC([+-])(\d{2}):(\d{2})\)/);
+    if (!match) {
+      return null;
+    }
+
+    var sign = match[1] === "-" ? -1 : 1;
+    var hours = parseInt(match[2], 10);
+    var minutes = parseInt(match[3], 10);
+    return sign * ((hours * 60) + minutes);
+  }
+
+  function publishDiffMsInSelectedTimeZone(publishAtInput, form) {
+    if (!(publishAtInput instanceof HTMLInputElement) || !(form instanceof HTMLFormElement)) {
+      return null;
+    }
+
+    var publishParts = parseDateTimeLocalParts(publishAtInput.value);
+    if (!publishParts) {
+      return null;
+    }
+
+    var offsetMinutes = selectedTimeZoneOffsetMinutes(form);
+    if (typeof offsetMinutes !== "number") {
+      return null;
+    }
+
+    var publishUtcMs = Date.UTC(
+      publishParts.year,
+      publishParts.month - 1,
+      publishParts.day,
+      publishParts.hour,
+      publishParts.minute,
+      0,
+      0
+    ) - (offsetMinutes * 60000);
+
+    return publishUtcMs - Date.now();
+  }
+
+  function formatRelativePublishLabel(publishAtInput, form) {
+    var publishAt = parsePublishAtDate(publishAtInput);
+    if (!publishAt) {
       return "Now";
     }
 
-    var publishAt = new Date(publishAtValue);
-    if (isNaN(publishAt.getTime())) {
-      return "Now";
+    var diffMs = publishDiffMsInSelectedTimeZone(publishAtInput, form);
+    if (typeof diffMs !== "number") {
+      diffMs = publishAt.getTime() - Date.now();
     }
 
-    var diffMs = publishAt.getTime() - Date.now();
-    if (diffMs <= 0) {
-      return "Now";
-    }
+    var isPast = diffMs < 0;
+    var distanceMs = Math.abs(diffMs);
 
-    var minutes = Math.round(diffMs / 60000);
+    var minutes = Math.max(1, Math.round(distanceMs / 60000));
     if (minutes < 60) {
-      return "Publish in " + minutes + " minute" + (minutes === 1 ? "" : "s");
+      return isPast ? "Published " + minutes + " minute" + (minutes === 1 ? "" : "s") + " ago" : "Publish in " + minutes + " minute" + (minutes === 1 ? "" : "s");
     }
 
-    var hours = Math.round(minutes / 60);
+    var hours = Math.max(1, Math.round(minutes / 60));
     if (hours < 24) {
-      return "Publish in " + hours + " hour" + (hours === 1 ? "" : "s");
+      return isPast ? "Published " + hours + " hour" + (hours === 1 ? "" : "s") + " ago" : "Publish in " + hours + " hour" + (hours === 1 ? "" : "s");
     }
 
-    var days = Math.round(hours / 24);
+    var days = Math.max(1, Math.round(hours / 24));
     if (days < 30) {
-      return "Publish in " + days + " day" + (days === 1 ? "" : "s");
+      return isPast ? "Published " + days + " day" + (days === 1 ? "" : "s") + " ago" : "Publish in " + days + " day" + (days === 1 ? "" : "s");
     }
 
-    var months = Math.round(days / 30);
+    var months = Math.max(1, Math.round(days / 30));
     if (months < 12) {
-      return "Publish in " + months + " month" + (months === 1 ? "" : "s");
+      return isPast ? "Published " + months + " month" + (months === 1 ? "" : "s") + " ago" : "Publish in " + months + " month" + (months === 1 ? "" : "s");
     }
 
-    var years = Math.round(days / 365);
-    return "Publish in " + years + " year" + (years === 1 ? "" : "s");
+    var years = Math.max(1, Math.round(days / 365));
+    return isPast ? "Published " + years + " year" + (years === 1 ? "" : "s") + " ago" : "Publish in " + years + " year" + (years === 1 ? "" : "s");
+  }
+
+  function initializeUnpublishNeverDisplay() {
+    document.querySelectorAll('form.publishable-edit-form [name="publishable[unpublish_at]"]').forEach(function(input) {
+      if (!(input instanceof HTMLInputElement)) {
+        return;
+      }
+
+      if (input.dataset.publishableUnpublishNeverInitialized === "true") {
+        if (typeof input._publishableUnpublishNeverSync === "function") {
+          input._publishableUnpublishNeverSync();
+        }
+        return;
+      }
+
+      input.dataset.publishableUnpublishNeverInitialized = "true";
+      input.dataset.publishableUnpublishOriginalType = input.type || "datetime-local";
+      input.dataset.publishableUnpublishOriginalPlaceholder = input.getAttribute("placeholder") || "";
+
+      function ensureDateTimeMode() {
+        var originalType = input.dataset.publishableUnpublishOriginalType || "datetime-local";
+        if (input.type !== originalType) {
+          input.type = originalType;
+        }
+        input.setAttribute("placeholder", input.dataset.publishableUnpublishOriginalPlaceholder || "");
+      }
+
+      function syncNeverDisplay() {
+        if (input.value) {
+          ensureDateTimeMode();
+          return;
+        }
+
+        if (document.activeElement === input) {
+          ensureDateTimeMode();
+          return;
+        }
+
+        if (input.type !== "text") {
+          input.type = "text";
+        }
+
+        input.value = "";
+        input.setAttribute("placeholder", "Never");
+      }
+
+      input._publishableUnpublishNeverSync = syncNeverDisplay;
+
+      input.addEventListener("focus", function() {
+        ensureDateTimeMode();
+        if (typeof input.showPicker === "function") {
+          try {
+            input.showPicker();
+          } catch (_error) {
+            // Some browsers block showPicker unless directly user-triggered.
+          }
+        }
+      });
+
+      input.addEventListener("blur", syncNeverDisplay);
+      input.addEventListener("change", syncNeverDisplay);
+      input.addEventListener("input", syncNeverDisplay);
+
+      syncNeverDisplay();
+    });
   }
 
   function updatePublishableScheduleLabel(form) {
@@ -328,8 +513,8 @@
     }
 
     var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
-    var label = formatRelativePublishLabel(publishAtInput ? publishAtInput.value : "");
-    var triggerLabel = form.querySelector('button[aria-controls="publishable-schedule-window-content"] > span.font-medium');
+    var label = formatRelativePublishLabel(publishAtInput, form);
+    var triggerLabel = form.querySelector('button[aria-controls="publishable-schedule-window-content"] span.font-medium');
 
     if (triggerLabel) {
       triggerLabel.textContent = label;
@@ -468,75 +653,6 @@
     });
   }
 
-  function initializePublishableMetaRobotsControls() {
-    document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
-      if (form.dataset.publishableMetaRobotsInitialized === "true") {
-        return;
-      }
-
-      form.dataset.publishableMetaRobotsInitialized = "true";
-
-      var hiddenValueInput = form.querySelector("[data-publishable-meta-robots-value]");
-      var presetSelect = form.querySelector("[data-publishable-meta-robots-preset]");
-      var advancedContainer = form.querySelector("[data-publishable-meta-robots-advanced]");
-      var customInput = form.querySelector("[data-publishable-meta-robots-custom-input]");
-
-      if (!hiddenValueInput || !presetSelect || !advancedContainer || !customInput) {
-        return;
-      }
-
-      function setAdvancedVisible(visible) {
-        advancedContainer.classList.toggle("hidden", !visible);
-      }
-
-      function normalizedValue(value) {
-        return String(value || "")
-          .split(",")
-          .map(function(token) { return token.trim().toLowerCase(); })
-          .filter(Boolean)
-          .join(",");
-      }
-
-      function setHiddenValue(value) {
-        hiddenValueInput.value = normalizedValue(value) || "index,follow";
-      }
-
-      function syncFromPreset() {
-        var presetValue = presetSelect.value || "index,follow";
-        var useCustom = presetValue === "__custom__";
-
-        setAdvancedVisible(useCustom);
-
-        if (useCustom) {
-          setHiddenValue(customInput.value);
-        } else {
-          setHiddenValue(presetValue);
-          customInput.value = presetValue;
-        }
-
-        refreshPublishableDirtyState(form);
-      }
-
-      presetSelect.addEventListener("change", syncFromPreset);
-
-      customInput.addEventListener("input", function() {
-        if (presetSelect.value === "__custom__") {
-          setHiddenValue(customInput.value);
-          refreshPublishableDirtyState(form);
-        }
-      });
-
-      customInput.addEventListener("change", function() {
-        if (presetSelect.value === "__custom__") {
-          setHiddenValue(customInput.value);
-          refreshPublishableDirtyState(form);
-        }
-      });
-
-      syncFromPreset();
-    });
-  }
-
   function initializePublishableTitleCounters() {
     document.querySelectorAll("form.publishable-edit-form [data-publishable-title-counter-input]").forEach(function(input) {
       if (input.dataset.publishableTitleCounterInitialized === "true") {
@@ -578,7 +694,7 @@
   document.addEventListener("DOMContentLoaded", function() {
     initializePublishableTimeZoneDefault();
     initializePublishableFormState();
-    initializePublishableMetaRobotsControls();
+    initializeUnpublishNeverDisplay();
     initializePublishableTitleCounters();
     initializePublishableDirtyTracking();
   });
@@ -586,7 +702,7 @@
   document.addEventListener("turbo:load", function() {
     initializePublishableTimeZoneDefault();
     initializePublishableFormState();
-    initializePublishableMetaRobotsControls();
+    initializeUnpublishNeverDisplay();
     initializePublishableTitleCounters();
     initializePublishableDirtyTracking();
     document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
