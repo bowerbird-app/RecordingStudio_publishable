@@ -123,5 +123,31 @@ module RecordingStudioPublishable
     def unpublished?
       self.class.unpublished.where(id: id).exists?
     end
+
+    def published_url
+      return @published_url if instance_variable_defined?(:@published_url)
+
+      @published_url = begin
+        parent_recording = RecordingStudio::Recording.where(
+          recordable_type: self.class.name,
+          recordable_id: id,
+          trashed_at: nil
+        ).order(:created_at, :id).last
+        if parent_recording.present?
+          publishable_recording = parent_recording.respond_to?(:publishable_child_recording) ? parent_recording.publishable_child_recording : nil
+          publishable = publishable_recording&.recordable
+
+          if publishable.present? && publishable.currently_published?
+            RecordingStudioPublishable::Routing.url_for(
+              publishable_recording: publishable_recording,
+              publishable: publishable,
+              parent_recordable_type: self.class.name
+            )
+          end
+        end
+      rescue StandardError
+        nil
+      end
+    end
   end
 end

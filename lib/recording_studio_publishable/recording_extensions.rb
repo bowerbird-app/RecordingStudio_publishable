@@ -46,11 +46,15 @@ module RecordingStudioPublishable
     end
 
     def publishable_child_recording
-      child_recordings.of_type(RecordingStudioPublishable::Publishable).first
+      return @publishable_child_recording if instance_variable_defined?(:@publishable_child_recording)
+
+      @publishable_child_recording = child_recordings.of_type(RecordingStudioPublishable::Publishable).first
     end
 
     def current_publishable
-      publishable_child_recording&.recordable
+      return @current_publishable if instance_variable_defined?(:@current_publishable)
+
+      @current_publishable = publishable_child_recording&.recordable
     end
 
     def currently_published?
@@ -98,25 +102,19 @@ module RecordingStudioPublishable
     end
 
     def publishable_public_path
-      return unless publishable_child_recording && current_publishable
+      return unless respond_to?(:recordable) && recordable.respond_to?(:published_url)
 
-      RecordingStudioPublishable::Routing.url_for(
-        publishable_recording: publishable_child_recording,
-        publishable: current_publishable,
-        parent_recordable_type: recordable_type
-      )
+      recordable.published_url
     end
 
     def publishable_public_url(host: nil, protocol: nil)
-      return unless publishable_child_recording && current_publishable
+      path = publishable_public_path
+      return if path.blank?
 
-      RecordingStudioPublishable::Routing.url_for(
-        publishable_recording: publishable_child_recording,
-        publishable: current_publishable,
-        parent_recordable_type: recordable_type,
-        host: host,
-        protocol: protocol
-      )
+      return path if host.blank?
+
+      effective_protocol = protocol.presence || "https"
+      "#{effective_protocol}://#{host}#{path}"
     end
   end
 end

@@ -27,13 +27,14 @@
             </thead>
             <tbody class="divide-y divide-(--surface-border-color)">
               <% @publishable_parent_recordings.each do |recording| %>
+                <% public_path = recording.publishable_public_path %>
                 <tr>
                   <td class="px-4 py-3"><%= recording.recordable_type.to_s.demodulize %></td>
                   <td class="px-4 py-3 font-medium"><%= recording.recordable.try(:title).presence || recording.recordable.to_s %></td>
                   <td class="px-4 py-3"><%= recording.parent_recording&.recordable_type.to_s.demodulize.underscore.humanize.presence || "Root" %></td>
                   <td class="px-4 py-3">
-                    <% if recording.publishable_public_path.present? %>
-                      <%= link_to recording.publishable_public_path, recording.publishable_public_path, class: "text-(--surface-primary-content-color) underline underline-offset-2" %>
+                    <% if public_path.present? %>
+                      <%= link_to public_path, public_path, class: "text-(--surface-primary-content-color) underline underline-offset-2" %>
                     <% else %>
                       Not published yet
                     <% end %>

@@ -160,5 +160,31 @@ module RecordingStudioPublishable
       assert_includes by_cutoff_ids, recent_page.id
       refute_includes by_cutoff_ids, old_page.id
     end
+
+    test "published_url returns canonical path for currently published recordables" do
+      root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Published URL workspace"))
+      page = Page.create!(title: "Published URL page")
+      page_recording = RecordingStudio::Recording.create!(recordable: page, parent_recording: root)
+
+      publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: page_recording,
+        attributes: { slug: "published-url-page", status: "published" }
+      ).value!
+
+      assert_equal "/published/#{publishable_recording.id}/published-url-page", page.published_url
+    end
+
+    test "published_url returns nil for non-published recordables" do
+      root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Draft URL workspace"))
+      page = Page.create!(title: "Draft URL page")
+      page_recording = RecordingStudio::Recording.create!(recordable: page, parent_recording: root)
+
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: page_recording,
+        attributes: { slug: "draft-url-page", status: "draft" }
+      ).value!
+
+      assert_nil page.published_url
+    end
   end
 end

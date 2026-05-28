@@ -168,27 +168,16 @@ class DocsController < ApplicationController
         RUBY
       },
       {
-        title: "RecordingStudioPublishable::Routing.url_for(...)",
-        subtitle: "Builds the canonical published path for a publishable recording.",
+        title: "Recordable.published_url",
+        subtitle: "Returns the canonical published URL path for one Recordable, or nil when it is not currently published.",
         code: <<~RUBY
-          RecordingStudioPublishable::Routing.url_for(
-            publishable_recording: publishable_recording,
-            publishable: publishable_recording.recordable,
-            parent_recordable_type: publishable_recording.parent_recording&.recordable_type
-          )
-        RUBY
-      },
-      {
-        title: "RecordingStudioPublishable::Routing.url_for(..., host:, protocol:)",
-        subtitle: "Builds a full canonical published URL when host and protocol are provided.",
-        code: <<~RUBY
-          RecordingStudioPublishable::Routing.url_for(
-            publishable_recording: publishable_recording,
-            publishable: publishable_recording.recordable,
-            parent_recordable_type: publishable_recording.parent_recording&.recordable_type,
-            host: "example.test",
-            protocol: "https"
-          )
+          recordable = Recordable.find(recordable_id)
+
+          # Returns a canonical path like /published/:uuid/:slug when published.
+          recordable.published_url
+
+          # Returns nil when the recordable is not currently published.
+          recordable.published_url # => nil
         RUBY
       }
     ]

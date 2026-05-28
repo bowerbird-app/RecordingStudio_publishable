@@ -34,11 +34,10 @@ module RecordingStudioPublishable
     end
 
     def public_canonical_path_for(publishable_recording)
-      RecordingStudioPublishable::Routing.url_for(
-        publishable_recording: publishable_recording,
-        publishable: @publishable,
-        parent_recordable_type: inferred_parent_recordable_type_for(publishable_recording)
-      )
+      parent_recordable = publishable_recording.parent_recording&.recordable
+      return unless parent_recordable.respond_to?(:published_url)
+
+      parent_recordable.published_url
     end
 
     def stale_slug?

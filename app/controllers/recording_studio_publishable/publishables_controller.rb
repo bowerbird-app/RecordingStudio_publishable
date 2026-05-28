@@ -175,18 +175,8 @@ module RecordingStudioPublishable
       @recordable_name = @parent_recording.recordable.try(:title).presence ||
                          @parent_recording.recordable.try(:name).presence ||
                          @parent_recording.recordable_type.to_s.demodulize.humanize
-      @public_path = RecordingStudioPublishable::Routing.url_for(
-        publishable_recording: @publishable_recording,
-        publishable: @publishable,
-        parent_recordable_type: @parent_recording.recordable_type
-      )
-      @public_url = RecordingStudioPublishable::Routing.url_for(
-        publishable_recording: @publishable_recording,
-        publishable: @publishable,
-        parent_recordable_type: @parent_recording.recordable_type,
-        host: request.host_with_port,
-        protocol: request.protocol.delete_suffix("://")
-      )
+      @public_path = @parent_recording.recordable.respond_to?(:published_url) ? @parent_recording.recordable.published_url : nil
+      @public_url = @public_path.present? ? "#{request.protocol}#{request.host_with_port}#{@public_path}" : nil
     end
 
     def schedule_enabled_for_recordable?

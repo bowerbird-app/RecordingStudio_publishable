@@ -110,9 +110,11 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Recordable.published_in(2.weeks.ago..Time.current)"
     assert_includes response.body, "Recordable.scheduled_in(Time.current..2.weeks.from_now)"
     assert_includes response.body, "Recordable.unpublished_in(Time.current..2.weeks.from_now)"
+    assert_includes response.body, "Recordable.published_url"
+    assert_includes response.body, "recordable.published_url"
     assert_includes response.body, "recordable.published?"
     refute_includes response.body, "Article.published"
-    assert_includes response.body, "RecordingStudioPublishable::Routing.url_for(..., host:, protocol:)"
+    refute_includes response.body, "RecordingStudioPublishable::Routing.url_for"
     refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"
   end
 
