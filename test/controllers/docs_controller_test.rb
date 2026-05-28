@@ -68,7 +68,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Setup"
     assert_includes response.body, "Model setup"
     assert_includes response.body, "recording_studio_publishable("
-    assert_includes response.body, "mount RecordingStudioPublishable::Engine, at: \&quot;/\&quot;"
+    assert_includes response.body, "mount RecordingStudioPublishable::Engine, at: &quot;/&quot;"
     assert_includes response.body, "publishable_head_tags"
   end
 
@@ -103,7 +103,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "RecordingStudioPublishable::Configuration"
     assert_includes response.body, "RecordingStudioPublishable::ParentRecordable"
     refute_includes response.body,
-             "Scopes you call on parent models (like Page/Article) that filter by publishable state and still return parent model records, not child Publishable rows."
+                    "Scopes you call on parent models (like Page/Article) that filter by publishable state and still return parent model records, not child Publishable rows."
     refute_includes response.body, "RecordingStudioPublishable::Publishable"
     assert_includes response.body, "schedule: false"
     assert_includes response.body, "seo: false"
@@ -112,7 +112,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "RecordingStudio::Recording.find(recording_id).published?"
     assert_includes response.body, "RecordingStudio::Recording.scheduled_between(Time.current..2.weeks.from_now)"
     assert_includes response.body, "RecordingStudioPublishable::Routing.url_for"
-    refute_includes response.body, "Build the canonical public path or full URL for a publishable child recording using one API."
+    refute_includes response.body,
+                    "Build the canonical public path or full URL for a publishable child recording using one API."
     refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"
   end
 
