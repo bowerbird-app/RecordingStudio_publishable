@@ -143,11 +143,11 @@ module RecordingStudioPublishable
 
     def management_close_url_for(controller:, recording: nil)
       resolver = management_close_url_resolver
-      if resolver.respond_to?(:call)
-        resolved = resolve_callable(resolver, controller: controller, recording: recording)
-      else
-        resolved = resolver
-      end
+      resolved = if resolver.respond_to?(:call)
+                   resolve_callable(resolver, controller: controller, recording: recording)
+                 else
+                   resolver
+                 end
 
       resolved.presence || default_management_close_url(controller)
     rescue StandardError
