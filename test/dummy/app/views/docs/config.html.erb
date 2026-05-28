@@ -54,7 +54,7 @@
       ) %>
 
       <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p><strong>management_authorizer</strong> (required) decides whether a user may edit publishable content. Receives <code>recording:</code> and <code>actor:</code> keyword args.</p>
+        <p><strong>management_authorizer</strong> (optional override) decides whether a user may edit publishable content. Receives <code>recording:</code> and <code>actor:</code> keyword args. By default, the gem uses <code>RecordingStudioAccessible.authorized?(role: :edit)</code> when available.</p>
         <p><strong>layout</strong> (optional) sets the layout for all gem-managed screens (default: <code>"application"</code>).</p>
         <p><strong>default_time_zone</strong> (optional) sets the fallback time zone used for publish/unpublish scheduling.</p>
         <p><strong>canonical_redirect_status</strong> (optional) sets the status code for stale slug redirects (default: <code>:moved_permanently</code>).</p>
