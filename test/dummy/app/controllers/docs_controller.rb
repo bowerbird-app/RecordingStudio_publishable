@@ -7,6 +7,8 @@ class DocsController < ApplicationController
     render :config
   end
 
+  def setup; end
+
   def recordable_types
     @recordable_types = RecordingStudio::RecordableTypesService.filtered_types
   end
@@ -103,27 +105,6 @@ class DocsController < ApplicationController
           # Same query helpers return Article records for any model that includes
           # RecordingStudioPublishable::ParentRecordable.
           Article.published
-        RUBY
-      },
-      {
-        title: "RecordingStudioPublishable::RecordingExtensions",
-        subtitle: "Methods you call directly on RecordingStudio::Recording to filter recordings by publishable state and access publishable-related helpers on each recording.",
-        code: <<~RUBY
-          # Boolean predicates for a single recording.
-          RecordingStudio::Recording.find(recording_id).published?
-          RecordingStudio::Recording.find(recording_id).draft?
-          RecordingStudio::Recording.find(recording_id).scheduled?
-          RecordingStudio::Recording.find(recording_id).unpublished?
-
-          # Query scopes that return RecordingStudio::Recording relations.
-          RecordingStudio::Recording.published
-          RecordingStudio::Recording.draft
-          RecordingStudio::Recording.scheduled
-          RecordingStudio::Recording.unpublished
-
-          # Scheduled-window helpers that also return RecordingStudio::Recording relations.
-          RecordingStudio::Recording.scheduled_in(2.weeks.from_now)
-          RecordingStudio::Recording.scheduled_between(Time.current..2.weeks.from_now)
         RUBY
       },
       {

@@ -34,14 +34,14 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Install"
     assert_includes response.body,
-                    "Install the gem, mount the engine, and wire the optional addons needed for publishable child recordings."
+                    "Run the installation commands for the publishable addon and optional companion gems."
     assert_includes response.body, "Add the gem"
-    assert_includes response.body, "Configure your models"
-    assert_includes response.body, "recording_studio_publishable("
-    assert_includes response.body, "schedule: false"
-    assert_includes response.body, "seo: false"
-    assert_includes response.body, "Mounted routes"
+    assert_includes response.body, "bundle add recording_studio_publishable"
+    assert_includes response.body, "bin/rails generate recording_studio_publishable:install"
     assert_includes response.body, "Optional access control"
+    refute_includes response.body, "Configure your models"
+    refute_includes response.body, "Mounted routes"
+    refute_includes response.body, "recording_studio_publishable("
     refute_includes response.body, "FlatPack::Card"
   end
 
@@ -51,16 +51,25 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Config"
     assert_includes response.body,
-                    "Tune global addon settings and model-level publishable behavior (routing, schedule, and SEO capabilities)."
+                    "Configure global RecordingStudioPublishable behavior in the initializer."
     assert_includes response.body, "Available settings"
-    assert_includes response.body, "Model-level setup (recommended)"
     assert_includes response.body, "RecordingStudioPublishable::Configuration"
-    assert_includes response.body, "recording_studio_publishable("
-    assert_includes response.body, "schedule: false"
-    assert_includes response.body, "seo: false"
-    assert_includes response.body, "Public head helper"
-    assert_includes response.body, "publishable_head_tags"
+    assert_includes response.body, "management_authorizer"
+    refute_includes response.body, "Model-level setup (recommended)"
+    refute_includes response.body, "recording_studio_publishable("
+    refute_includes response.body, "Public head helper"
     refute_includes response.body, "FlatPack::Card"
+  end
+
+  test "setup page includes model and host wiring guidance" do
+    get docs_setup_path
+
+    assert_response :success
+    assert_includes response.body, "Setup"
+    assert_includes response.body, "Model setup"
+    assert_includes response.body, "recording_studio_publishable("
+    assert_includes response.body, "mount RecordingStudioPublishable::Engine, at: \&quot;/\&quot;"
+    assert_includes response.body, "publishable_head_tags"
   end
 
   test "recordings tree renders seeded publishable nodes" do
@@ -93,6 +102,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Review the public methods, scopes, and helper entry points exposed by the addon."
     refute_includes response.body, "RecordingStudioPublishable::Configuration"
     assert_includes response.body, "RecordingStudioPublishable::ParentRecordable"
+    refute_includes response.body,
+             "Scopes you call on parent models (like Page/Article) that filter by publishable state and still return parent model records, not child Publishable rows."
     refute_includes response.body, "RecordingStudioPublishable::Publishable"
     assert_includes response.body, "schedule: false"
     assert_includes response.body, "seo: false"
@@ -101,6 +112,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "RecordingStudio::Recording.find(recording_id).published?"
     assert_includes response.body, "RecordingStudio::Recording.scheduled_between(Time.current..2.weeks.from_now)"
     assert_includes response.body, "RecordingStudioPublishable::Routing.url_for"
+    refute_includes response.body, "Build the canonical public path or full URL for a publishable child recording using one API."
     refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"
   end
 

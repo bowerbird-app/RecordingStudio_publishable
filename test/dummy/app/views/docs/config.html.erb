@@ -1,7 +1,7 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Config",
-    subtitle: "Tune global addon settings and model-level publishable behavior (routing, schedule, and SEO capabilities).",
+    subtitle: "Configure global RecordingStudioPublishable behavior in the initializer.",
     variant: :h1
   ) %>
 
@@ -9,7 +9,7 @@
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
         title: "RecordingStudioPublishable::Configuration",
-        subtitle: "Set global defaults in the initializer and prefer model-level publishable declarations for per-type routing."
+        subtitle: "Set global defaults in the initializer."
       ) %>
 
       <%= render FlatPack::CodeBlock::Component.new(
@@ -19,29 +19,13 @@
             config.default_time_zone = "America/Los_Angeles"
             config.layout = "recording_studio_publishable/application"
             config.canonical_redirect_status = :found
-          end
 
-          class Page < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
-
-            recording_studio_publishable(
-              public_controller: "pages",
-              public_action: :show,
-              schedule: false,
-              seo: false
-            )
-          end
-
-          class Article < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
-
-            recording_studio_publishable(
-              public_controller: "articles",
-              public_action: :show,
-              path: "/blogs/:uuid/:slug",
-              schedule: true,
-              seo: true
-            )
+            config.management_authorizer = lambda do |recording:, actor:, **|
+              actor.present? &&
+                recording.present? &&
+                defined?(RecordingStudioAccessible) &&
+                RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :edit)
+            end
           end
         RUBY
       ) %>
@@ -58,47 +42,6 @@
         <p><strong>layout</strong> (optional) sets the layout for all gem-managed screens (default: <code>"application"</code>).</p>
         <p><strong>default_time_zone</strong> (optional) sets the fallback time zone used for publish/unpublish scheduling.</p>
         <p><strong>canonical_redirect_status</strong> (optional) sets the status code for stale slug redirects (default: <code>:moved_permanently</code>).</p>
-        <p><strong>recording_studio_publishable</strong> (model DSL) is the recommended place to define per-model public controller/action/path and capability flags like <code>schedule:</code> and <code>seo:</code>.</p>
-      </div>
-    </section>
-
-    <section class="space-y-4">
-      <%= render FlatPack::SectionTitle::Component.new(
-        title: "Model-level setup (recommended)",
-        subtitle: "Define route mapping and feature capabilities close to each recordable model."
-      ) %>
-
-      <%= render FlatPack::CodeBlock::Component.new(
-        language: :ruby,
-        code: <<~RUBY
-          class Page < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
-
-            recording_studio_publishable(
-              public_controller: "pages",
-              public_action: :show,
-              schedule: false,
-              seo: false
-            )
-          end
-
-          class Article < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
-
-            recording_studio_publishable(
-              public_controller: "articles",
-              public_action: :show,
-              path: "/blogs/:uuid/:slug",
-              schedule: true,
-              seo: true
-            )
-          end
-        RUBY
-      ) %>
-
-      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>Set <code>schedule: false</code> to hide schedule controls and ignore scheduling parameters for that model.</p>
-        <p>Set <code>seo: false</code> to disable SEO-only tags (<code>title</code>, <code>meta[name=description]</code>, <code>canonical</code>) while still allowing social tags.</p>
       </div>
     </section>
 
@@ -127,40 +70,5 @@
       ) %>
     </section>
 
-    <section class="space-y-4">
-      <%= render FlatPack::SectionTitle::Component.new(
-        title: "Public head helper",
-        subtitle: "Add the helper to the host app layout head so published pages emit SEO and social tags automatically."
-      ) %>
-
-      <%= render FlatPack::CodeBlock::Component.new(
-        language: :erb,
-        code: [
-          "<!-- app/views/layouts/application.html.erb -->",
-          "<head>",
-          "  <" + "%= publishable_head_tags " + "%" + ">",
-          "</head>"
-        ].join("\n")
-      ) %>
-
-      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>Call the helper from the layout that renders your published pages. It uses the current <code>@publishable</code> and <code>@publishable_recording</code> instance variables when they are present.</p>
-        <p>You can also pass explicit arguments if your host app wants to supply a custom public URL, title, description, or social image URL.</p>
-        <p>The helper emits tags only when the publishable is currently live. If a record is still scheduled, no head tags are emitted yet.</p>
-        <p>When <code>seo: false</code> on a model, SEO tags are skipped but social Open Graph/Twitter tags still render for live records.</p>
-      </div>
-    </section>
-
-    <section class="space-y-4">
-      <%= render FlatPack::SectionTitle::Component.new(
-        title: "Related guidance",
-        subtitle: "These settings work together with the install generator and the public route helpers."
-      ) %>
-
-      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>Use model-level <code>recording_studio_publishable</code> declarations for per-type public routing and feature flags.</p>
-        <p>Keep the initializer focused on cross-cutting behavior like authorization, layout, default time zone, and redirect status.</p>
-      </div>
-    </section>
   </div>
 </div>

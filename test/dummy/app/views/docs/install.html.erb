@@ -1,7 +1,7 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Install",
-    subtitle: "Install the gem, mount the engine, and wire the optional addons needed for publishable child recordings.",
+    subtitle: "Run the installation commands for the publishable addon and optional companion gems.",
     variant: :h1
   ) %>
 
@@ -9,12 +9,8 @@
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
         title: "Add the gem",
-        subtitle: "Install the publishable engine in your host app before running the generator."
+        subtitle: "Install the publishable engine gem."
       ) %>
-
-      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>Add the gem source, then bundle install so Rails can load the engine and its generators.</p>
-      </div>
 
       <%= render FlatPack::CodeBlock::Component.new(
         language: :bash,
@@ -28,7 +24,7 @@
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
         title: "Run the install generator",
-        subtitle: "The generator mounts the engine, copies migrations, and adds the initializer and seed snippet."
+        subtitle: "Generate files, migrate, and seed."
       ) %>
 
       <%= render FlatPack::CodeBlock::Component.new(
@@ -43,71 +39,9 @@
 
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
-        title: "Configure your models",
-        subtitle: "Declare publishable behavior on each parent recordable model using the model DSL."
-      ) %>
-
-      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>After install, include <code>RecordingStudioPublishable::ParentRecordable</code> in each model that should own a publishable child recording.</p>
-        <p>Set the published controller/action/path and capability flags directly on the model so routing, schedule UI, and SEO behavior stay together.</p>
-      </div>
-
-      <%= render FlatPack::CodeBlock::Component.new(
-        language: :ruby,
-        code: <<~CODE
-          class Page < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
-
-            recording_studio_publishable(
-              public_controller: "pages",
-              public_action: :show,
-              schedule: false,
-              seo: false
-            )
-          end
-
-          class Article < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
-
-            recording_studio_publishable(
-              public_controller: "articles",
-              public_action: :show,
-              path: "/blogs/:uuid/:slug",
-              schedule: true,
-              seo: true
-            )
-          end
-        CODE
-      ) %>
-    </section>
-
-    <section class="space-y-4">
-      <%= render FlatPack::SectionTitle::Component.new(
-        title: "Mounted routes",
-        subtitle: "The install flow mounts the engine at the host root so the edit screen and public route helpers work."
-      ) %>
-
-      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>The generated route entry should look like this in your host app.</p>
-      </div>
-
-      <%= render FlatPack::CodeBlock::Component.new(
-        language: :ruby,
-        code: <<~CODE
-          mount RecordingStudioPublishable::Engine, at: "/"
-        CODE
-      ) %>
-    </section>
-
-    <section class="space-y-4">
-      <%= render FlatPack::SectionTitle::Component.new(
         title: "Optional Active Storage support",
-        subtitle: "Install Active Storage before using the social_image attachment field."
+        subtitle: "Install Active Storage and the attachable addon for social image uploads."
       ) %>
-
-      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>If you want social image uploads, install Active Storage and the attachable addon before migrating again.</p>
-      </div>
 
       <%= render FlatPack::CodeBlock::Component.new(
         language: :bash,
@@ -124,12 +58,8 @@
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
         title: "Optional access control",
-        subtitle: "Install RecordingStudio Accessible if you want parent-recording edit checks in the publishable flow."
+        subtitle: "Install RecordingStudio Accessible for management authorization checks."
       ) %>
-
-      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>This addon plugs into the management authorizer and checks the parent recording, not the publishable child.</p>
-      </div>
 
       <%= render FlatPack::CodeBlock::Component.new(
         language: :bash,
@@ -140,17 +70,5 @@
       ) %>
     </section>
 
-    <section class="space-y-4">
-      <%= render FlatPack::SectionTitle::Component.new(
-        title: "Review the generated files",
-        subtitle: "Check the initializer and seed snippet after running the generator."
-      ) %>
-
-      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
-        <p>The generated seed block uses <%= link_to "ENV.fetch", "https://ruby-doc.org/core-3.3.0/ENV.html#method-c-fetch" %> for the parent recording id, so you can safely provide it in the shell or update the lookup for your app.</p>
-        <p>Keep the generated initializer focused on cross-cutting settings like <code>management_authorizer</code>, <code>layout</code>, <code>default_time_zone</code>, and <code>canonical_redirect_status</code>.</p>
-        <p>If you use Tailwind CSS, keep the engine and FlatPack source paths in your Tailwind config before rebuilding assets.</p>
-      </div>
-    </section>
   </div>
 </div>
