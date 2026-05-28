@@ -101,19 +101,18 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Review the public methods, scopes, and helper entry points exposed by the addon."
     refute_includes response.body, "RecordingStudioPublishable::Configuration"
-    assert_includes response.body, "RecordingStudioPublishable::ParentRecordable"
-    refute_includes response.body,
-                    "Scopes you call on parent models (like Page/Article) that filter by publishable state and still return parent model records, not child Publishable rows."
+    assert_includes response.body,
+                    "RecordingStudioPublishable.configuration.schedule_enabled_for(&quot;Recordable&quot;)"
+    assert_includes response.body, "Returns whether schedule controls are enabled for Recordable recordables."
     refute_includes response.body, "RecordingStudioPublishable::Publishable"
-    assert_includes response.body, "schedule: false"
-    assert_includes response.body, "seo: false"
-    assert_includes response.body, "RecordingStudioPublishable.configuration.schedule_enabled_for(&quot;Page&quot;)"
-    assert_includes response.body, "Returns Page records whose publishable child is live right now."
-    assert_includes response.body, "RecordingStudio::Recording.find(recording_id).published?"
-    assert_includes response.body, "RecordingStudio::Recording.scheduled_between(Time.current..2.weeks.from_now)"
-    assert_includes response.body, "RecordingStudioPublishable::Routing.url_for"
-    refute_includes response.body,
-                    "Build the canonical public path or full URL for a publishable child recording using one API."
+    refute_includes response.body, "class Page < ApplicationRecord"
+    assert_includes response.body, "Recordable.published"
+    assert_includes response.body, "Recordable.published_in(2.weeks.ago..Time.current)"
+    assert_includes response.body, "Recordable.scheduled_in(Time.current..2.weeks.from_now)"
+    assert_includes response.body, "Recordable.unpublished_in(Time.current..2.weeks.from_now)"
+    assert_includes response.body, "recordable.published?"
+    refute_includes response.body, "Article.published"
+    assert_includes response.body, "RecordingStudioPublishable::Routing.url_for(..., host:, protocol:)"
     refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"
   end
 

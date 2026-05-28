@@ -6,6 +6,53 @@
   ) %>
 
   <% @method_sections.each do |section| %>
-    <%= render FlatPack::CodeBlock::Component.new(language: :ruby, code: section[:code]) %>
+    <% anchor_id = "method-#{section[:title].to_s.parameterize}" %>
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: section[:title],
+        subtitle: section[:subtitle],
+        anchor_link: true,
+        anchor_id: anchor_id,
+        class: "methods-anchor-title"
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(language: :ruby, code: section[:code]) %>
+    </section>
   <% end %>
 </div>
+
+<style>
+  .methods-anchor-title h2 {
+    cursor: pointer;
+  }
+
+  .methods-anchor-title [data-flat-pack--section-title-anchor-target="link"] {
+    display: none !important;
+  }
+</style>
+
+<script>
+  function initializeMethodsTitleAnchorCopy() {
+    document.querySelectorAll(".methods-anchor-title h2").forEach(function(titleEl) {
+      if (titleEl.dataset.methodsAnchorCopyInitialized === "true") {
+        return;
+      }
+
+      titleEl.dataset.methodsAnchorCopyInitialized = "true";
+      titleEl.addEventListener("click", function() {
+        var container = titleEl.closest(".fp-section-title-anchor");
+        if (!container) {
+          return;
+        }
+
+        var link = container.querySelector('[data-flat-pack--section-title-anchor-target="link"]');
+        if (link) {
+          link.click();
+        }
+      });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", initializeMethodsTitleAnchorCopy);
+  document.addEventListener("turbo:load", initializeMethodsTitleAnchorCopy);
+</script>

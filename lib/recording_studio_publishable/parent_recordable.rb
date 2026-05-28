@@ -49,8 +49,24 @@ module RecordingStudioPublishable
         joins_publishable_scope.merge(RecordingStudioPublishable::Publishable.currently_published).distinct
       end
 
+      def published_in(range_or_time)
+        return none if range_or_time.blank?
+
+        publish_window = range_or_time.is_a?(Range) ? range_or_time : (Time.current..range_or_time)
+
+        published.where(recording_studio_publishable_publishables: { publish_at: publish_window })
+      end
+
       def scheduled
         joins_publishable_scope.merge(RecordingStudioPublishable::Publishable.scheduled).distinct
+      end
+
+      def scheduled_in(range_or_time)
+        return none if range_or_time.blank?
+
+        publish_window = range_or_time.is_a?(Range) ? range_or_time : (Time.current..range_or_time)
+
+        scheduled.where(recording_studio_publishable_publishables: { publish_at: publish_window })
       end
 
       def draft
@@ -59,6 +75,14 @@ module RecordingStudioPublishable
 
       def unpublished
         joins_publishable_scope.merge(RecordingStudioPublishable::Publishable.unpublished).distinct
+      end
+
+      def unpublished_in(range_or_time)
+        return none if range_or_time.blank?
+
+        unpublish_window = range_or_time.is_a?(Range) ? range_or_time : (Time.current..range_or_time)
+
+        unpublished.where(recording_studio_publishable_publishables: { unpublish_at: unpublish_window })
       end
 
       private

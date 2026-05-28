@@ -65,61 +65,123 @@ class DocsController < ApplicationController
   def method_sections
     [
       {
-        title: "RecordingStudioPublishable::ParentRecordable",
-        subtitle: "Scopes you call on parent models (like Page/Article) that filter by publishable state and still return parent model records, not child Publishable rows.",
+        title: "Recordable.published",
+        subtitle: "Returns Recordable records whose publishable child is currently live.",
         code: <<~RUBY
-          class Page < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
+          Recordable.published
 
-            recording_studio_publishable(
-              public_controller: "pages",
-              public_action: :show,
-              schedule: false,
-              seo: false
-            )
-          end
+          # Chain regular ActiveRecord filters on the returned Recordable relation.
+          Recordable.published.where("recordables.updated_at >= ?", 30.days.ago)
+          Recordable.published.where(author_id: current_user.id)
 
-          # Per-model capability flags are readable from configuration.
-          RecordingStudioPublishable.configuration.schedule_enabled_for("Page")
-          RecordingStudioPublishable.configuration.seo_enabled_for("Page")
+          # Optional publish_at window filter on published records.
+          # Range input
+          Recordable.published_in(2.weeks.ago..Time.current)
 
-          # Returns Page records whose publishable child is live right now.
-          Page.published
-
-          # Returns Page records whose publishable child is scheduled for the future.
-          Page.scheduled
-
-          # Returns Page records whose publishable child is still a draft.
-          Page.draft
-
-          # Returns Page records whose publishable child has been explicitly unpublished.
-          Page.unpublished
-
-          # Predicate helpers return booleans for one parent recordable.
-          page = Page.find(page_id)
-          page.published?
-          page.scheduled?
-          page.draft?
-          page.unpublished?
-
-          # Same query helpers return Article records for any model that includes
-          # RecordingStudioPublishable::ParentRecordable.
-          Article.published
+          # Time cutoff input (interpreted as Time.current..cutoff)
+          Recordable.published_in(1.week.from_now)
         RUBY
       },
       {
-        title: "RecordingStudioPublishable::Routing",
-        subtitle: "Build the canonical public path or full URL for a publishable child recording using one API.",
+        title: "Recordable.scheduled",
+        subtitle: "Returns Recordable records whose publishable child is scheduled in the future.",
         code: <<~RUBY
-          # Returns a path like /published/:uuid/:slug or a configured alternative such as /blogs/:uuid/:slug.
-          # When host is omitted, url_for returns the path.
+          Recordable.scheduled
+
+          # Add host-model filters by chaining where clauses.
+          Recordable.scheduled.where("recordables.updated_at >= ?", 30.days.ago)
+          Recordable.scheduled.where(author_id: current_user.id)
+
+          # Optional publish_at window filter on scheduled records.
+          # Range input
+          Recordable.scheduled_in(Time.current..2.weeks.from_now)
+
+          # Time cutoff input (interpreted as Time.current..cutoff)
+          Recordable.scheduled_in(2.weeks.from_now)
+        RUBY
+      },
+      {
+        title: "Recordable.draft",
+        subtitle: "Returns Recordable records whose publishable child is still in draft.",
+        code: <<~RUBY
+          Recordable.draft
+        RUBY
+      },
+      {
+        title: "Recordable.unpublished",
+        subtitle: "Returns Recordable records whose publishable child has been unpublished.",
+        code: <<~RUBY
+          Recordable.unpublished
+
+          # Optional unpublish_at window filter on unpublished records.
+          # Range input
+          Recordable.unpublished_in(Time.current..2.weeks.from_now)
+
+          # Time cutoff input (interpreted as Time.current..cutoff)
+          Recordable.unpublished_in(2.weeks.from_now)
+        RUBY
+      },
+      {
+        title: "recordable.published?",
+        subtitle: "Checks whether one Recordable record is currently published.",
+        code: <<~RUBY
+          recordable = Recordable.find(recordable_id)
+          recordable.published?
+        RUBY
+      },
+      {
+        title: "recordable.scheduled?",
+        subtitle: "Checks whether one Recordable record is scheduled for future publish.",
+        code: <<~RUBY
+          recordable = Recordable.find(recordable_id)
+          recordable.scheduled?
+        RUBY
+      },
+      {
+        title: "recordable.draft?",
+        subtitle: "Checks whether one Recordable record is in draft state.",
+        code: <<~RUBY
+          recordable = Recordable.find(recordable_id)
+          recordable.draft?
+        RUBY
+      },
+      {
+        title: "recordable.unpublished?",
+        subtitle: "Checks whether one Recordable record was previously published and is now unpublished.",
+        code: <<~RUBY
+          recordable = Recordable.find(recordable_id)
+          recordable.unpublished?
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable.configuration.schedule_enabled_for(\"Recordable\")",
+        subtitle: "Returns whether schedule controls are enabled for Recordable recordables.",
+        code: <<~RUBY
+          RecordingStudioPublishable.configuration.schedule_enabled_for("Recordable")
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable.configuration.seo_enabled_for(\"Recordable\")",
+        subtitle: "Returns whether SEO-specific behavior is enabled for Recordable recordables.",
+        code: <<~RUBY
+          RecordingStudioPublishable.configuration.seo_enabled_for("Recordable")
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable::Routing.url_for(...)",
+        subtitle: "Builds the canonical published path for a publishable recording.",
+        code: <<~RUBY
           RecordingStudioPublishable::Routing.url_for(
             publishable_recording: publishable_recording,
             publishable: publishable_recording.recordable,
             parent_recordable_type: publishable_recording.parent_recording&.recordable_type
           )
-
-          # Returns a full URL string when host is present, otherwise just the path.
+        RUBY
+      },
+      {
+        title: "RecordingStudioPublishable::Routing.url_for(..., host:, protocol:)",
+        subtitle: "Builds a full canonical published URL when host and protocol are provided.",
+        code: <<~RUBY
           RecordingStudioPublishable::Routing.url_for(
             publishable_recording: publishable_recording,
             publishable: publishable_recording.recordable,
