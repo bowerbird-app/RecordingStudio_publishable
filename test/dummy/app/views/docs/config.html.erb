@@ -1,14 +1,74 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Config",
-    subtitle: "Replace this placeholder with the configuration settings your generated gem exposes.",
+    subtitle: "Configure global RecordingStudioPublishable behavior in the initializer.",
     variant: :h1
   ) %>
 
-  <%= render FlatPack::CodeBlock::Component.new(
-    language: :ruby,
-    code: <<~'CODE'
-      # Add the config settings for the gem here.
-    CODE
-  ) %>
+  <div class="space-y-8">
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "RecordingStudioPublishable::Configuration",
+        subtitle: "Set global defaults in the initializer."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :ruby,
+        code: <<~RUBY
+          RecordingStudioPublishable.configure do |config|
+            config.default_time_zone = "America/Los_Angeles"
+            config.layout = "recording_studio_publishable/application"
+            config.canonical_redirect_status = :found
+
+            config.management_authorizer = lambda do |recording:, actor:, **|
+              actor.present? &&
+                recording.present? &&
+                defined?(RecordingStudioAccessible) &&
+                RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :edit)
+            end
+          end
+        RUBY
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Available settings",
+        subtitle: "These are the primary configuration points exposed by the addon."
+      ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
+        <p><strong>management_authorizer</strong> (optional override) decides whether a user may edit publishable content. Receives <code>recording:</code> and <code>actor:</code> keyword args. By default, the gem uses <code>RecordingStudioAccessible.authorized?(role: :edit)</code> when available.</p>
+        <p><strong>layout</strong> (optional) sets the layout for all gem-managed screens (default: <code>"application"</code>).</p>
+        <p><strong>default_time_zone</strong> (optional) sets the fallback time zone used for publish/unpublish scheduling.</p>
+        <p><strong>canonical_redirect_status</strong> (optional) sets the status code for stale slug redirects (default: <code>:moved_permanently</code>).</p>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Initializer example (global settings)",
+        subtitle: "Use the initializer for cross-cutting defaults and authorization policy."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :ruby,
+        code: <<~RUBY
+          RecordingStudioPublishable.configure do |config|
+            config.default_time_zone = "America/Los_Angeles"
+            config.layout = "recording_studio_publishable/application"
+            config.canonical_redirect_status = :found
+
+            config.management_authorizer = lambda do |recording:, actor:, **|
+              actor.present? &&
+                recording.present? &&
+                defined?(RecordingStudioAccessible) &&
+                RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :edit)
+            end
+          end
+        RUBY
+      ) %>
+    </section>
+
+  </div>
 </div>

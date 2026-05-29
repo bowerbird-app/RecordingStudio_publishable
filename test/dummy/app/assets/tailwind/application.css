@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@source "../../vendor/bundle/**/recording_studio_attachable/app/views/**/*.erb";
+@source "../../vendor/bundle/**/flat_pack/app/components";
+
 /* Include dummy app views for Tailwind CSS */
 @source "../../views/**/*.erb";
 

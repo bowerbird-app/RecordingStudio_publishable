@@ -1,30 +1,58 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Methods",
-    subtitle: "Document the public methods your addon exposes.",
+    subtitle: "Review the public methods, scopes, and helper entry points exposed by the addon.",
     variant: :h1
   ) %>
 
-  <%= render FlatPack::SectionTitle::Component.new(
-    title: "Example method",
-    subtitle: "recordingstudio_addon.example_method",
-  ) %>
+  <% @method_sections.each do |section| %>
+    <% anchor_id = "method-#{section[:title].to_s.parameterize}" %>
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: section[:title],
+        subtitle: section[:subtitle],
+        anchor_link: true,
+        anchor_id: anchor_id,
+        class: "methods-anchor-title"
+      ) %>
 
-  <%= render FlatPack::CodeBlock::Component.new(
-    language: :ruby,
-    code: <<~'CODE'
-      # Explain what this method does before the example.
-      result = RecordingstudioAddon.example_method(
-        # Replace with the real arguments this method accepts.
-        input: "demo value"
-      )
-
-      # Show what the method returns or what side effect it creates.
-      puts result
-    CODE
-  ) %>
-
-  <p class="text-sm text-(--body-muted-content-color)">
-    Provide one section title and codeblock for each method
-  </p>
+      <%= render FlatPack::CodeBlock::Component.new(language: :ruby, code: section[:code]) %>
+    </section>
+  <% end %>
 </div>
+
+<style>
+  .methods-anchor-title h2 {
+    cursor: pointer;
+  }
+
+  .methods-anchor-title [data-flat-pack--section-title-anchor-target="link"] {
+    display: none !important;
+  }
+</style>
+
+<script>
+  function initializeMethodsTitleAnchorCopy() {
+    document.querySelectorAll(".methods-anchor-title h2").forEach(function(titleEl) {
+      if (titleEl.dataset.methodsAnchorCopyInitialized === "true") {
+        return;
+      }
+
+      titleEl.dataset.methodsAnchorCopyInitialized = "true";
+      titleEl.addEventListener("click", function() {
+        var container = titleEl.closest(".fp-section-title-anchor");
+        if (!container) {
+          return;
+        }
+
+        var link = container.querySelector('[data-flat-pack--section-title-anchor-target="link"]');
+        if (link) {
+          link.click();
+        }
+      });
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", initializeMethodsTitleAnchorCopy);
+  document.addEventListener("turbo:load", initializeMethodsTitleAnchorCopy);
+</script>

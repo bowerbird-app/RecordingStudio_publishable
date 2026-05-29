@@ -1,0 +1,83 @@
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Components",
+    subtitle: "Document the reusable publishable components shipped by the addon.",
+    variant: :h1
+  ) %>
+
+  <% @component_sections.each do |section| %>
+    <%= render FlatPack::SectionTitle::Component.new(
+      title: section[:title],
+      subtitle: section[:subtitle]
+    ) %>
+
+    <%= render FlatPack::List::Component.new(divider: true) do %>
+      <%= render FlatPack::List::Item.new(icon: :folder) do %>
+        <span><%= section[:entrypoint] %></span>
+      <% end %>
+    <% end %>
+
+    <% preview_available = section[:preview] == :status_badge || @component_demo_recording.present? %>
+    <% if preview_available %>
+        <div class="space-y-4">
+        <% case section[:preview] %>
+        <% when :status_badge %>
+          <div class="space-y-2">
+            <p class="text-xs font-medium uppercase tracking-wide text-(--surface-muted-content-color)">All possible status badge states</p>
+            <div class="flex flex-wrap gap-3">
+              <% @component_demo_status_badges.each do |publishable| %>
+                <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: publishable) %>
+              <% end %>
+            </div>
+          </div>
+        <% when :quick_actions %>
+          <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @component_demo_recording) %>
+        <% when :edit_button %>
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <p class="text-xs font-medium uppercase tracking-wide text-(--surface-muted-content-color)">Without tooltip (default)</p>
+              <div class="flex flex-wrap gap-3">
+                <% @component_demo_edit_button_recordings.each do |recording| %>
+                  <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording) %>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <p class="text-xs font-medium uppercase tracking-wide text-(--surface-muted-content-color)">With tooltip</p>
+              <div class="flex flex-wrap gap-3">
+                <% @component_demo_edit_button_recordings.each do |recording| %>
+                  <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording, show_tooltip: true) %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+        </div>
+    <% else %>
+      <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+        <% card.body do %>
+          <p class="text-sm text-(--surface-muted-content-color)">No seeded page recording is available right now.</p>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <%= render FlatPack::CodeBlock::Component.new(language: :erb, code: section[:code]) %>
+
+    <%= render FlatPack::SectionTitle::Component.new(
+      title: "Params",
+      subtitle: "Initializer arguments for this component."
+    ) %>
+
+    <%= render FlatPack::List::Component.new(divider: true) do %>
+      <% section[:params].each do |param| %>
+        <%= render FlatPack::List::Item.new(icon: :code_bracket) do %>
+          <div class="space-y-1">
+            <p class="font-medium text-(--surface-content-color)"><%= param[:name] %> <span class="font-normal text-(--surface-muted-content-color)"><%= param[:type] %></span></p>
+            <p class="text-sm text-(--surface-muted-content-color)"><%= param[:description] %> <%= param[:required] ? "Required." : "Optional." %></p>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+</div>

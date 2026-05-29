@@ -4,70 +4,172 @@ require "test_helper"
 
 class ConfigurationTest < Minitest::Test
   def setup
-    @configuration = GemTemplate::Configuration.new
+    @original_configuration = RecordingStudioPublishable.instance_variable_get(:@configuration)
+    RecordingStudioPublishable.reset_configuration!
+  end
+
+  def teardown
+    RecordingStudioPublishable.instance_variable_set(:@configuration, @original_configuration)
+  end
+
+  def test_register_public_path_persists_template_by_recordable_type
+    RecordingStudioPublishable.configuration.register_public_path("Page", path: "/pages/:uuid/:slug")
+
+    assert_equal "/pages/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("Page")
+    assert_equal "/published/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("UnknownType")
+  end
+
+  def test_register_public_renderer_persists_controller_action_and_layout
+    RecordingStudioPublishable.configuration.register_public_renderer(
+      "Page",
+      controller: "pages",
+      action: :show,
+      layout: "flat_pack_sidebar"
+    )
+
+    assert_equal "pages", RecordingStudioPublishable.configuration.public_controller_for("Page")
+    assert_equal :show, RecordingStudioPublishable.configuration.public_action_for("Page")
+    assert_equal "flat_pack_sidebar", RecordingStudioPublishable.configuration.public_layout_for("Page")
+    assert_equal "pages/show", RecordingStudioPublishable.configuration.public_template_for("Page")
+  end
+
+  def test_register_public_renderer_persists_path_template_when_provided
+    RecordingStudioPublishable.configuration.register_public_renderer(
+      "Article",
+      controller: "articles",
+      action: :show,
+      path: "/blogs/:uuid/:slug"
+    )
+
+    assert_equal "/blogs/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("Article")
+  end
+
+  def test_parent_recordable_defaults_do_not_override_an_existing_custom_path
+    RecordingStudioPublishable.configuration.register_public_path("Article", path: "/blogs/:uuid/:slug")
+
+    klass = Class.new do
+      def self.name
+        "Article"
+      end
+
+      include RecordingStudioPublishable::ParentRecordable
+
+      recording_studio_publishable
+    end
+
+    assert_equal "/blogs/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("Article")
+    assert_equal "/blogs/:uuid/:slug", klass.recording_studio_publishable_path_template
+  end
+
+  def test_register_public_path_rejects_templates_without_uuid
+    error = assert_raises(ArgumentError) do
+      RecordingStudioPublishable.configuration.register_public_path("Article", path: "/blogs/:slug")
+    end
+
+    assert_includes error.message, ":uuid"
+  end
+
+  def test_layout_defaults_to_the_blank_engine_layout
+    assert_equal "recording_studio_publishable/application", RecordingStudioPublishable.configuration.layout
+  end
+
+  def test_default_layout_alias_reads_from_layout
+    RecordingStudioPublishable.configuration.layout = "application"
+
+    assert_equal "application", RecordingStudioPublishable.configuration.default_layout
+  end
+
+  def test_default_layout_alias_writes_to_layout
+    RecordingStudioPublishable.configuration.default_layout = "application"
+
+    assert_equal "application", RecordingStudioPublishable.configuration.layout
+  end
+
+  def test_default_public_renderer_uses_recordable_type_convention
+    assert_equal "pages", RecordingStudioPublishable.configuration.public_controller_for("Page")
+    assert_equal :show, RecordingStudioPublishable.configuration.public_action_for("Page")
+    assert_equal "pages/show", RecordingStudioPublishable.configuration.public_template_for("Page")
+  end
+
+  def test_schedule_and_seo_capabilities_default_to_true
+    klass = Class.new do
+      def self.name
+        "CapabilityDefaults"
+      end
+
+      include RecordingStudioPublishable::ParentRecordable
+
+      recording_studio_publishable
+    end
+
+    assert_equal true, klass.recording_studio_publishable_schedule_enabled
+    assert_equal true, klass.recording_studio_publishable_seo_enabled
+    assert_equal true, RecordingStudioPublishable.configuration.schedule_enabled_for(klass)
+    assert_equal true, RecordingStudioPublishable.configuration.seo_enabled_for(klass)
+  end
+
+  def test_schedule_and_seo_capabilities_can_be_disabled_from_model_dsl
+    klass = Class.new do
+      def self.name
+        "CapabilityOptOut"
+      end
+
+      include RecordingStudioPublishable::ParentRecordable
+
+      recording_studio_publishable(schedule: false, seo: false)
+    end
+
+    assert_equal false, klass.recording_studio_publishable_schedule_enabled
+    assert_equal false, klass.recording_studio_publishable_seo_enabled
+    assert_equal false, RecordingStudioPublishable.configuration.schedule_enabled_for(klass)
+    assert_equal false, RecordingStudioPublishable.configuration.seo_enabled_for(klass)
   end
 
   def test_merge_updates_known_attributes
-    @configuration.merge!(api_key: "abc123", timeout: 9, enable_feature_x: true)
+    RecordingStudioPublishable.configuration.merge!(
+      default_time_zone: "Pacific Time (US & Canada)",
+      layout: "application",
+      canonical_redirect_status: :moved_permanently
+    )
 
-    assert_equal "abc123", @configuration.api_key
-    assert_equal 9, @configuration.timeout
-    assert_equal true, @configuration.enable_feature_x
+    assert_equal "Pacific Time (US & Canada)", RecordingStudioPublishable.configuration.default_time_zone
+    assert_equal "application", RecordingStudioPublishable.configuration.layout
+    assert_equal :moved_permanently, RecordingStudioPublishable.configuration.canonical_redirect_status
   end
 
-  def test_merge_ignores_unknown_keys
-    @configuration.merge!(unknown_key: "ignored", timeout: 7)
+  def test_default_management_authorizer_denies_without_access_adapter
+    result = RecordingStudioPublishable.configuration.authorize_management?(
+      recording: Object.new,
+      actor: Object.new,
+      controller: nil
+    )
 
-    refute_respond_to @configuration, :unknown_key
-    assert_equal 7, @configuration.timeout
+    assert_equal false, result
   end
 
-  def test_merge_with_non_enumerable_is_noop
-    original = @configuration.to_h
+  def test_management_close_url_defaults_to_root_path
+    main_app = Struct.new(:root_path).new("/dashboard")
+    controller = Struct.new(:main_app).new(main_app)
 
-    @configuration.merge!(nil)
+    result = RecordingStudioPublishable.configuration.management_close_url_for(
+      controller: controller,
+      recording: nil
+    )
 
-    assert_nil @configuration.api_key if original[:api_key].nil?
-    assert_equal original[:api_key], @configuration.api_key unless original[:api_key].nil?
-    assert_equal original[:timeout], @configuration.timeout
-    assert_equal original[:enable_feature_x], @configuration.enable_feature_x
+    assert_equal "/dashboard", result
   end
 
-  def test_initialize_uses_environment_api_key_and_defaults
-    previous_value = ENV.fetch("GEM_TEMPLATE_API_KEY", nil)
-    ENV["GEM_TEMPLATE_API_KEY"] = "env-token"
+  def test_management_close_url_can_be_overridden
+    RecordingStudioPublishable.configuration.management_close_url_resolver = lambda do |controller:, recording:|
+      "/workspace/#{recording.id}"
+    end
 
-    configuration = GemTemplate::Configuration.new
+    recording = Struct.new(:id).new(42)
+    result = RecordingStudioPublishable.configuration.management_close_url_for(
+      controller: Object.new,
+      recording: recording
+    )
 
-    assert_equal "env-token", configuration.api_key
-    assert_equal false, configuration.enable_feature_x
-    assert_equal 5, configuration.timeout
-    assert_instance_of GemTemplate::Hooks, configuration.hooks
-  ensure
-    ENV["GEM_TEMPLATE_API_KEY"] = previous_value
-  end
-
-  def test_merge_accepts_string_keys
-    @configuration.merge!("api_key" => "string-key", "timeout" => 12)
-
-    assert_equal "string-key", @configuration.api_key
-    assert_equal 12, @configuration.timeout
-  end
-
-  def test_to_h_reports_registered_hook_counts
-    @configuration.hooks.before_initialize { nil }
-    @configuration.hooks.before_initialize { nil }
-    @configuration.hooks.after_service { nil }
-
-    result = @configuration.to_h
-
-    assert_equal 2, result.fetch(:hooks_registered).fetch(:before_initialize)
-    assert_equal 1, result.fetch(:hooks_registered).fetch(:after_service)
-  end
-
-  def test_configure_without_block_is_safe
-    GemTemplate.configure
-
-    assert_kind_of GemTemplate::Configuration, GemTemplate.configuration
+    assert_equal "/workspace/42", result
   end
 end

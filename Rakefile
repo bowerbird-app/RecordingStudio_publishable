@@ -3,10 +3,27 @@
 require "bundler/gem_tasks"
 require "rake/testtask"
 
-DUMMY_TEST_FILE = File.expand_path("test/controllers/docs_controller_test.rb", __dir__)
+DUMMY_TEST_FILES = %w[
+  test/controllers/docs_controller_test.rb
+  test/controllers/home_controller_test.rb
+  test/controllers/published_controller_test.rb
+  test/models/recording_studio_publishable/publishable_test.rb
+  test/services/recording_studio_publishable/publications/ensure_child_test.rb
+  test/services/recording_studio_publishable/publications/update_test.rb
+  test/services/recording_studio_publishable/publications/resolve_test.rb
+].map { |path| File.expand_path(path, __dir__) }.freeze
 DUMMY_GEMFILE = File.expand_path("test/dummy/Gemfile", __dir__)
 DUMMY_APP_ROOT = File.expand_path("test/dummy", __dir__)
-ROOT_TEST_EXCLUSIONS = %w[test/controllers/docs_controller_test.rb test/rename_verification_test.rb].freeze
+ROOT_TEST_EXCLUSIONS = %w[
+  test/controllers/docs_controller_test.rb
+  test/controllers/home_controller_test.rb
+  test/controllers/published_controller_test.rb
+  test/models/recording_studio_publishable/publishable_test.rb
+  test/services/recording_studio_publishable/publications/ensure_child_test.rb
+  test/services/recording_studio_publishable/publications/update_test.rb
+  test/services/recording_studio_publishable/publications/resolve_test.rb
+  test/rename_verification_test.rb
+].freeze
 
 def run_command!(env, *command)
   return if system(env, *command)
@@ -64,7 +81,7 @@ namespace :test do
       env = dummy_bundle_env
 
       run_command!(env, "bin/rails", "db:prepare")
-      run_command!(env, "bundle", "exec", "ruby", "-I/workspace/test", DUMMY_TEST_FILE)
+      run_command!(env, "bundle", "exec", "ruby", "-I/workspace/test", *DUMMY_TEST_FILES)
     end
   end
 

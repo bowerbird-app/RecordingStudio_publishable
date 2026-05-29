@@ -6,10 +6,20 @@
   ) %>
 
   <% if @recording_tree.any? %>
-    <ul class="list-disc pl-5 text-sm text-[var(--surface-content-color)]">
-      <%= render partial: "recording_tree_node", collection: @recording_tree, as: :node %>
-    </ul>
+    <div class="space-y-6">
+      <% @recording_tree.each do |node| %>
+        <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+          <% card.body do %>
+            <%= render partial: "recording_tree_node", locals: { node: node, depth: 0 } %>
+          <% end %>
+        <% end %>
+      <% end %>
+    </div>
   <% else %>
-    <p class="text-sm text-[var(--surface-muted-content-color)]">No active recordings found.</p>
+    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+      <% card.body do %>
+        <p class="text-sm text-(--surface-muted-content-color)">No active recordings found.</p>
+      <% end %>
+    <% end %>
   <% end %>
 </div>

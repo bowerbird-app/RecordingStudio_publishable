@@ -1,0 +1,18 @@
+<div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Add Page",
+    subtitle: "Create a new dummy page and send it back to the root index.",
+    variant: :h1
+  ) %>
+
+  <%= form_with url: dummy_pages_path, method: :post, class: "space-y-4" do %>
+    <%= render FlatPack::TextInput::Component.new(
+      name: "title",
+      label: "Page name",
+      value: @next_page_title,
+      placeholder: "Enter a page name"
+    ) %>
+
+    <%= render FlatPack::Button::Component.new(text: "Create page", style: :primary, size: :md, type: "submit") %>
+  <% end %>
+</div>

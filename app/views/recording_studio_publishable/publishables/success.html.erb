@@ -1,0 +1,67 @@
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+  <%= render FlatPack::PageNav::Component.new(close_url: @management_close_url) %>
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <%= render FlatPack::PageTitle::Component.new(
+      title: "Published!",
+      subtitle: @recordable_name,
+      variant: :h1,
+      large_subtitle: true
+    ) %>
+  </div>
+
+  <div class="flex max-w-md flex-col gap-3">
+    <%= render FlatPack::Button::Component.new(
+      text: "Copy link",
+      style: :secondary,
+      size: :md,
+      type: "button",
+      class: "w-full",
+      data: {
+        publishable_success_copy_button: true,
+        publishable_success_copy_url: @public_url
+      }
+    ) %>
+
+    <%= render FlatPack::Button::Component.new(
+      text: "View",
+      style: :primary,
+      size: :md,
+      url: @public_url,
+      class: "w-full"
+    ) %>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("click", function(event) {
+    var button = event.target.closest("[data-publishable-success-copy-button]");
+    if (!button) {
+      return;
+    }
+
+    var url = button.dataset.publishableSuccessCopyUrl;
+    if (!url) {
+      return;
+    }
+
+    function restoreLabel(originalText) {
+      window.setTimeout(function() {
+        button.textContent = originalText;
+      }, 1200);
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(function() {
+        var originalText = button.textContent;
+        button.textContent = "Copied";
+        restoreLabel(originalText);
+      }).catch(function() {
+        window.prompt("Copy link", url);
+      });
+      return;
+    }
+
+    window.prompt("Copy link", url);
+  });
+</script>

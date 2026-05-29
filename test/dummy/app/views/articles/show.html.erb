@@ -1,0 +1,30 @@
+<% page_title = @article&.title.presence || @publishable.seo_title.presence || @publishable.slug.to_s.tr("-", " ").humanize %>
+<% public_renderer = RecordingStudioPublishable.configuration.public_renderer_for(@recording&.recordable_type) %>
+<% resolved_public_path = @article.respond_to?(:published_url) ? @article.published_url : nil %>
+<% resolved_public_url = resolved_public_path.present? ? "#{request.protocol}#{request.host_with_port}#{resolved_public_path}" : nil %>
+
+<div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: page_title,
+    subtitle: (
+      @publishable.seo_description.presence ||
+      "Rendered through: #{public_renderer.controller}##{public_renderer.action} (layout: #{public_renderer.layout.presence || RecordingStudioPublishable.configuration.layout})"
+    ),
+    variant: :h1
+  ) %>
+
+  <% if user_signed_in? %>
+    <div class="flex flex-wrap gap-2">
+      <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: @recording, label: "Edit") %>
+    </div>
+  <% end %>
+
+  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <% card.body do %>
+      <div class="space-y-4 text-sm leading-7">
+        <p><strong>Public path:</strong> <%= resolved_public_path %></p>
+        <p><strong>Public URL:</strong> <%= resolved_public_url %></p>
+      </div>
+    <% end %>
+  <% end %>
+</div>

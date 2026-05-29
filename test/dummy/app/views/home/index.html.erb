@@ -1,7 +1,55 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
-    title: "Demo",
-    subtitle: "Provide a simple demo below",
+    title: "Dummy publishables",
+    subtitle: "Review seeded pages and articles, then jump straight to each publishable edit screen and public route.",
     variant: :h1
   ) %>
+
+  <div class="flex flex-wrap items-center gap-3">
+    <%= link_to new_dummy_page_path, class: "inline-flex" do %>
+      <%= render FlatPack::Button::Component.new(text: "Add Page", style: :primary, size: :md) %>
+    <% end %>
+  </div>
+
+  <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+    <% card.body do %>
+      <% if @publishable_parent_recordings.any? %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-(--surface-border-color) text-left text-sm">
+            <thead>
+              <tr class="text-(--surface-muted-content-color)">
+                <th class="px-4 py-3 font-medium">Type</th>
+                <th class="px-4 py-3 font-medium">Title</th>
+                <th class="px-4 py-3 font-medium">Parent</th>
+                <th class="px-4 py-3 font-medium">Public path</th>
+                <th class="px-4 py-3 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-(--surface-border-color)">
+              <% @publishable_parent_recordings.each do |recording| %>
+                <% public_path = recording.publishable_public_path %>
+                <tr>
+                  <td class="px-4 py-3"><%= recording.recordable_type.to_s.demodulize %></td>
+                  <td class="px-4 py-3 font-medium"><%= recording.recordable.try(:title).presence || recording.recordable.to_s %></td>
+                  <td class="px-4 py-3"><%= recording.parent_recording&.recordable_type.to_s.demodulize.underscore.humanize.presence || "Root" %></td>
+                  <td class="px-4 py-3">
+                    <% if public_path.present? %>
+                      <%= link_to public_path, public_path, class: "text-(--surface-primary-content-color) underline underline-offset-2" %>
+                    <% else %>
+                      Not published yet
+                    <% end %>
+                  </td>
+                  <td class="px-4 py-3">
+                    <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording, label: "Edit", show_tooltip: true) %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="text-sm text-(--surface-muted-content-color)">No publishable parent records exist yet.</p>
+      <% end %>
+    <% end %>
+  <% end %>
 </div>

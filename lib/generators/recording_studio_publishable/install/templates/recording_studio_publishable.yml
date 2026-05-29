@@ -1,0 +1,11 @@
+development:
+  default_time_zone: "UTC"
+  canonical_redirect_status: found
+
+test:
+  default_time_zone: "UTC"
+  canonical_redirect_status: found
+
+production:
+  default_time_zone: <%= ENV.fetch("RECORDING_STUDIO_PUBLISHABLE_DEFAULT_TIME_ZONE", "UTC") %>
+  canonical_redirect_status: moved_permanently

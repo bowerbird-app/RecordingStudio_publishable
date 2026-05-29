@@ -1,0 +1,791 @@
+<% social_image_modal_id = "publishable-social-image-picker-modal" %>
+
+<div
+  class="mx-auto flex w-full max-w-6xl flex-col gap-6"
+  data-controller="recording-studio-attachable--attachment-image-picker"
+  data-recording-studio-attachable--attachment-image-picker-picker-url-value="<%= recording_studio_attachable.recording_attachment_picker_path(@publishable_recording) %>"
+  data-recording-studio-attachable--attachment-image-picker-upload-url-value="<%= recording_studio_attachable.recording_attachment_imports_path(@publishable_recording) %>"
+  data-recording-studio-attachable--attachment-image-picker-direct-upload-url-value="<%= main_app.rails_direct_uploads_path %>"
+  data-recording-studio-attachable--attachment-image-picker-max-file-size-value="<%= RecordingStudioAttachable.configuration.max_file_size %>"
+  data-recording-studio-attachable--attachment-image-picker-image-processing-enabled-value="<%= RecordingStudioAttachable.configuration.image_processing_enabled %>"
+  data-recording-studio-attachable--attachment-image-picker-image-processing-max-width-value="<%= RecordingStudioAttachable.configuration.image_processing_max_width %>"
+  data-recording-studio-attachable--attachment-image-picker-image-processing-max-height-value="<%= RecordingStudioAttachable.configuration.image_processing_max_height %>"
+  data-recording-studio-attachable--attachment-image-picker-image-processing-quality-value="<%= RecordingStudioAttachable.configuration.image_processing_quality %>"
+  data-recording-studio-attachable--attachment-image-picker-multiple-selection-value="false"
+  data-recording-studio-attachable--attachment-image-picker-modal-id-value="<%= social_image_modal_id %>">
+  <%= render FlatPack::PageNav::Component.new(close_url: @management_close_url) %>
+
+  <% recordable = @parent_recording.recordable %>
+  <% recordable_name = recordable.try(:title).presence || recordable.try(:name).presence || @parent_recording.recordable_type.to_s.demodulize.humanize %>
+  <% published_state = @publishable.published_state? %>
+  <% scheduled_for_future = @publishable.scheduled_for_future? %>
+  <% schedule_enabled = @schedule_enabled != false %>
+  <% seo_enabled = @seo_enabled != false %>
+  <% seo_title_max_characters = 60 %>
+  <% social_title_max_characters = 70 %>
+  <% publish_toggle_checked = published_state || scheduled_for_future || @publishable.status.to_s == "published" %>
+  <% publish_toggle_label = @publishable.draft_state? ? "Publish" : (@publishable.publish_at.present? ? "Published" : "Publish") %>
+  <% schedule_title = begin
+       publish_at = @publishable.publish_at
+       if publish_at.blank?
+         "Now"
+       else
+         zone = ActiveSupport::TimeZone[@publishable.effective_time_zone] || Time.zone || ActiveSupport::TimeZone["UTC"]
+         publish_in_zone = publish_at.in_time_zone(zone)
+         now_in_zone = Time.current.in_time_zone(zone)
+         diff_seconds = (publish_in_zone - now_in_zone).to_i
+         is_past = diff_seconds < 0
+         distance_minutes = [(diff_seconds.abs / 60.0).round, 1].max
+
+         if distance_minutes < 60
+           unit = "minute"
+           amount = distance_minutes
+         else
+           distance_hours = [(distance_minutes / 60.0).round, 1].max
+           if distance_hours < 24
+             unit = "hour"
+             amount = distance_hours
+           else
+             distance_days = [(distance_hours / 24.0).round, 1].max
+             if distance_days < 30
+               unit = "day"
+               amount = distance_days
+             else
+               distance_months = [(distance_days / 30.0).round, 1].max
+               if distance_months < 12
+                 unit = "month"
+                 amount = distance_months
+               else
+                 unit = "year"
+                 amount = [(distance_days / 365.0).round, 1].max
+               end
+             end
+           end
+         end
+
+         suffix = amount == 1 ? unit : "#{unit}s"
+         is_past ? "Published #{amount} #{suffix} ago" : "Publish in #{amount} #{suffix}"
+       end
+     end %>
+
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <%= render FlatPack::PageTitle::Component.new(
+      title: "Publish",
+      subtitle: recordable_name,
+      variant: :h1,
+      large_subtitle: true
+    ) %>
+  </div>
+
+  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, id: dom_id(@publishable, :edit), class: "publishable-edit-form space-y-4", multipart: true, html: { novalidate: true }, data: { publishable_initial_mode: (publish_toggle_checked ? "published" : "draft"), publishable_schedule_enabled: schedule_enabled } do |form| %>
+    <div class="space-y-2">
+      <%= form.hidden_field :status, value: (publish_toggle_checked ? "published" : "draft"), data: { publishable_status_field: true } %>
+      <div class="flex flex-wrap items-center gap-2">
+        <%= render FlatPack::Switch::Component.new(
+          name: "publish_toggle",
+          label: publish_toggle_label,
+          checked: publish_toggle_checked
+        ) %>
+      </div>
+    </div>
+
+    <%= render FlatPack::Accordion::Component.new do |accordion| %>
+      <% accordion.item(id: "publishable-schedule-window", title: schedule_title, open: false) do %>
+        <div class="space-y-4">
+          <% if schedule_enabled %>
+              <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
+              <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
+          <% end %>
+
+          <%= render FlatPack::Select::Component.new(
+            name: "publishable[time_zone]",
+            options: @time_zone_options,
+            label: "Time zone",
+            placeholder: "Select a time zone",
+            value: @publishable.time_zone.presence
+          ) %>
+        </div>
+      <% end %>
+
+      <% if seo_enabled %>
+        <% accordion.item(id: "publishable-seo-fields", title: "SEO", open: false) do %>
+          <div class="space-y-8 bg-(--surface-raised-background-color)">
+            <section class="space-y-4">
+              <div class="grid gap-4">
+                <div class="space-y-1">
+                  <%= render FlatPack::TextInput::Component.new(
+                    name: "publishable[seo_title]",
+                    id: "publishable-seo-title-input",
+                    label: "SEO title",
+                    value: @publishable.seo_title,
+                    maxlength: seo_title_max_characters,
+                    data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
+                  ) %>
+                  <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
+                </div>
+                <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
+              </div>
+              <%= render FlatPack::TextArea::Component.new(
+                name: "publishable[seo_description]",
+                label: "SEO description",
+                value: @publishable.seo_description,
+                rows: 4,
+                character_count: true,
+                max_characters: 160,
+                placeholder: "Short summary for search engines"
+              ) %>
+              <%= form.hidden_field :meta_robots, value: "index,follow" %>
+            </section>
+          </div>
+        <% end %>
+
+        <% current_social_image_preview_path = if @publishable.social_image_attached? && @publishable.social_image_attachment&.file_attachment.present?
+          main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
+        end %>
+
+        <% accordion.item(id: "publishable-social-fields", title: "Social", open: false) do %>
+          <div class="space-y-8 bg-(--surface-raised-background-color)">
+            <section class="space-y-4">
+              <div class="space-y-4">
+                <div class="space-y-1">
+                  <%= render FlatPack::TextInput::Component.new(
+                    name: "publishable[social_title]",
+                    id: "publishable-social-title-input",
+                    label: "Social title",
+                    value: @publishable.social_title,
+                    maxlength: social_title_max_characters,
+                    data: { publishable_title_counter_input: true, publishable_title_counter_target: "social-title", publishable_title_counter_limit: social_title_max_characters }
+                  ) %>
+                  <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="social-title"></p>
+                </div>
+                <%= render FlatPack::TextArea::Component.new(
+                  name: "publishable[social_description]",
+                  label: "Social description",
+                  value: @publishable.social_description,
+                  rows: 4,
+                  character_count: true,
+                  max_characters: 200,
+                  placeholder: "Description shown in social previews"
+                ) %>
+              </div>
+            </section>
+
+            <section class="space-y-4">
+              <h2 class="text-sm font-semibold text-(--surface-content-color)">Social Image</h2>
+              <div id="publishable-social-image-preview-wrapper" data-publishable-social-image-picker style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+                <%= form.hidden_field :social_image_attachment_recording_id, id: "publishable-social-image-input", data: { publishable_social_image_input: true } %>
+                <img
+                  src="<%= current_social_image_preview_path || "" %>"
+                  alt="Social image"
+                  style="width: 192px; height: 192px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 1px solid var(--surface-border-color);"
+                  class="<%= @publishable.social_image_attached? ? "" : "hidden" %>"
+                  data-publishable-social-image-preview-image
+                  data-action="click->recording-studio-attachable--attachment-image-picker#openSinglePicker">
+                <% unless @publishable.social_image_attached? %>
+                  <div
+                    style="width: 192px; height: 192px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 0.5rem; border: 1px dashed var(--surface-border-color); background: var(--surface-raised-background-color); cursor: pointer;"
+                    data-publishable-social-image-empty
+                    data-action="click->recording-studio-attachable--attachment-image-picker#openSinglePicker">
+                    <span style="font-size: 0.875rem; color: var(--surface-muted-content-color);">Upload Photo</span>
+                  </div>
+                <% end %>
+              </div>
+            </section>
+          </div>
+        <% end %>
+      <% end %>
+    <% end %>
+
+    <div class="publishable-save-actions pt-2">
+      <%= form.submit "Save changes", id: "publishable-save-button", class: "inline-flex items-center justify-center gap-2 rounded-[var(--button-border-radius)] font-medium cursor-pointer transition-colors duration-base focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--button-focus-ring-color)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--button-focus-ring-offset-color)] px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm border border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]", data: { publishable_save_button: true, publishable_save_primary_classes: "border-[var(--button-primary-border-color)] bg-[var(--button-primary-background-color)] hover:bg-[var(--button-primary-hover-background-color)] text-[var(--button-primary-text-color)] shadow-[var(--button-shadow)]", publishable_save_secondary_classes: "border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]" } %>
+    </div>
+  <% end %>
+
+  <%= render "recording_studio_attachable/attachment_image_pickers/modal",
+    modal_id: social_image_modal_id,
+    modal_title: "Select social image",
+    recording: @publishable_recording,
+    search_aria_label: "Search social images",
+    empty_state_text: "No images found for this publishable yet." %>
+</div>
+
+<style>
+  .publishable-edit-form button[aria-controls="publishable-schedule-window-content"] > span.font-medium::before {
+    content: "";
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    vertical-align: -0.125rem;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z'/%3E%3C/svg%3E") no-repeat center / contain;
+  }
+
+  .publishable-edit-form button[aria-controls="publishable-seo-fields-content"] > span.font-medium::before {
+    content: "";
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.5rem;
+    vertical-align: -0.125rem;
+    background-color: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 6.75A2.25 2.25 0 014.5 4.5h15A2.25 2.25 0 0121.75 6.75v9A2.25 2.25 0 0119.5 18h-15a2.25 2.25 0 01-2.25-2.25v-9zM8.25 21h7.5'/%3E%3C/svg%3E") no-repeat center / contain;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black' stroke-width='1.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M2.25 6.75A2.25 2.25 0 014.5 4.5h15A2.25 2.25 0 0121.75 6.75v9A2.25 2.25 0 0119.5 18h-15a2.25 2.25 0 01-2.25-2.25v-9zM8.25 21h7.5'/%3E%3C/svg%3E") no-repeat center / contain;
+  }
+
+  .publishable-edit-form input[name="publish_toggle"]:not(:checked) + div[role="switch"] {
+    background-color: var(--switch-track-background-color) !important;
+  }
+
+  .publishable-edit-form input[name="publish_toggle"]:checked + div[role="switch"] {
+    background-color: var(--switch-track-checked-background-color) !important;
+  }
+
+  .publishable-edit-form .publishable-save-actions {
+    position: relative;
+    z-index: 1;
+    pointer-events: auto;
+  }
+
+  .publishable-edit-form [data-publishable-social-image-preview-image]:not(.hidden) + [data-publishable-social-image-empty] {
+    display: none !important;
+  }
+
+  [data-controller~="flat-pack--modal"][aria-hidden="true"] {
+    pointer-events: none !important;
+  }
+
+</style>
+
+<script>
+  function applyClassTokens(element, classNames, shouldApply) {
+    if (!element || !classNames) {
+      return;
+    }
+
+    classNames.split(/\s+/).filter(Boolean).forEach(function(token) {
+      element.classList.toggle(token, shouldApply);
+    });
+  }
+
+  function initializePublishableTimeZoneDefault() {
+    var select = document.querySelector('[name="publishable[time_zone]"]');
+    if (!select || select.value) {
+      return;
+    }
+
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!tz) {
+      return;
+    }
+
+    var found = false;
+    for (var i = 0; i < select.options.length; i++) {
+      if (select.options[i].value === tz) {
+        select.selectedIndex = i;
+        found = true;
+        break;
+      }
+    }
+
+    if (found) {
+      var event = new Event("change", { bubbles: true });
+      select.dispatchEvent(event);
+    }
+  }
+
+  function formatLocalDateTime(date) {
+    var offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return offsetDate.toISOString().slice(0, 16);
+  }
+
+  function parsePublishAtDate(publishAtInput) {
+    if (!(publishAtInput instanceof HTMLInputElement)) {
+      return null;
+    }
+
+    if (!publishAtInput.value) {
+      return null;
+    }
+
+    // datetime-local inputs expose a native millisecond timestamp in local time.
+    if (typeof publishAtInput.valueAsNumber === "number" && !isNaN(publishAtInput.valueAsNumber)) {
+      return new Date(publishAtInput.valueAsNumber);
+    }
+
+    var raw = String(publishAtInput.value || "").trim();
+    if (!raw) {
+      return null;
+    }
+
+    var parsed = new Date(raw);
+    if (!isNaN(parsed.getTime())) {
+      return parsed;
+    }
+
+    // Normalize common Rails datetime string shapes for browser parsing.
+    var normalized = raw
+      .replace(/^([0-9]{4}-[0-9]{2}-[0-9]{2})\s+([0-9]{2}:[0-9]{2}(?::[0-9]{2})?)/, "$1T$2")
+      .replace(/\s+UTC$/, "Z")
+      .replace(/\s+([+-][0-9]{2})([0-9]{2})$/, "$1:$2");
+
+    parsed = new Date(normalized);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function parseDateTimeLocalParts(value) {
+    var match = String(value || "").trim().match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
+    if (!match) {
+      return null;
+    }
+
+    return {
+      year: parseInt(match[1], 10),
+      month: parseInt(match[2], 10),
+      day: parseInt(match[3], 10),
+      hour: parseInt(match[4], 10),
+      minute: parseInt(match[5], 10)
+    };
+  }
+
+  function selectedTimeZoneOffsetMinutes(form) {
+    if (!(form instanceof HTMLFormElement)) {
+      return null;
+    }
+
+    var timeZoneSelect = form.querySelector('[name="publishable[time_zone]"]');
+    if (!(timeZoneSelect instanceof HTMLSelectElement) || timeZoneSelect.selectedIndex < 0) {
+      return null;
+    }
+
+    var selectedOption = timeZoneSelect.options[timeZoneSelect.selectedIndex];
+    if (!selectedOption) {
+      return null;
+    }
+
+    var optionText = selectedOption.text || "";
+    var match = optionText.match(/\(UTC([+-])(\d{2}):(\d{2})\)/);
+    if (!match) {
+      return null;
+    }
+
+    var sign = match[1] === "-" ? -1 : 1;
+    var hours = parseInt(match[2], 10);
+    var minutes = parseInt(match[3], 10);
+    return sign * ((hours * 60) + minutes);
+  }
+
+  function publishDiffMsInSelectedTimeZone(publishAtInput, form) {
+    if (!(publishAtInput instanceof HTMLInputElement) || !(form instanceof HTMLFormElement)) {
+      return null;
+    }
+
+    var publishParts = parseDateTimeLocalParts(publishAtInput.value);
+    if (!publishParts) {
+      return null;
+    }
+
+    var offsetMinutes = selectedTimeZoneOffsetMinutes(form);
+    if (typeof offsetMinutes !== "number") {
+      return null;
+    }
+
+    var publishUtcMs = Date.UTC(
+      publishParts.year,
+      publishParts.month - 1,
+      publishParts.day,
+      publishParts.hour,
+      publishParts.minute,
+      0,
+      0
+    ) - (offsetMinutes * 60000);
+
+    return publishUtcMs - Date.now();
+  }
+
+  function formatRelativePublishLabel(publishAtInput, form) {
+    var publishAt = parsePublishAtDate(publishAtInput);
+    if (!publishAt) {
+      return "Now";
+    }
+
+    var diffMs = publishDiffMsInSelectedTimeZone(publishAtInput, form);
+    if (typeof diffMs !== "number") {
+      diffMs = publishAt.getTime() - Date.now();
+    }
+
+    var isPast = diffMs < 0;
+    var distanceMs = Math.abs(diffMs);
+
+    var minutes = Math.max(1, Math.round(distanceMs / 60000));
+    if (minutes < 60) {
+      return isPast ? "Published " + minutes + " minute" + (minutes === 1 ? "" : "s") + " ago" : "Publish in " + minutes + " minute" + (minutes === 1 ? "" : "s");
+    }
+
+    var hours = Math.max(1, Math.round(minutes / 60));
+    if (hours < 24) {
+      return isPast ? "Published " + hours + " hour" + (hours === 1 ? "" : "s") + " ago" : "Publish in " + hours + " hour" + (hours === 1 ? "" : "s");
+    }
+
+    var days = Math.max(1, Math.round(hours / 24));
+    if (days < 30) {
+      return isPast ? "Published " + days + " day" + (days === 1 ? "" : "s") + " ago" : "Publish in " + days + " day" + (days === 1 ? "" : "s");
+    }
+
+    var months = Math.max(1, Math.round(days / 30));
+    if (months < 12) {
+      return isPast ? "Published " + months + " month" + (months === 1 ? "" : "s") + " ago" : "Publish in " + months + " month" + (months === 1 ? "" : "s");
+    }
+
+    var years = Math.max(1, Math.round(days / 365));
+    return isPast ? "Published " + years + " year" + (years === 1 ? "" : "s") + " ago" : "Publish in " + years + " year" + (years === 1 ? "" : "s");
+  }
+
+  function initializeUnpublishNeverDisplay() {
+    document.querySelectorAll('form.publishable-edit-form [name="publishable[unpublish_at]"]').forEach(function(input) {
+      if (!(input instanceof HTMLInputElement)) {
+        return;
+      }
+
+      if (input.dataset.publishableUnpublishNeverInitialized === "true") {
+        if (typeof input._publishableUnpublishNeverSync === "function") {
+          input._publishableUnpublishNeverSync();
+        }
+        return;
+      }
+
+      input.dataset.publishableUnpublishNeverInitialized = "true";
+      input.dataset.publishableUnpublishOriginalType = input.type || "datetime-local";
+      input.dataset.publishableUnpublishOriginalPlaceholder = input.getAttribute("placeholder") || "";
+
+      function ensureDateTimeMode() {
+        var originalType = input.dataset.publishableUnpublishOriginalType || "datetime-local";
+        if (input.type !== originalType) {
+          input.type = originalType;
+        }
+        input.setAttribute("placeholder", input.dataset.publishableUnpublishOriginalPlaceholder || "");
+      }
+
+      function syncNeverDisplay() {
+        if (input.value) {
+          ensureDateTimeMode();
+          return;
+        }
+
+        if (document.activeElement === input) {
+          ensureDateTimeMode();
+          return;
+        }
+
+        if (input.type !== "text") {
+          input.type = "text";
+        }
+
+        input.value = "";
+        input.setAttribute("placeholder", "Never");
+      }
+
+      input._publishableUnpublishNeverSync = syncNeverDisplay;
+
+      input.addEventListener("focus", function() {
+        ensureDateTimeMode();
+        if (typeof input.showPicker === "function") {
+          try {
+            input.showPicker();
+          } catch (_error) {
+            // Some browsers block showPicker unless directly user-triggered.
+          }
+        }
+      });
+
+      input.addEventListener("blur", syncNeverDisplay);
+      input.addEventListener("change", syncNeverDisplay);
+      input.addEventListener("input", syncNeverDisplay);
+
+      syncNeverDisplay();
+    });
+  }
+
+  function updatePublishableScheduleLabel(form) {
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
+    var label = formatRelativePublishLabel(publishAtInput, form);
+    var triggerLabel = form.querySelector('button[aria-controls="publishable-schedule-window-content"] span.font-medium');
+
+    if (triggerLabel) {
+      triggerLabel.textContent = label;
+    }
+  }
+
+  function updatePublishableScheduleLabelForTarget(target) {
+    if (!(target instanceof Element)) {
+      return;
+    }
+
+    var form = target.closest("form.publishable-edit-form");
+    if (!form) {
+      return;
+    }
+
+    var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
+    if (!publishAtInput) {
+      return;
+    }
+
+    updatePublishableScheduleLabel(form);
+  }
+
+  function setPublishableStatusMode(form, mode, options) {
+    if (!(form instanceof HTMLFormElement) || !form.classList.contains("publishable-edit-form")) {
+      return;
+    }
+
+    options = options || {};
+
+    var scheduleEnabled = form.dataset.publishableScheduleEnabled !== "false";
+    if (!scheduleEnabled && mode === "scheduled") {
+      mode = "published";
+    }
+
+    var statusField = form.querySelector('[data-publishable-status-field]');
+    if (statusField) {
+      statusField.value = mode;
+    }
+
+    var statusToggle = form.querySelector('[name="publish_toggle"]');
+    if (statusToggle) {
+      var published = mode === "published";
+      statusToggle.checked = published;
+      statusToggle.setAttribute("aria-checked", published ? "true" : "false");
+    }
+
+    var publishAtInput = form.querySelector('[name="publishable[publish_at]"]');
+    var unpublishAtInput = form.querySelector('[name="publishable[unpublish_at]"]');
+    var scheduleFields = form.querySelector("[data-publishable-schedule-fields]");
+
+    if (mode === "draft") {
+      if (publishAtInput) publishAtInput.value = "";
+      if (unpublishAtInput) unpublishAtInput.value = "";
+    }
+
+    if (mode === "published" && !options.preserveInputs) {
+      // Keep published mode inputs empty unless user explicitly sets a schedule.
+      if (publishAtInput) publishAtInput.value = "";
+      if (unpublishAtInput) unpublishAtInput.value = "";
+    }
+
+    refreshPublishableDirtyState(form);
+  }
+
+  function publishableFormSnapshot(form) {
+    var formData = new FormData(form);
+    var entries = [];
+
+    formData.forEach(function(value, key) {
+      if (key === "authenticity_token") {
+        return;
+      }
+
+      entries.push([key, String(value)]);
+    });
+
+    return JSON.stringify(entries);
+  }
+
+  function updatePublishableDirtyState(form, dirty) {
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    var saveButton = form.querySelector("[data-publishable-save-button]");
+    if (!saveButton) {
+      return;
+    }
+
+    var primaryClasses = saveButton.dataset.publishableSavePrimaryClasses || "";
+    var secondaryClasses = saveButton.dataset.publishableSaveSecondaryClasses || "";
+
+    applyClassTokens(saveButton, primaryClasses, dirty);
+    applyClassTokens(saveButton, secondaryClasses, !dirty);
+  }
+
+  function refreshPublishableDirtyState(form) {
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    var baseline = form.dataset.publishableInitialSnapshot || "";
+    var dirty = publishableFormSnapshot(form) !== baseline;
+    updatePublishableDirtyState(form, dirty);
+  }
+
+  function resetPublishableDirtyBaseline(form) {
+    if (!(form instanceof HTMLFormElement)) {
+      return;
+    }
+
+    form.dataset.publishableInitialSnapshot = publishableFormSnapshot(form);
+    updatePublishableDirtyState(form, false);
+  }
+
+  function initializePublishableDirtyTracking() {
+    document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
+      if (form.dataset.publishableDirtyTrackingInitialized === "true") {
+        refreshPublishableDirtyState(form);
+        return;
+      }
+
+      form.dataset.publishableDirtyTrackingInitialized = "true";
+
+      form.addEventListener("input", function() {
+        refreshPublishableDirtyState(form);
+      });
+
+      form.addEventListener("change", function() {
+        refreshPublishableDirtyState(form);
+      });
+
+      resetPublishableDirtyBaseline(form);
+    });
+  }
+
+  function initializePublishableTitleCounters() {
+    document.querySelectorAll("form.publishable-edit-form [data-publishable-title-counter-input]").forEach(function(input) {
+      if (input.dataset.publishableTitleCounterInitialized === "true") {
+        return;
+      }
+
+      input.dataset.publishableTitleCounterInitialized = "true";
+
+      var targetKey = input.dataset.publishableTitleCounterTarget;
+      var limit = parseInt(input.dataset.publishableTitleCounterLimit || "0", 10);
+      if (!targetKey || !limit) {
+        return;
+      }
+
+      var counter = document.querySelector('[data-publishable-title-counter="' + targetKey + '"]');
+      if (!counter) {
+        return;
+      }
+
+      function updateCounter() {
+        var currentLength = String(input.value || "").length;
+        counter.textContent = currentLength + " / " + limit + " characters";
+      }
+
+      input.addEventListener("input", updateCounter);
+      input.addEventListener("change", updateCounter);
+      updateCounter();
+    });
+  }
+
+  function initializePublishableFormState() {
+    document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
+      var initialMode = form.dataset.publishableInitialMode || "draft";
+      setPublishableStatusMode(form, initialMode, { preserveInputs: true });
+      updatePublishableScheduleLabel(form);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    initializePublishableTimeZoneDefault();
+    initializePublishableFormState();
+    initializeUnpublishNeverDisplay();
+    initializePublishableTitleCounters();
+    initializePublishableDirtyTracking();
+  });
+
+  document.addEventListener("turbo:load", function() {
+    initializePublishableTimeZoneDefault();
+    initializePublishableFormState();
+    initializeUnpublishNeverDisplay();
+    initializePublishableTitleCounters();
+    initializePublishableDirtyTracking();
+    document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
+      updatePublishableScheduleLabel(form);
+    });
+  });
+
+  document.addEventListener("input", function(event) {
+    updatePublishableScheduleLabelForTarget(event.target);
+  });
+
+  document.addEventListener("change", function(event) {
+    updatePublishableScheduleLabelForTarget(event.target);
+
+    if (!(event.target instanceof HTMLInputElement) || event.target.name !== "publish_toggle") {
+      return;
+    }
+
+    var statusToggle = event.target;
+    var toggleForm = statusToggle.closest("form.publishable-edit-form");
+    if (!toggleForm) {
+      return;
+    }
+
+    setPublishableStatusMode(toggleForm, statusToggle.checked ? "published" : "draft");
+  });
+
+  document.addEventListener("keyup", function(event) {
+    updatePublishableScheduleLabelForTarget(event.target);
+  });
+
+  document.addEventListener("recording-studio-attachable--attachment-image-picker:selected", function(event) {
+    var host = document.querySelector("[data-publishable-social-image-picker]");
+    if (!host) {
+      return;
+    }
+
+    var attachment = event.detail && event.detail.attachment;
+    if (!attachment) {
+      return;
+    }
+
+    var input = host.querySelector("#publishable-social-image-input");
+    if (input) {
+      input.value = attachment.id || "";
+
+      var form = input.closest("form.publishable-edit-form");
+      if (form) {
+        refreshPublishableDirtyState(form);
+      }
+    }
+
+    var image = host.querySelector("[data-publishable-social-image-preview-image]");
+    var emptyState = host.querySelector("[data-publishable-social-image-empty]");
+
+    if (image) {
+      var primaryUrl = attachment.thumbnail_url || attachment.insert_url || "";
+      var fallbackUrl = attachment.insert_url || "";
+
+      image.onerror = function() {
+        if (fallbackUrl && image.src !== fallbackUrl) {
+          image.src = fallbackUrl;
+          return;
+        }
+
+        image.onerror = null;
+      };
+
+      image.src = primaryUrl;
+      image.classList.remove("hidden");
+      if (emptyState) {
+        emptyState.classList.add("hidden");
+      }
+    }
+
+    var name = host.querySelector("[data-publishable-social-image-preview-name]");
+    if (name) {
+      name.textContent = attachment.name || "Selected image";
+    }
+
+    var copy = host.querySelector("[data-publishable-social-image-preview-copy]");
+    if (copy) {
+      copy.textContent = "Click to replace image.";
+    }
+  });
+</script>

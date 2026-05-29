@@ -1,10 +1,12 @@
 source "https://rubygems.org"
 
-# Use the gem_template engine
-gem "gem_template", path: "../.."
+# Use the recording_studio_publishable engine
+gem "recording_studio_publishable", path: "../.."
 
 # RecordingStudio engine
 gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v0.1.0-alpha"
+gem "recording_studio_attachable", git: "https://github.com/bowerbird-app/RecordingStudio_attachable.git"
+gem "recording_studio_accessible", git: "https://github.com/bowerbird-app/RecordingStudio_accessible.git"
 
 # Devise authentication
 gem "devise"
@@ -30,7 +32,7 @@ gem "jbuilder"
 gem "tailwindcss-rails"
 
 # FlatPack UI component library [https://github.com/bowerbird-app/flatpack]
-gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.33"
+gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.66"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"

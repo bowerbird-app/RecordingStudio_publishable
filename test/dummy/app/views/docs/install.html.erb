@@ -1,19 +1,74 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: "Install",
-    subtitle: "Host-app setup for the mounted GemTemplate engine and its sample migrations.",
+    subtitle: "Run the installation commands for the publishable addon and optional companion gems.",
     variant: :h1
   ) %>
 
-  <%= render FlatPack::SectionTitle::Component.new(
-    title: "Step 1",
-    subtitle: "Provide one section title for each step",
-  ) %>
+  <div class="space-y-8">
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Add the gem",
+        subtitle: "Install the publishable engine gem."
+      ) %>
 
-  <%= render FlatPack::CodeBlock::Component.new(
-    language: :bash,
-    code: <<~CODE
-      # Put the step instruction here.
-    CODE
-  ) %>
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :bash,
+        code: <<~CODE
+          bundle add recording_studio_publishable --git https://github.com/bowerbird-app/RecordingStudio_publishable.git
+          bundle install
+        CODE
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Run the install generator",
+        subtitle: "Generate files, migrate, and seed."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :bash,
+        code: <<~CODE
+          bin/rails generate recording_studio_publishable:install
+          bin/rails db:migrate
+          bin/rails db:seed
+        CODE
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Optional Active Storage support",
+        subtitle: "Install Active Storage and the attachable addon for social image uploads."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :bash,
+        code: <<~CODE
+          bin/rails active_storage:install
+          bundle add recording_studio_attachable --git https://github.com/bowerbird-app/RecordingStudio_attachable.git
+          bin/rails generate recording_studio_attachable:install
+          bin/rails generate recording_studio_attachable:migrations
+          bin/rails db:migrate
+        CODE
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Optional access control",
+        subtitle: "Install RecordingStudio Accessible for management authorization checks."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :bash,
+        code: <<~CODE
+          bundle add recording_studio_accessible --git https://github.com/bowerbird-app/RecordingStudio_accessible.git
+          bundle install
+        CODE
+      ) %>
+    </section>
+
+  </div>
 </div>
