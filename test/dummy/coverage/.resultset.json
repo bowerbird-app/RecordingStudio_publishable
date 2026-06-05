@@ -1,6 +1,265 @@
 {
   "Unit Tests": {
-    "coverage": {},
-    "timestamp": 1777949145
+    "coverage": {
+      "/workspace/test/dummy/app/models/folder.rb": {
+        "lines": [
+          1,
+          1,
+          null
+        ],
+        "branches": {}
+      },
+      "/workspace/test/dummy/app/models/application_record.rb": {
+        "lines": [
+          1,
+          1,
+          null
+        ],
+        "branches": {}
+      },
+      "/workspace/test/dummy/app/models/page.rb": {
+        "lines": [
+          1,
+          1,
+          null
+        ],
+        "branches": {}
+      },
+      "/workspace/test/dummy/app/models/workspace.rb": {
+        "lines": [
+          1,
+          1,
+          null
+        ],
+        "branches": {}
+      },
+      "/workspace/test/dummy/app/models/user.rb": {
+        "lines": [
+          1,
+          null,
+          null,
+          1,
+          null,
+          null
+        ],
+        "branches": {}
+      },
+      "/workspace/test/dummy/app/controllers/docs_controller.rb": {
+        "lines": [
+          null,
+          null,
+          1,
+          1,
+          null,
+          null,
+          1,
+          1,
+          null,
+          null,
+          1,
+          2,
+          6,
+          null,
+          null,
+          null,
+          1,
+          1,
+          1,
+          null,
+          1,
+          1,
+          null,
+          null,
+          null,
+          1,
+          1,
+          null,
+          1,
+          null,
+          1,
+          null,
+          null,
+          1,
+          null,
+          null,
+          1,
+          null,
+          1,
+          6,
+          6,
+          null,
+          null,
+          6,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          1,
+          6,
+          6,
+          6,
+          null,
+          6,
+          null,
+          0,
+          null,
+          null,
+          1,
+          null,
+          3,
+          null,
+          2,
+          null,
+          null,
+          null,
+          null,
+          1,
+          3,
+          3,
+          null,
+          3,
+          null,
+          null,
+          1,
+          3,
+          null,
+          3,
+          4,
+          null,
+          3,
+          3,
+          null,
+          null,
+          0,
+          0,
+          null,
+          0,
+          0,
+          null,
+          null,
+          0,
+          null,
+          0,
+          null,
+          null,
+          0,
+          null,
+          null
+        ],
+        "branches": {
+          "[:if, 0, 40, 16, 40, 90]": {
+            "[:then, 1, 40, 47, 40, 67]": 0,
+            "[:else, 2, 40, 70, 40, 90]": 6
+          },
+          "[:if, 3, 41, 4, 41, 30]": {
+            "[:then, 4, 41, 4, 41, 10]": 0,
+            "[:else, 5, 41, 4, 41, 30]": 6
+          },
+          "[:\"&.\", 6, 53, 20, 53, 59]": {
+            "[:then, 7, 53, 20, 53, 59]": 6,
+            "[:else, 8, 53, 20, 53, 59]": 0
+          },
+          "[:unless, 9, 53, 4, 53, 59]": {
+            "[:else, 10, 53, 4, 53, 59]": 6,
+            "[:then, 11, 53, 4, 53, 12]": 0
+          },
+          "[:unless, 12, 54, 4, 54, 50]": {
+            "[:else, 13, 54, 4, 54, 50]": 6,
+            "[:then, 14, 54, 4, 54, 12]": 0
+          },
+          "[:if, 15, 78, 4, 78, 50]": {
+            "[:then, 16, 78, 4, 78, 31]": 0,
+            "[:else, 17, 78, 4, 78, 50]": 3
+          },
+          "[:unless, 18, 81, 6, 81, 51]": {
+            "[:else, 19, 81, 6, 81, 51]": 3,
+            "[:then, 20, 81, 6, 81, 10]": 1
+          },
+          "[:if, 21, 84, 6, 84, 36]": {
+            "[:then, 22, 84, 6, 84, 18]": 3,
+            "[:else, 23, 84, 6, 84, 36]": 0
+          },
+          "[:if, 24, 87, 4, 87, 62]": {
+            "[:then, 25, 87, 4, 87, 28]": 0,
+            "[:else, 26, 87, 4, 87, 62]": 0
+          },
+          "[:\"&.\", 27, 88, 33, 88, 59]": {
+            "[:then, 28, 88, 33, 88, 59]": 0,
+            "[:else, 29, 88, 33, 88, 59]": 0
+          },
+          "[:if, 30, 88, 4, 88, 83]": {
+            "[:then, 31, 88, 4, 88, 29]": 0,
+            "[:else, 32, 88, 4, 88, 83]": 0
+          },
+          "[:if, 33, 90, 4, 92, 7]": {
+            "[:then, 34, 91, 6, 91, 66]": 0,
+            "[:else, 35, 90, 4, 92, 7]": 0
+          },
+          "[:if, 36, 94, 4, 94, 101]": {
+            "[:then, 37, 94, 4, 94, 40]": 0,
+            "[:else, 38, 94, 4, 94, 101]": 0
+          },
+          "[:if, 39, 96, 4, 97, 38]": {
+            "[:then, 40, 96, 4, 96, 48]": 0,
+            "[:else, 41, 96, 4, 97, 38]": 0
+          }
+        }
+      },
+      "/workspace/test/dummy/app/controllers/application_controller.rb": {
+        "lines": [
+          1,
+          null,
+          1,
+          null,
+          null,
+          1,
+          null,
+          1,
+          null,
+          1,
+          1,
+          null,
+          1,
+          null,
+          1,
+          8,
+          null,
+          null,
+          1,
+          8,
+          null,
+          null
+        ],
+        "branches": {
+          "[:if, 0, 6, 2, 6, 76]": {
+            "[:then, 1, 6, 2, 6, 30]": 0,
+            "[:else, 2, 6, 2, 6, 76]": 1
+          },
+          "[:if, 3, 16, 4, 16, 60]": {
+            "[:then, 4, 16, 25, 16, 38]": 0,
+            "[:else, 5, 16, 41, 16, 60]": 8
+          }
+        }
+      },
+      "/workspace/test/dummy/app/helpers/application_helper.rb": {
+        "lines": [
+          1,
+          null
+        ],
+        "branches": {}
+      },
+      "/workspace/test/dummy/app/models/current.rb": {
+        "lines": [
+          1,
+          1,
+          1,
+          null
+        ],
+        "branches": {}
+      }
+    },
+    "timestamp": 1780641464
   }
 }
