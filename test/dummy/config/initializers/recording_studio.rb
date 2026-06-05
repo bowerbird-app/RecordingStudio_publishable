@@ -8,7 +8,6 @@ RecordingStudio.configure do |config|
     "Folder",
     "Page",
     "Article",
-    "RecordingStudioPublishable::Publishable",
     "RecordingStudioAttachable::Attachment"
   ]
   config.require_recordable_declarations = true
@@ -16,6 +15,5 @@ RecordingStudio.configure do |config|
   config.impersonator = -> { Current.impersonator }
   config.event_notifications_enabled = true
   config.idempotency_mode = :return_existing
-  config.include_children = false
   config.recordable_dup_strategy = :dup
 end

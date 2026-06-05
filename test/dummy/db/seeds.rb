@@ -32,16 +32,11 @@ Current.impersonator = nil
 admin_access = RecordingStudio::Access.find_or_create_by!(actor: admin_user, role: :admin)
 viewer_access = RecordingStudio::Access.find_or_create_by!(actor: viewer_user, role: :view)
 
-RecordingStudio::Recording.unscoped.find_or_create_by!(
-  root_recording_id: root_recording.id,
-  parent_recording_id: root_recording.id,
-  recordable: admin_access
-)
-RecordingStudio::Recording.unscoped.find_or_create_by!(
-  root_recording_id: root_recording.id,
-  parent_recording_id: root_recording.id,
-  recordable: viewer_access
-)
+admin_access_recording = root_recording.recording_for(admin_access)
+admin_access_recording ||= root_recording.record(admin_access, actor: admin_user, parent_recording: root_recording)
+
+viewer_access_recording = root_recording.recording_for(viewer_access)
+viewer_access_recording ||= root_recording.record(viewer_access, actor: admin_user, parent_recording: root_recording)
 
 publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
   parent_recording: page_recording,

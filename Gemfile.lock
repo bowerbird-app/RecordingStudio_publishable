@@ -7,6 +7,22 @@ GIT
       rails (>= 8.1.0)
 
 GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_accessible.git
+  revision: 7fb3e8ed73a3f5254cf686dc7111f47236c75711
+  specs:
+    recording_studio_accessible (0.3.1)
+      rails (~> 8.1.0)
+      recording_studio (~> 3.0)
+
+GIT
+  remote: https://github.com/bowerbird-app/RecordingStudio_attachable.git
+  revision: 0e16f93503b66663b759d303f757c3d66d8f0a8e
+  specs:
+    recording_studio_attachable (0.2.0)
+      rails (~> 8.1.0)
+      recording_studio (~> 3.0)
+
+GIT
   remote: https://github.com/bowerbird-app/flatpack.git
   revision: 548de2e59368bb731f9fa0667352591f68514017
   tag: v0.1.74
@@ -20,8 +36,9 @@ GIT
 PATH
   remote: .
   specs:
-    gem_template (0.1.1)
+    recording_studio_publishable (0.1.1)
       rails (~> 8.1.0)
+      view_component (>= 3.0, < 5.0)
 
 GEM
   remote: https://rubygems.org/
@@ -325,10 +342,12 @@ DEPENDENCIES
   debug
   devise
   flat_pack!
-  gem_template!
   pg (~> 1.1)
   puma
   recording_studio!
+  recording_studio_accessible!
+  recording_studio_attachable!
+  recording_studio_publishable!
   rubocop
   rubocop-rails
   simplecov
@@ -363,7 +382,6 @@ CHECKSUMS
   erb (6.0.4) sha256=38e3803694be357fe2bfe312487c74beaf9fb4e5beb3e22498952fe1645b95d9
   erubi (1.13.1) sha256=a082103b0885dbc5ecf1172fede897f9ebdb745a4b97a5e8dc63953db1ee4ad9
   flat_pack (0.1.74)
-  gem_template (0.1.1)
   globalid (1.3.0) sha256=05c639ad6eb4594522a0b07983022f04aa7254626ab69445a0e493aa3786ff11
   i18n (1.14.8) sha256=285778639134865c5e0f6269e0b818256017e8cde89993fdfcbfb64d088824a5
   io-console (0.8.2) sha256=d6e3ae7a7cc7574f4b8893b4fca2162e57a825b223a177b7afa236c5ef9814cc
@@ -419,6 +437,9 @@ CHECKSUMS
   rake (13.4.2) sha256=cb825b2bd5f1f8e91ca37bddb4b9aaf345551b4731da62949be002fa89283701
   rdoc (7.2.0) sha256=8650f76cd4009c3b54955eb5d7e3a075c60a57276766ebf36f9085e8c9f23192
   recording_studio (3.0.0)
+  recording_studio_accessible (0.3.1)
+  recording_studio_attachable (0.2.0)
+  recording_studio_publishable (0.1.1)
   regexp_parser (2.11.3) sha256=ca13f381a173b7a93450e53459075c9b76a10433caadcb2f1180f2c741fc55a4
   reline (0.6.3) sha256=1198b04973565b36ec0f11542ab3f5cfeeec34823f4e54cebde90968092b1835
   responders (3.2.0) sha256=89c2d6ac0ae16f6458a11524cae4a8efdceba1a3baea164d28ee9046bd3df55a
