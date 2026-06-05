@@ -1,0 +1,182 @@
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Headers",
+    subtitle: "Inspect canonical, Open Graph, and Twitter tags for a selected publishable parent recording.",
+    variant: :h1
+  ) %>
+
+  <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+    <% card.body do %>
+      <% if @header_recordings.any? %>
+        <%= form_with url: docs_headers_path, method: :get, local: true, class: "grid gap-4 md:grid-cols-[1fr_auto] md:items-end" do %>
+          <div class="space-y-2">
+            <label class="text-sm font-medium text-(--surface-content-color)" for="recording_id">Parent recording</label>
+            <select
+              id="recording_id"
+              name="recording_id"
+              class="w-full rounded-md border border-(--surface-border-color) bg-(--surface-raised-background-color) px-3 py-2 text-sm"
+            >
+              <% @header_recordings.each do |recording| %>
+                <% title = recording.recordable&.try(:title).presence || recording.recordable_type.to_s.demodulize %>
+                <option value="<%= recording.id %>" <%= "selected" if @header_parent_recording&.id == recording.id %>>
+                  <%= "#{recording.recordable_type.demodulize}: #{title} (#{recording.id})" %>
+                </option>
+              <% end %>
+            </select>
+          </div>
+
+          <%= render FlatPack::Button::Component.new(text: "Load headers", style: :primary, size: :md, type: "submit") %>
+        <% end %>
+      <% else %>
+        <p class="text-sm text-(--surface-muted-content-color)">No page or article recordings are available yet.</p>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <%# This section displays resolved head tag values for the selected parent recording and publishable. %>
+  <% if @header_parent_recording.present? && @header_publishable.present? %>
+    <% preview_title = @header_publishable.social_title.presence || @header_publishable.seo_title.presence || @header_parent_recording.recordable&.try(:title).presence || "Published page" %>
+    <% preview_description = @header_publishable.social_description.presence || @header_publishable.seo_description.presence || "No description provided." %>
+    <% preview_url = @header_public_url.presence || @header_publishable.canonical_url.presence %>
+    <% preview_domain = begin
+         preview_url.present? ? URI.parse(preview_url).host : nil
+       rescue URI::InvalidURIError
+         nil
+       end %>
+
+    <%= render FlatPack::SectionTitle::Component.new(
+      title: "Publishability",
+      subtitle: "Runtime state that affects whether headers are emitted for this record."
+    ) %>
+
+    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+      <% card.body do %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-(--surface-border-color) text-left text-sm">
+            <thead>
+              <tr class="text-(--surface-muted-content-color)">
+                <th class="px-4 py-3 font-medium">Field</th>
+                <th class="px-4 py-3 font-medium">Value</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-(--surface-border-color)">
+              <% @header_publishability_rows.each do |name, value| %>
+                <tr>
+                  <td class="px-4 py-3 font-medium"><%= name %></td>
+                  <td class="px-4 py-3 break-all"><%= value %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    <% end %>
+
+    <%= render FlatPack::SectionTitle::Component.new(
+      title: "Resolved values",
+      subtitle: "Quick check of the values that map to head tags for the selected record."
+    ) %>
+
+    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+      <% card.body do %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-(--surface-border-color) text-left text-sm">
+            <thead>
+              <tr class="text-(--surface-muted-content-color)">
+                <th class="px-4 py-3 font-medium">Header</th>
+                <th class="px-4 py-3 font-medium">Value</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-(--surface-border-color)">
+              <% @header_tag_rows.each do |name, value| %>
+                <tr>
+                  <td class="px-4 py-3 font-medium"><%= name %></td>
+                  <td class="px-4 py-3 break-all"><%= value %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    <% end %>
+
+    <%= render FlatPack::SectionTitle::Component.new(
+      title: "Social preview",
+      subtitle: "Approximate mockups for how this link can appear on major social platforms."
+    ) %>
+
+    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+      <% card.body do %>
+        <div class="grid gap-6 lg:grid-cols-2">
+          <div class="space-y-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-(--surface-muted-content-color)">X (Twitter)-style preview</p>
+            <div class="overflow-hidden rounded-2xl border border-(--surface-border-color) bg-(--surface-raised-background-color)">
+              <div class="flex items-stretch">
+                <div class="h-36 w-36 shrink-0 overflow-hidden border-r border-(--surface-border-color)" style="width: 9rem; height: 9rem;">
+                  <% if @header_social_image_url.present? %>
+                    <img src="<%= @header_social_image_url %>" alt="X style social image preview" class="block h-full w-full object-cover" style="width: 100%; height: 100%; object-fit: cover;">
+                  <% else %>
+                    <div class="flex h-full w-full items-center justify-center bg-(--surface-subtle-background-color) px-2 text-center text-xs text-(--surface-muted-content-color)">
+                      No social image
+                    </div>
+                  <% end %>
+                </div>
+
+                <div class="flex min-w-0 flex-1 flex-col justify-center space-y-1 p-3.5">
+                  <% if preview_domain.present? %>
+                    <p class="truncate text-[11px] uppercase tracking-wide text-(--surface-muted-content-color)"><%= preview_domain %></p>
+                  <% end %>
+                  <% if preview_title.present? %>
+                    <p class="line-clamp-2 text-base font-semibold text-(--surface-content-color)"><%= preview_title %></p>
+                  <% end %>
+                  <% if preview_description.present? %>
+                    <p class="line-clamp-2 text-sm text-(--surface-muted-content-color)"><%= preview_description %></p>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-(--surface-muted-content-color)">Facebook-style preview</p>
+            <div class="overflow-hidden rounded-lg border border-(--surface-border-color) bg-(--surface-raised-background-color)">
+              <% if @header_social_image_url.present? %>
+                <img src="<%= @header_social_image_url %>" alt="Facebook style social image preview" class="h-56 w-full object-cover">
+              <% else %>
+                <div class="flex h-56 items-center justify-center bg-(--surface-subtle-background-color) text-sm text-(--surface-muted-content-color)">
+                  No social image selected
+                </div>
+              <% end %>
+
+              <div class="space-y-2 border-t border-(--surface-border-color) p-4">
+                <% if preview_domain.present? %>
+                  <p class="text-xs font-medium uppercase tracking-wide text-(--surface-muted-content-color)"><%= preview_domain %></p>
+                <% end %>
+                <% if preview_title.present? %>
+                  <p class="line-clamp-2 text-base font-bold text-(--surface-content-color)"><%= preview_title %></p>
+                <% end %>
+                <% if preview_description.present? %>
+                  <p class="line-clamp-2 text-sm text-(--surface-muted-content-color)"><%= preview_description %></p>
+                <% end %>
+                <% if preview_url.present? %>
+                  <p class="truncate text-xs text-(--surface-muted-content-color)"><%= preview_url %></p>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+
+    <div class="flex flex-wrap gap-2">
+      <% if @header_public_url.present? %>
+        <%= link_to @header_public_url, class: "inline-flex" do %>
+          <%= render FlatPack::Button::Component.new(text: "Open public URL", style: :secondary, size: :md) %>
+        <% end %>
+      <% end %>
+      <%= link_to recording_studio_publishable.edit_recording_publishable_path(recording_id: @header_parent_recording.id), class: "inline-flex" do %>
+        <%= render FlatPack::Button::Component.new(text: "Open edit form", style: :secondary, size: :md) %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

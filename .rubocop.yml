@@ -20,17 +20,38 @@ Layout/LineLength:
 Metrics/ClassLength:
   Exclude:
     - 'test/**/*'
-    - 'lib/gem_template/hooks.rb'
+    - 'lib/generators/**/*'
+    - 'lib/recording_studio_publishable/configuration.rb'
+    - 'lib/recording_studio_publishable/hooks.rb'
 
 Metrics/MethodLength:
   Exclude:
     - 'test/**/*'
+    - 'db/migrate/**/*'
     - 'lib/generators/**/*'
+    - 'lib/recording_studio_publishable/parent_recordable.rb'
+    - 'lib/recording_studio_publishable/services/**/*'
 
 Metrics/AbcSize:
   Exclude:
     - 'test/**/*'
+    - 'db/migrate/**/*'
     - 'lib/generators/**/*'
+    - 'lib/recording_studio_publishable/services/**/*'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'lib/recording_studio_publishable/parent_recordable.rb'
+
+Metrics/CyclomaticComplexity:
+  Exclude:
+    - 'lib/recording_studio_publishable/services/**/*'
+    - 'lib/recording_studio_publishable/routing.rb'
+
+Metrics/PerceivedComplexity:
+  Exclude:
+    - 'lib/recording_studio_publishable/services/**/*'
+    - 'lib/recording_studio_publishable/routing.rb'
 
 # Allow empty blocks in tests (common for stubs/mocks)
 Lint/EmptyBlock:
@@ -50,5 +71,5 @@ Naming/VariableNumber:
 # Don't require super in service initialize methods
 Lint/MissingSuper:
   Exclude:
-    - 'lib/gem_template/services/**/*'
+    - 'lib/recording_studio_publishable/services/**/*'
     - 'test/services/**/*'

@@ -3,11 +3,11 @@
 require "test_helper"
 require "fileutils"
 require "tmpdir"
-require "generators/gem_template/install/install_generator"
+require "generators/recording_studio_publishable/install/install_generator"
 
 class InstallGeneratorTest < Minitest::Test
   INSTALL_TEMPLATE_PATH = File.expand_path(
-    "../lib/generators/gem_template/install/templates/INSTALL.md",
+    "../lib/generators/recording_studio_publishable/install/templates/INSTALL.md",
     __dir__
   )
 
@@ -19,7 +19,7 @@ class InstallGeneratorTest < Minitest::Test
   end
 
   def build_generator(destination_root, options = {})
-    GemTemplate::Generators::InstallGenerator.new(
+    RecordingStudioPublishable::Generators::InstallGenerator.new(
       [],
       options,
       destination_root: destination_root
@@ -34,7 +34,55 @@ class InstallGeneratorTest < Minitest::Test
       generator.mount_engine
     end
 
-    assert_equal ["mount GemTemplate::Engine, at: \"/addons/recording\""], routes
+    assert_equal ["mount RecordingStudioPublishable::Engine, at: \"/addons/recording\""], routes
+  end
+
+  def test_install_migrations_invokes_migrations_generator
+    generator = build_generator("/tmp")
+    commands = []
+
+    generator.stub(:generate, ->(command) { commands << command }) do
+      generator.install_migrations
+    end
+
+    assert_equal ["recording_studio_publishable:migrations"], commands
+  end
+
+  def test_add_seed_template_creates_seed_file_when_missing
+    with_temp_app do |dir|
+      FileUtils.mkdir_p(File.join(dir, "db"))
+      generator = build_generator(dir)
+
+      generator.stub(:say, nil) do
+        generator.add_seed_template
+      end
+
+      seeds = File.read(File.join(dir, "db/seeds.rb"))
+      assert_includes seeds, "# BEGIN RecordingStudioPublishable seeds"
+      assert_includes seeds, 'ENV.fetch("RECORDING_STUDIO_PUBLISHABLE_PARENT_ID", nil)'
+      assert_includes seeds, "RecordingStudioPublishable::Services::Publishables::Update.call"
+    end
+  end
+
+  def test_add_seed_template_does_not_duplicate_existing_block
+    with_temp_app do |dir|
+      FileUtils.mkdir_p(File.join(dir, "db"))
+      seeds_path = File.join(dir, "db/seeds.rb")
+      File.write(seeds_path, <<~RUBY)
+        # BEGIN RecordingStudioPublishable seeds
+        # Existing snippet
+        # END RecordingStudioPublishable seeds
+      RUBY
+
+      generator = build_generator(dir)
+
+      generator.stub(:say, nil) do
+        generator.add_seed_template
+      end
+
+      seeds = File.read(seeds_path)
+      assert_equal 1, seeds.scan("# BEGIN RecordingStudioPublishable seeds").size
+    end
   end
 
   def test_add_tailwind_source_injects_engine_and_flatpack_sources
@@ -60,8 +108,8 @@ class InstallGeneratorTest < Minitest::Test
       css_path = File.join(dir, "app/assets/tailwind/application.css")
       File.write(css_path, <<~CSS)
         @import "tailwindcss";
-        @source "../../vendor/bundle/**/gem_template/app/views/**/*.erb";
-        @source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/gem_template-*/app/views/**/*.erb";
+        @source "../../vendor/bundle/**/recording_studio_publishable/app/views/**/*.erb";
+        @source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/recording_studio_publishable-*/app/views/**/*.erb";
         @source "../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}";
         @source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";
       CSS
@@ -138,9 +186,11 @@ class InstallGeneratorTest < Minitest::Test
   def test_install_guide_includes_migration_and_host_setup_steps
     install_guide = File.read(INSTALL_TEMPLATE_PATH)
 
-    assert_includes install_guide, "bin/rails generate gem_template:migrations"
     assert_includes install_guide, "bin/rails db:migrate"
-    assert_includes install_guide, "auth, layout, and current actor integration"
+    assert_includes install_guide, "db/seeds.rb"
+    assert_includes install_guide, "RECORDING_STUDIO_PUBLISHABLE_PARENT_ID"
+    assert_includes install_guide, "wire the current actor plus parent-recording authorization"
+    assert_includes install_guide, "default public route"
   end
 
   private
@@ -159,8 +209,9 @@ class InstallGeneratorTest < Minitest::Test
 
   def tailwind_source_lines
     [
-      '@source "../../vendor/bundle/**/gem_template/app/views/**/*.erb";',
-      '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/gem_template-*/app/views/**/*.erb";',
+      '@source "../../vendor/bundle/**/recording_studio_publishable/app/views/**/*.erb";',
+      '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/' \
+      'recording_studio_publishable-*/app/views/**/*.erb";',
       '@source "../../vendor/bundle/**/flatpack/app/components/**/*.{rb,erb}";',
       '@source "../../../../../../usr/local/bundle/ruby/**/bundler/gems/flatpack-*/app/components/**/*.{rb,erb}";'
     ]

@@ -21,145 +21,189 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     sign_in @user
   end
 
-  test "install page renders successfully" do
-    get docs_install_path
-    assert_response :success
-    assert_select "h1", text: "Install"
-    assert_includes response.body, "Step 1"
-    assert_includes response.body, "Provide one section title for each step"
-    assert_includes response.body, "# Put the step instruction here."
-  end
-
-  test "config page renders successfully" do
-    get docs_config_path
-    assert_response :success
-    assert_select "h1", text: "Config"
-    expected_placeholder = "Replace this placeholder with the configuration settings your generated gem exposes."
-
-    assert_includes response.body, expected_placeholder
-    assert_includes response.body, "# Add the config settings for the gem here."
-  end
-
-  test "recordable types page renders configured recordables dynamically" do
-    with_recordable_types([Workspace, Folder, Page]) do
-      summary_data = create_recordable_type_summary_data
-
-      get docs_recordable_types_path
-      response_text = response.body.gsub(/\s+/, " ").strip
-
-      assert_response :success
-      assert_select "h1", text: "Recordable types"
-      assert_includes(
-        response.body,
-        "The list below comes directly from RecordingStudio.configuration.recordable_types."
-      )
-      assert_includes response.body, "Workspace"
-      assert_includes response.body, "Folder"
-      assert_includes response_text, summary_data[:workspace]
-      assert_includes response_text, summary_data[:folder]
-    end
-  end
-
-  test "recordable types page includes dummy app defaults" do
+  test "recordable types include publishable" do
     get docs_recordable_types_path
 
     assert_response :success
-    assert_includes response.body, "Workspace"
-    assert_includes response.body, "Folder"
-    assert_includes response.body, "Page"
+    assert_includes response.body, "Publishable"
   end
 
-  test "recordings tree page renders successfully" do
-    workspace = Workspace.create!(name: "Tree Workspace")
-    root_recording = RecordingStudio.root_recording_for(workspace)
-    folder = Folder.create!(name: "Reference")
-    folder_recording = root_recording.record(folder, actor: @user, parent_recording: root_recording)
-    page = Page.create!(title: "API")
-    root_recording.record(page, actor: @user, parent_recording: folder_recording)
+  test "install page uses the title subtitle content layout" do
+    get docs_install_path
+
+    assert_response :success
+    assert_includes response.body, "Install"
+    assert_includes response.body,
+                    "Run the installation commands for the publishable addon and optional companion gems."
+    assert_includes response.body, "Add the gem"
+    assert_includes response.body, "bundle add recording_studio_publishable"
+    assert_includes response.body, "bin/rails generate recording_studio_publishable:install"
+    assert_includes response.body, "Optional access control"
+    refute_includes response.body, "Configure your models"
+    refute_includes response.body, "Mounted routes"
+    refute_includes response.body, "recording_studio_publishable("
+    refute_includes response.body, "FlatPack::Card"
+  end
+
+  test "config page uses the title subtitle content layout" do
+    get docs_config_path
+
+    assert_response :success
+    assert_includes response.body, "Config"
+    assert_includes response.body,
+                    "Configure global RecordingStudioPublishable behavior in the initializer."
+    assert_includes response.body, "Available settings"
+    assert_includes response.body, "RecordingStudioPublishable::Configuration"
+    assert_includes response.body, "management_authorizer"
+    refute_includes response.body, "Model-level setup (recommended)"
+    refute_includes response.body, "recording_studio_publishable("
+    refute_includes response.body, "Public head helper"
+    refute_includes response.body, "FlatPack::Card"
+  end
+
+  test "setup page includes model and host wiring guidance" do
+    get docs_setup_path
+
+    assert_response :success
+    assert_includes response.body, "Setup"
+    assert_includes response.body, "Model setup"
+    assert_includes response.body, "recording_studio_publishable("
+    assert_includes response.body, "mount RecordingStudioPublishable::Engine, at: &quot;/&quot;"
+    assert_includes response.body, "publishable_head_tags"
+  end
+
+  test "recordings tree renders seeded publishable nodes" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Docs Workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Docs Page"),
+                                                          parent_recording: root)
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: { slug: "docs-page", status: "published" }
+    )
 
     get docs_recordings_tree_path
 
     assert_response :success
-    assert_select "h1", text: "Recordings tree"
-    assert_includes response.body, "Workspace: Tree Workspace"
-    assert_includes response.body, "Folder: Reference"
-    assert_includes response.body, "Page: API"
-    assert_select "ul.list-disc", minimum: 2
-    refute_includes response.body, "Current structure"
-    refute_includes response.body, "This tree is generated from RecordingStudio::Recording records"
+    assert_includes response.body, "Publishable: docs-page"
+    assert_includes response.body, "Page: Docs Page"
   end
 
-  test "gem_views page renders successfully" do
+  test "gem views page points at renamed engine views" do
     get docs_gem_views_path
+
     assert_response :success
-    assert_select "h1", text: "Gem Views"
-    assert_includes response.body, "app/views/gem_template/home/index.html.erb"
+    assert_includes response.body, "app/views/recording_studio_publishable/publishables/edit.html.erb"
   end
 
-  test "methods page renders successfully" do
+  test "methods page lists addon method families" do
     get docs_methods_path
+
     assert_response :success
-    assert_select "h1", text: "Methods"
-    assert_includes response.body, "Document the public methods your addon exposes."
-    assert_includes response.body, "Example method"
-    assert_includes response.body, "recordingstudio_addon.example_method"
-    assert_includes response.body, "# Explain what this method does before the example."
-    assert_includes response.body, "Provide one section title and codeblock for each method"
+    assert_includes response.body, "Review the public methods, scopes, and helper entry points exposed by the addon."
+    refute_includes response.body, "RecordingStudioPublishable::Configuration"
+    assert_includes response.body,
+                    "RecordingStudioPublishable.configuration.schedule_enabled_for(&quot;Recordable&quot;)"
+    assert_includes response.body, "Returns whether schedule controls are enabled for Recordable recordables."
+    refute_includes response.body, "RecordingStudioPublishable::Publishable"
+    refute_includes response.body, "class Page < ApplicationRecord"
+    assert_includes response.body, "Recordable.published"
+    assert_includes response.body, "Recordable.published_in(2.weeks.ago..Time.current)"
+    assert_includes response.body, "Recordable.scheduled_in(Time.current..2.weeks.from_now)"
+    assert_includes response.body, "Recordable.unpublished_in(Time.current..2.weeks.from_now)"
+    assert_includes response.body, "Recordable.published_url"
+    assert_includes response.body, "recordable.published_url"
+    assert_includes response.body, "recordable.published?"
+    refute_includes response.body, "Article.published"
+    refute_includes response.body, "RecordingStudioPublishable::Routing.url_for"
+    refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"
   end
 
-  test "sidebar includes documentation links" do
-    get docs_install_path
+  test "components page lists addon partial entry points" do
+    get docs_components_path
 
-    assert_select %(a[href="#{docs_install_path}"]), text: /Install/
-    assert_select %(a[href="#{docs_config_path}"]), text: /Config/
-    assert_select %(a[href="#{docs_recordable_types_path}"]), text: /Recordable types/
-    assert_select %(a[href="#{docs_recordings_tree_path}"]), text: /Recordings tree/
-    assert_select %(a[href="#{docs_gem_views_path}"]), text: /Gem Views/
-    assert_select %(a[href="#{docs_methods_path}"]), text: /Methods/
+    assert_response :success
+    assert_includes response.body, "Components"
+    assert_includes response.body, "app/components/recording_studio_publishable/status_badge/component.rb"
+    assert_includes response.body, "app/components/recording_studio_publishable/quick_actions/component.rb"
+    assert_includes response.body,
+                    "RecordingStudioPublishable::StatusBadge::Component.new(publishable: RecordingStudioPublishable::Publishable.new(status: :draft"
+    assert_includes response.body, "slug: &quot;scheduled-demo&quot;, publish_at: 1.day.from_now"
+    assert_includes response.body, "Initializer arguments for this component"
+    assert_includes response.body, "RecordingStudioPublishable::Publishable"
+    assert_includes response.body, "RecordingStudio::Recording"
+    assert_includes response.body, "All possible status badge states"
   end
 
-  private
+  test "headers page renders platform-style social previews for draft publishables" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Headers Docs Workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Headers Draft Page"),
+                                                          parent_recording: root)
 
-  def with_recordable_types(recordable_types)
-    original_recordable_types = RecordingStudio.configuration.recordable_types
-    RecordingStudio.configuration.recordable_types = recordable_types
-    yield
-  ensure
-    RecordingStudio.configuration.recordable_types = original_recordable_types
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: { slug: "headers-draft-page", status: "draft" }
+    )
+
+    get docs_headers_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Publishability"
+    assert_includes response.body, "X (Twitter)-style preview"
+    assert_includes response.body, "Facebook-style preview"
+    assert_includes response.body, "publishable_status"
+    assert_includes response.body, "currently_published"
   end
 
-  def create_recordable_type_summary_data
-    workspace_recordings_before = RecordingStudio::Recording.where(recordable_type: Workspace.name).count
-    workspaces_before = Workspace.count
-    folder_recordings_before = RecordingStudio::Recording.where(recordable_type: Folder.name).count
-    folders_before = Folder.count
+  test "headers resolved values show seo disabled and only social tags for page" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Headers SEO False Workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Headers SEO False Page"),
+                                                          parent_recording: root)
 
-    workspace_a = Workspace.create!(name: "Counted Workspace A")
-    workspace_b = Workspace.create!(name: "Counted Workspace B")
-    RecordingStudio.root_recording_for(workspace_a)
-    root_b = RecordingStudio.root_recording_for(workspace_b)
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: {
+        slug: "headers-seo-false-page",
+        status: "published",
+        seo_title: "SEO title should be ignored",
+        seo_description: "SEO description should be ignored"
+      }
+    )
 
-    folder = Folder.create!(name: "Counted Folder")
-    root_b.record(folder, actor: @user, parent_recording: root_b)
+    get docs_headers_path(recording_id: parent_recording.id)
 
-    {
-      workspace: recordable_type_summary(
-        workspace_recordings_before + 2,
-        workspaces_before + 2,
-        "recordings",
-        "recordables"
-      ),
-      folder: recordable_type_summary(
-        folder_recordings_before + 1,
-        folders_before + 1,
-        "recording",
-        "recordable"
-      )
-    }
+    assert_response :success
+    assert_includes response.body, "seo_enabled"
+    assert_includes response.body, "false"
+    assert_includes response.body, "meta[property=og:title]"
+    assert_includes response.body, "meta[name=twitter:title]"
+    refute_includes response.body, "meta[name=description]"
+    refute_includes response.body, "link[rel=canonical]"
   end
 
-  def recordable_type_summary(recording_count, recordable_count, recording_label, recordable_label)
-    "#{recording_count} #{recording_label} point to this type " \
-      "• #{recordable_count} #{recordable_label} in the database"
+  test "headers resolved values show seo tags when enabled for article" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Headers SEO True Workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Article.create!(title: "Headers SEO True Article"),
+                                                          parent_recording: root)
+
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: {
+        slug: "headers-seo-true-article",
+        status: "published",
+        seo_title: "Headers SEO Title",
+        seo_description: "Headers SEO Description"
+      }
+    )
+
+    get docs_headers_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "seo_enabled"
+    assert_includes response.body, "true"
+    assert_includes response.body, "title"
+    assert_includes response.body, "Headers SEO Title"
+    assert_includes response.body, "meta[name=description]"
+    assert_includes response.body, "Headers SEO Description"
+    assert_includes response.body, "link[rel=canonical]"
   end
 end

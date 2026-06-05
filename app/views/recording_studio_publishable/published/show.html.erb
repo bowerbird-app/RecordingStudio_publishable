@@ -1,0 +1,35 @@
+<div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: @parent_recordable.respond_to?(:title) ? @parent_recordable.title : @parent_recording.recordable_type.to_s.demodulize.underscore.humanize,
+    subtitle: @publishable.seo_description.presence || "Published from the parent recording's current recordable.",
+    variant: :h1
+  ) %>
+
+  <% if @publishable.social_image_attached? %>
+    <div class="overflow-hidden rounded-2xl border border-(--surface-border-color) bg-(--surface-raised-background-color)">
+      <%= image_tag @publishable.social_image, class: "h-72 w-full object-cover" %>
+    </div>
+  <% end %>
+
+  <div class="flex flex-wrap gap-2">
+    <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
+    <%= render FlatPack::Badge::Component.new(text: "#{@publishable_recording.id}", style: :info, size: :sm) %>
+  </div>
+
+  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <% card.body do %>
+      <div class="space-y-4 text-sm leading-7">
+        <p><strong>Parent recordable:</strong> <%= @parent_recording.recordable_type.to_s.demodulize.underscore.humanize %></p>
+        <% if @parent_recordable.respond_to?(:title) %>
+          <p><strong>Current title:</strong> <%= @parent_recordable.title %></p>
+        <% end %>
+        <% if @publishable.canonical_url.present? %>
+          <p><strong>Canonical URL:</strong> <%= @publishable.canonical_url %></p>
+        <% end %>
+        <% if @publishable.social_title.present? || @publishable.social_description.present? %>
+          <p><strong>Social card:</strong> <%= [@publishable.social_title, @publishable.social_description].compact.join(" — ") %></p>
+        <% end %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

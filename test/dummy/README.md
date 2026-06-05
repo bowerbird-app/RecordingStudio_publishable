@@ -1,15 +1,15 @@
 # Dummy App
 
-This Rails app exists to validate the Recording Studio addon template in a real host application.
+This Rails app validates `recording_studio_publishable` inside a host application.
 
-## What It Covers
+## What it demonstrates
 
-- Devise authentication with a seeded admin user
+- Devise authentication with seeded admin and viewer users
 - `Current.actor` wiring for Recording Studio events
-- Root workspace plus seeded folder and page recordables
-- FlatPack layout integration and Tailwind source scanning
-- Mounted `RecordingStudio::Engine` route behavior inside a host app
-- A starter sidebar menu and companion docs pages for gem-specific onboarding
+- a parent `Page` recording with one publishable child recording
+- the FlatPack-based **Edit publishable info** screen
+- reusable publishable status, summary, and quick action UI
+- the default public route at `/published/:uuid/:slug`
 
 ## Quick Start
 
@@ -20,25 +20,23 @@ bin/rails db:setup
 bin/dev
 ```
 
-Run the commands above from the dummy app directory, not the repository root.
-
-Then open the app and sign in with:
+Sign in with:
 
 - Email: `admin@admin.com`
 - Password: `Password`
 
+Or test unauthorized edit behavior with:
+
+- Email: `viewer@admin.com`
+- Password: `Password`
+
+The admin account has edit/admin access through RecordingStudio Accessible. The viewer account has view-only access and should be unauthorized for publishable edit actions.
+
 ## Useful Routes
 
-- `/` - dummy app home page and template guidance
-- `/recording_studio` - redirects to `/` while the mounted Recording Studio engine stays available under that prefix for non-root routes
-- `/users/sign_in` - Devise sign-in page
-- `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` - starter sidebar pages to adapt for the gem
-- `/up` - Rails health check
-
-## Why This App Exists
-
-Use this app to verify the generated addon experience before renaming the gem or copying patterns into another host app. If a layout, route, asset source, or Recording Studio initializer change breaks here, the template likely needs adjustment before reuse.
-
-The authenticated layout in `app/views/layouts/flat_pack_sidebar.html.erb` and sidebar menu in `app/views/layouts/flat_pack/_sidebar.html.erb` are a styled skeleton, not the final information architecture for every addon. Replace the sidebar items and docs page content so they match the gem's actual concepts and workflows.
-
-Likewise, the home page in `app/views/home/index.html.erb` should stay a minimal demo surface for the gem's core feature. Do not turn it into a wall of documentation; the dedicated sidebar pages exist so deeper explanations can live in focused sections.
+- `/` - publishable demo home page
+- `/recordings/:recording_id/publishable/edit` - edit publishable info
+- `/published/:uuid/:slug` - default public route
+- `/recording_studio` - mounted RecordingStudio engine
+- `/docs/headers` - preview generated canonical, Open Graph, and Twitter header values
+- `/docs/install`, `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods`, `/docs/components` - supporting docs

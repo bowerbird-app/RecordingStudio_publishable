@@ -15,10 +15,10 @@ Business logic in GemTemplate is encapsulated in service objects using the Resul
 ## Usage
 
 ```ruby
-result = GemTemplate::Services::ExampleService.call(name: "World")
+result = GemTemplate::Services::MyService.call(param: "value")
 
 if result.success?
-  puts result.value  # => "Hello, World!"
+  puts result.value
 else
   puts result.error
 end

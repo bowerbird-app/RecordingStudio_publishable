@@ -1,0 +1,81 @@
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: "Setup",
+    subtitle: "Apply additional host-app setup after installation: model edits, route wiring, and layout helpers.",
+    variant: :h1
+  ) %>
+
+  <div class="space-y-8">
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Model setup",
+        subtitle: "Include ParentRecordable and define publishable behavior per model."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :ruby,
+        code: <<~RUBY
+          class Page < ApplicationRecord
+            include RecordingStudioPublishable::ParentRecordable
+
+            recording_studio_publishable(
+              public_controller: "pages",
+              public_action: :show,
+              schedule: false,
+              seo: false
+            )
+          end
+
+          class Article < ApplicationRecord
+            include RecordingStudioPublishable::ParentRecordable
+
+            recording_studio_publishable(
+              public_controller: "articles",
+              public_action: :show,
+              path: "/blogs/:uuid/:slug",
+              schedule: true,
+              seo: true
+            )
+          end
+        RUBY
+      ) %>
+
+      <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
+        <p>Use <code>schedule: false</code> when a model should not expose publish/unpublish scheduling controls.</p>
+        <p>Use <code>seo: false</code> when SEO-only tags should be disabled for that model.</p>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Route mount",
+        subtitle: "Mount the engine so publish management and public route helpers resolve."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :ruby,
+        code: <<~RUBY
+          mount RecordingStudioPublishable::Engine, at: "/"
+        RUBY
+      ) %>
+    </section>
+
+    <section class="space-y-4">
+      <%= render FlatPack::SectionTitle::Component.new(
+        title: "Head tags helper",
+        subtitle: "Render publishable SEO/social tags from your host application layout."
+      ) %>
+
+      <%= render FlatPack::CodeBlock::Component.new(
+        language: :erb,
+        code: [
+          "<!-- app/views/layouts/application.html.erb -->",
+          "<head>",
+          "  <" + "%= publishable_head_tags " + "%" + ">",
+          "</head>"
+        ].join("\n")
+      ) %>
+    </section>
+
+  </div>
+</div>

@@ -1,9 +1,18 @@
-<li>
-  <span><%= node[:label] %></span>
+<div class="space-y-3">
+  <div class="flex items-center gap-3 rounded-lg border border-[var(--surface-border-color)] bg-[var(--surface-page-background-color)] px-4 py-3" style="margin-left: <%= (depth || 0) * 1.5 %>rem;">
+    <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--brand-primary-color)]"></span>
+    <div class="min-w-0 flex-1">
+      <p class="truncate text-sm font-medium"><%= node[:label] %></p>
+    </div>
+  </div>
 
   <% if node[:children].any? %>
-    <ul class="mt-2 list-disc pl-5">
-      <%= render partial: "recording_tree_node", collection: node[:children], as: :node %>
-    </ul>
+    <div class="ml-6 border-l border-dashed border-[var(--surface-border-color)] pl-4">
+      <div class="space-y-3">
+        <% node[:children].each do |child| %>
+          <%= render partial: "recording_tree_node", locals: { node: child, depth: (depth || 0) + 1 } %>
+        <% end %>
+      </div>
+    </div>
   <% end %>
-</li>
+</div>

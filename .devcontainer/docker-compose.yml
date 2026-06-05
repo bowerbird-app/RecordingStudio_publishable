@@ -45,6 +45,7 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_NAME: app_development
+      DB_TEST_NAME: app_test
       DB_PORT: 5432
       REDIS_URL: redis://redis:6379/0
     depends_on:

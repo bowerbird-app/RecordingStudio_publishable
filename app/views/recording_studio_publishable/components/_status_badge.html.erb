@@ -1,0 +1,7 @@
+<% style =
+  if publishable.published_state?
+    :success
+  else
+    :info
+  end %>
+<%= render FlatPack::Badge::Component.new(text: (publishable.published_state? ? "Published" : "Draft"), style: style, size: :sm) %>
