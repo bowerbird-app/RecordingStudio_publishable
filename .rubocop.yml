@@ -29,6 +29,10 @@ Metrics/ClassLength:
     - 'lib/recording_studio_publishable/configuration.rb'
     - 'lib/recording_studio_publishable/hooks.rb'
 
+Metrics/ModuleLength:
+  Exclude:
+    - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
+
 Metrics/MethodLength:
   Exclude:
     - 'test/**/*'
@@ -37,6 +41,7 @@ Metrics/MethodLength:
     - 'lib/recording_studio_publishable/parent_recordable.rb'
     - 'lib/recording_studio_publishable/services/**/*'
     - 'lib/recording_studio/capabilities/publishable.rb'
+    - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
 
 Metrics/AbcSize:
   Exclude:
@@ -44,15 +49,18 @@ Metrics/AbcSize:
     - 'db/migrate/**/*'
     - 'lib/generators/**/*'
     - 'lib/recording_studio_publishable/services/**/*'
+    - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
 
 Metrics/BlockLength:
   Exclude:
-    - 'lib/recording_studio_publishable/parent_recordable.rb'
+    - 'test/**/*'
+    - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
 
 Metrics/CyclomaticComplexity:
   Exclude:
     - 'lib/recording_studio_publishable/services/**/*'
     - 'lib/recording_studio_publishable/routing.rb'
+    - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
 
 Metrics/PerceivedComplexity:
   Exclude:

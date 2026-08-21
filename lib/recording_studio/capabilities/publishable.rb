@@ -17,9 +17,7 @@ module RecordingStudio
       end
 
       def self.apply_recordable!(base, options)
-        unless base < RecordableMethods
-          base.include(RecordableMethods)
-        end
+        base.include(RecordableMethods) unless base < RecordableMethods
         RecordableMethods.configure!(base, **options)
         ensure_child_recordable_registered!
       end
