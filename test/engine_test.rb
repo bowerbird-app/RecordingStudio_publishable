@@ -37,5 +37,6 @@ class EngineTest < Minitest::Test
     assert_includes source, "register_publishable_recordable_type"
     refute_includes source, "extend_recording_model"
     refute_includes source, "RecordingStudio::Recording.include"
+    refute_includes source, "ParentRecordable"
   end
 end

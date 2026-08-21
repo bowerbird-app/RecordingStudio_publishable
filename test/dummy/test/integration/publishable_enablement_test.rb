@@ -30,6 +30,9 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_respond_to Page, :published
     refute_respond_to Folder, :published
     refute_respond_to Page, :recording_studio_publishable
+    refute_respond_to Page, :configure_publishable!
+    refute_respond_to Page, :recording_studio_publishable_path_template
+    refute RecordingStudioPublishable.const_defined?(:ParentRecordable)
     refute RecordingStudio::Recording.respond_to?(:published)
     assert_respond_to Page, :indexable
     refute_respond_to Folder, :indexable
@@ -39,6 +42,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
 
   test "dummy uses core default layout rather than a custom sidebar shell" do
     assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
+    assert_equal "recording_studio/default_layout", RecordingStudioPublishable.configuration.layout
 
     sign_in @user
     get root_path
@@ -46,7 +50,41 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "body[data-recording-studio-default-layout='true']"
     refute_match "flat-pack-sidebar-layout", response.body
+    refute_match "recording_studio-publishable-layout", response.body
     assert_match "Dummy publishables", response.body
+    assert_flatpack_assets_loaded
+  end
+
+  test "authenticated publishable edit uses default layout and Flatpack assets" do
+    sign_in @user
+    parent_recording = create_publishable_parent("Layout Checklist")
+
+    get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_select "body[data-recording-studio-default-layout='true']"
+    refute_match "flat-pack-sidebar-layout", response.body
+    refute_match "recording_studio-publishable-layout", response.body
+    assert_match "Publish", response.body
+    assert_flatpack_assets_loaded
+  end
+
+  test "dummy importmap and manifest pin Flatpack CSS and JS" do
+    importmap = File.read(Rails.root.join("config/importmap.rb"))
+    manifest = File.read(Rails.root.join("app/assets/config/manifest.js"))
+    layout = File.read(
+      RecordingStudio::Engine.root.join("app/views/layouts/recording_studio/default_layout.html.erb")
+    )
+
+    assert_includes importmap, "controllers/flat_pack"
+    assert_includes importmap, "flat_pack/heroicons"
+    assert_includes File.read(Rails.root.join("app/javascript/controllers/index.js")),
+                    'eagerLoadControllersFrom("controllers/flat_pack"'
+    assert_includes manifest, "flat_pack/variables.css"
+    assert_includes manifest, "flat_pack/application.css"
+    assert_includes layout, 'stylesheet_link_tag "tailwind"'
+    assert_includes layout, 'stylesheet_link_tag "flat_pack/variables"'
+    assert_includes layout, "javascript_importmap_tags"
   end
 
   test "dummy gemfile pins recording studio 4.2" do
@@ -55,5 +93,25 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_includes gemfile, 'tag: "v4.2.0"'
     assert_includes gemfile, 'tag: "v0.6.1"'
     refute_includes gemfile, "recording_studio_trashable"
+  end
+
+  private
+
+  def assert_flatpack_assets_loaded
+    assert_match %r{flat_pack/variables}, response.body
+    assert_match %r{stylesheet.*tailwind|tailwind-}, response.body
+    assert_match "importmap", response.body
+    assert_match %r{controllers/flat_pack}, response.body
+  end
+
+  def create_publishable_parent(title)
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Layout workspace"))
+    parent_recording = RecordingStudio::Recording.create!(
+      recordable: Page.create!(title: title),
+      parent_recording: root
+    )
+    result = RecordingStudioAccessible.bootstrap_owner_access!(recording: root, actor: @user)
+    result.respond_to?(:value!) ? result.value! : result
+    parent_recording
   end
 end

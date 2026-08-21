@@ -105,7 +105,7 @@ end
 
 That registers the addon capability on `Page` while leaving other recordables, such as `Folder`, unchanged. Non-publishable types do not receive publish scopes.
 
-`.to` wraps core 4.2.0 `RecordingStudio::Capabilities.include_for(:publishable, **options)`. Do not use `ParentRecordable` plus a `recording_studio_publishable` method as the host enablement API.
+`.to` wraps core 4.2.0 `RecordingStudio::Capabilities.include_for(:publishable, **options)`. That include is the host enablement API.
 
 Optional `.to` keywords:
 
@@ -132,7 +132,7 @@ page.published_url
 
 `indexable` is the list Support and Press kits should use for public search. A parent is indexable when it is currently published, not trashed (if `trashed_at` exists), not marked `noindex`, and has a canonical URL or public URL.
 
-`publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>`. Layouts should yield `publishable_document_title` as the single document title.
+`publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title.
 
 Canonical URL is an optional override. Leave it blank to use the public URL. The management screen and the Update service both accept it, including when SEO tags are turned off for that type.
 
@@ -147,9 +147,11 @@ page_recording.publishable_public_path
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, and Flatpack `v0.1.133`. Authenticated dummy pages use Recording Studio's default layout plus Flatpack CSS and JS. Devise keeps its own sign-in layout.
+The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, and Flatpack `v0.1.133`.
 
-Sign in with `admin@admin.com` / `Password`.
+Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and render `recording_studio/default_layout`. That layout loads Tailwind, `flat_pack/variables`, `flat_pack/rich_text`, and `javascript_importmap_tags`. The dummy importmap pins Flatpack controllers and heroicons; `app/assets/config/manifest.js` links the Flatpack stylesheets. There is no custom sidebar shell. Devise keeps its own sign-in layout.
+
+Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates a published page and an unpublished draft so screenshots are not empty lists.
 
 ## Documentation
 

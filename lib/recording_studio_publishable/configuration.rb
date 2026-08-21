@@ -98,11 +98,7 @@ module RecordingStudioPublishable
       options = publishable_capability_options(recordable_type)
       return options[:schedule] != false if options.key?(:schedule)
 
-      recordable_class = recordable_type_class(recordable_type)
-      return true if recordable_class.blank?
-      return true unless recordable_class.respond_to?(:recording_studio_publishable_schedule_enabled)
-
-      recordable_class.recording_studio_publishable_schedule_enabled != false
+      true
     rescue StandardError
       true
     end
@@ -111,21 +107,9 @@ module RecordingStudioPublishable
       options = publishable_capability_options(recordable_type)
       return options[:seo] != false if options.key?(:seo)
 
-      recordable_class = recordable_type_class(recordable_type)
-      return true if recordable_class.blank?
-      return true unless recordable_class.respond_to?(:recording_studio_publishable_seo_enabled)
-
-      recordable_class.recording_studio_publishable_seo_enabled != false
+      true
     rescue StandardError
       true
-    end
-
-    def default_layout
-      layout
-    end
-
-    def default_layout=(value)
-      self.layout = value
     end
 
     def public_template_for(recordable_type)
@@ -224,15 +208,6 @@ module RecordingStudioPublishable
 
     def normalize_recordable_type(recordable_type)
       recordable_type.is_a?(Class) ? recordable_type.name : recordable_type.to_s
-    end
-
-    def recordable_type_class(recordable_type)
-      return recordable_type if recordable_type.is_a?(Class)
-
-      normalized = normalize_recordable_type(recordable_type)
-      return if normalized.blank?
-
-      normalized.safe_constantize
     end
 
     def publishable_capability_options(recordable_type)

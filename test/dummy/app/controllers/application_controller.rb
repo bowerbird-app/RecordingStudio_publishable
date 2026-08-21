@@ -7,6 +7,8 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes if respond_to?(:stale_when_importmap_changes)
 
+  # Devise keeps the sign-in layout. Every authenticated host page uses
+  # RecordingStudio::UsesDefaultLayout (`recording_studio/default_layout`).
   layout :application_layout
 
   before_action :authenticate_user!

@@ -5,62 +5,52 @@
     variant: :h1
   ) %>
 
-  <div class="flex flex-wrap items-center gap-3">
-    <%= link_to new_dummy_page_path, class: "inline-flex" do %>
-      <%= render FlatPack::Button::Component.new(text: "Add Page", style: :primary, size: :md) %>
-    <% end %>
-  </div>
+  <%= render FlatPack::Button::Component.new(
+    text: "Add Page",
+    style: :primary,
+    size: :md,
+    href: new_dummy_page_path
+  ) %>
 
-  <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
-    <% card.body do %>
-      <% if @publishable_parent_recordings.any? %>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-(--surface-border-color) text-left text-sm">
-            <thead>
-              <tr class="text-(--surface-muted-content-color)">
-                <th class="px-4 py-3 font-medium">Type</th>
-                <th class="px-4 py-3 font-medium">Title</th>
-                <th class="px-4 py-3 font-medium">Parent</th>
-                <th class="px-4 py-3 font-medium">Public path</th>
-                <th class="px-4 py-3 font-medium">Search</th>
-                <th class="px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-(--surface-border-color)">
-              <% @publishable_parent_recordings.each do |recording| %>
-                <% public_path = recording.publishable_public_path %>
-                <tr>
-                  <td class="px-4 py-3"><%= recording.recordable_type.to_s.demodulize %></td>
-                  <td class="px-4 py-3 font-medium"><%= recording.recordable.try(:title).presence || recording.recordable.to_s %></td>
-                  <td class="px-4 py-3"><%= recording.parent_recording&.recordable_type.to_s.demodulize.underscore.humanize.presence || "Root" %></td>
-                  <td class="px-4 py-3">
-                    <% if public_path.present? %>
-                      <%= link_to public_path, public_path, class: "text-(--surface-primary-content-color) underline underline-offset-2" %>
-                    <% else %>
-                      Not published yet
-                    <% end %>
-                  </td>
-                  <td class="px-4 py-3">
-                    <% recordable = recording.recordable %>
-                    <% if recordable.respond_to?(:indexable?) && recordable.indexable? %>
-                      <%= render FlatPack::Badge::Component.new(text: "In search", style: :success, size: :sm) %>
-                    <% elsif public_path.present? %>
-                      <%= render FlatPack::Badge::Component.new(text: "Hidden from search", style: :default, size: :sm) %>
-                    <% else %>
-                      <%= render FlatPack::Badge::Component.new(text: "Not live", style: :default, size: :sm) %>
-                    <% end %>
-                  </td>
-                  <td class="px-4 py-3">
-                    <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording, label: "Edit", show_tooltip: true) %>
-                  </td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      <% else %>
-        <p class="text-sm text-(--surface-muted-content-color)">No publishable parent records exist yet.</p>
+  <% if @publishable_parent_recordings.any? %>
+    <%= render FlatPack::Table::Component.new(data: @publishable_parent_recordings) do |table| %>
+      <% table.column(title: "Type") do |recording| %>
+        <%= recording.recordable_type.to_s.demodulize %>
+      <% end %>
+      <% table.column(title: "Title") do |recording| %>
+        <%= recording.recordable.try(:title).presence || recording.recordable.to_s %>
+      <% end %>
+      <% table.column(title: "Parent") do |recording| %>
+        <%= recording.parent_recording&.recordable_type.to_s.demodulize.underscore.humanize.presence || "Root" %>
+      <% end %>
+      <% table.column(title: "Public path") do |recording| %>
+        <% public_path = recording.publishable_public_path %>
+        <% if public_path.present? %>
+          <%= render FlatPack::Link::Component.new(href: public_path) { public_path } %>
+        <% else %>
+          Not published yet
+        <% end %>
+      <% end %>
+      <% table.column(title: "Search") do |recording| %>
+        <% recordable = recording.recordable %>
+        <% public_path = recording.publishable_public_path %>
+        <% if recordable.respond_to?(:indexable?) && recordable.indexable? %>
+          <%= render FlatPack::Badge::Component.new(text: "In search", style: :success, size: :sm) %>
+        <% elsif public_path.present? %>
+          <%= render FlatPack::Badge::Component.new(text: "Hidden from search", style: :default, size: :sm) %>
+        <% else %>
+          <%= render FlatPack::Badge::Component.new(text: "Not live", style: :default, size: :sm) %>
+        <% end %>
+      <% end %>
+      <% table.column(title: "Actions") do |recording| %>
+        <%= render RecordingStudioPublishable::EditButtonComponent.new(recording: recording, label: "Edit", show_tooltip: true) %>
       <% end %>
     <% end %>
+  <% else %>
+    <%= render FlatPack::EmptyState::Component.new(
+      title: "No pages yet",
+      description: "Add a page, then try publishing it or keeping it as a draft.",
+      icon: :inbox
+    ) %>
   <% end %>
 </div>

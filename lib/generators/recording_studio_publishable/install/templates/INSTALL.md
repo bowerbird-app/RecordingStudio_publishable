@@ -14,6 +14,6 @@ Next steps:
 
 Configuration notes:
 
-- Host enablement is `include RecordingStudio::Capabilities::Publishable.to(...)`. Do not use `ParentRecordable` plus a `recording_studio_publishable` method.
-- `config.default_layout` controls the engine layout globally.
+- Enable Publishable with `include RecordingStudio::Capabilities::Publishable.to(...)`.
+- `config.layout` controls the engine layout globally.
 - `config.register_public_renderer("Page", controller: "pages", action: :show)` overrides the default `Page -> pages#show` public rendering convention.

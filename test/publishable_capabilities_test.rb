@@ -29,6 +29,7 @@ class PublishableCapabilitiesTest < Minitest::Test
     refute_includes source, "def self.enabled"
     refute_includes source, "recording_studio_publishable("
     refute_includes source, "enable_capability"
+    refute_includes source, "ParentRecordable"
   end
 
   def test_to_delegates_to_include_for
@@ -64,7 +65,17 @@ class PublishableCapabilitiesTest < Minitest::Test
 
     assert RecordingStudio.capability_enabled?(:publishable, for: klass)
     assert_equal({ schedule: false, seo: true }, RecordingStudio.capability_options(:publishable, for: klass))
-    assert_includes klass.ancestors, RecordingStudioPublishable::ParentRecordable
+    assert_includes klass.ancestors, RecordingStudio::Capabilities::Publishable::RecordableMethods
+    refute_respond_to klass, :recording_studio_publishable
+    refute_respond_to klass, :configure_publishable!
+    refute_respond_to klass, :recording_studio_publishable_path_template
+    refute_respond_to klass, :recording_studio_publishable_schedule_enabled
+    refute_respond_to klass, :recording_studio_publishable_seo_enabled
+  end
+
+  def test_parent_recordable_is_not_a_host_api
+    refute RecordingStudioPublishable.const_defined?(:ParentRecordable)
+    refute File.exist?(File.expand_path("../lib/recording_studio_publishable/parent_recordable.rb", __dir__))
   end
 
   def test_capability_registration_owns_the_publishable_child

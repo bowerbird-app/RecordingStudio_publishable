@@ -6,7 +6,7 @@ require_relative "../../dummy/config/environment"
 require "rails/test_help"
 
 module RecordingStudioPublishable
-  class ParentRecordableTest < ActiveSupport::TestCase
+  class RecordableMethodsTest < ActiveSupport::TestCase
     test "published returns parent recordables" do
       root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Scope workspace"))
       published_page = Page.create!(title: "Published page")
@@ -258,6 +258,10 @@ module RecordingStudioPublishable
       assert RecordingStudio.capability_enabled?(:publishable, for: Article)
       refute RecordingStudio.capability_enabled?(:publishable, for: Folder)
       refute RecordingStudio.capability_enabled?(:publishable, for: Workspace)
+      refute RecordingStudioPublishable.const_defined?(:ParentRecordable)
+      refute_respond_to Page, :recording_studio_publishable
+      refute_respond_to Page, :configure_publishable!
+      refute_respond_to Page, :recording_studio_publishable_path_template
     end
 
     test "publishable join sql omits trashed_at when the column is absent" do

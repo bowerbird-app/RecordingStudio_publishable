@@ -15,7 +15,9 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "published routes use the blank engine layout by default" do
+  test "published routes use the blank engine layout when that layout is configured" do
+    original_layout = RecordingStudioPublishable.configuration.layout
+    RecordingStudioPublishable.configuration.layout = "recording_studio_publishable/application"
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
     parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"),
                                                           parent_recording: root)
@@ -34,6 +36,8 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "recording_studio-publishable-layout"
     refute_includes response.body, "flat-pack-sidebar-layout"
+  ensure
+    RecordingStudioPublishable.configuration.layout = original_layout
   end
 
   test "published content is reachable without signing in" do

@@ -8,7 +8,7 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 - `Current.actor` wiring for Recording Studio events
 - opt-in `include RecordingStudio::Capabilities::Publishable.to(...)` on Page and Article
 - a parent `Page` recording with one publishable child recording
-- Recording Studio's default layout plus Flatpack CSS and JS
+- Recording Studio's default layout plus Flatpack CSS and JS (`RecordingStudio::UsesDefaultLayout` on authenticated pages; Flatpack stylesheets in the default layout and `manifest.js`; Flatpack controllers in `importmap.rb`)
 - the FlatPack-based **Edit publishable info** screen, including Canonical URL and search listing
 - the default public route at `/published/:uuid/:slug`
 - seeded published indexable, published hidden-from-search, and unpublished pages so head tags and `indexable?` can be checked
@@ -53,6 +53,8 @@ Or test unauthorized edit behavior with:
 - Password: `Password`
 
 The admin account has edit/admin access through RecordingStudio Accessible. The viewer account has view-only access and should be unauthorized for publishable edit actions.
+
+Authenticated pages include `RecordingStudio::UsesDefaultLayout` and set Publishable `config.layout` to `recording_studio/default_layout`. That layout loads Tailwind, `flat_pack/variables`, `flat_pack/rich_text`, and the importmap. Dummy `config/importmap.rb` pins Flatpack controllers; `app/assets/config/manifest.js` links the Flatpack stylesheets. There is no custom sidebar.
 
 ## Useful Routes
 

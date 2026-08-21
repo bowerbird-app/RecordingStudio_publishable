@@ -15,6 +15,7 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes readme_source, "RecordingStudio::Capabilities::Publishable.to"
     refute_includes readme_source, "# GemTemplate"
     refute_includes readme_source, "recording_studio_publishable("
+    refute_includes readme_source, "ParentRecordable"
   end
 
   def test_dummy_home_page_mentions_publishable_demo

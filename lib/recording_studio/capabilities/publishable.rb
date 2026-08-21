@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative "publishable/recordable_methods"
+
 module RecordingStudio
   module Capabilities
     module Publishable
@@ -15,10 +17,10 @@ module RecordingStudio
       end
 
       def self.apply_recordable!(base, options)
-        unless base < RecordingStudioPublishable::ParentRecordable
-          base.include(RecordingStudioPublishable::ParentRecordable)
+        unless base < RecordableMethods
+          base.include(RecordableMethods)
         end
-        RecordingStudioPublishable::ParentRecordable.configure!(base, **options)
+        RecordableMethods.configure!(base, **options)
         ensure_child_recordable_registered!
       end
 

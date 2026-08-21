@@ -7,7 +7,7 @@ module RecordingStudioPublishable
     DEFAULT_SOCIAL_IMAGE_VARIANT = :social_share
 
     def publishable_head_tags(publishable_recording: nil, publishable: nil, parent_recordable: nil,
-                              public_url: nil, title: nil, description: nil, canonical_url: nil, # rubocop:disable Lint/UnusedMethodArgument
+                              public_url: nil, description: nil, canonical_url: nil,
                               social_title: nil, social_description: nil, social_image_url: nil,
                               social_image_width: nil, social_image_height: nil)
       publishable_recording ||= instance_variable_defined?(:@publishable_recording) ? @publishable_recording : nil

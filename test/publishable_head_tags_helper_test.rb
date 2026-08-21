@@ -76,6 +76,24 @@ class PublishableHeadTagsHelperTest < Minitest::Test
     assert_includes html, '<meta name="twitter:description" content="Social description">'
   end
 
+  def test_publishable_head_tags_does_not_accept_title
+    parent_recordable = Struct.new(:title).new("Launch Checklist")
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
+    publishable = Publishable.new("SEO headline", "Search-friendly description", nil, nil, nil, "launch-checklist")
+    publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
+    view = ViewContext.new(Struct.new(:base_url).new("https://example.test"))
+
+    error = assert_raises(ArgumentError) do
+      view.publishable_head_tags(
+        publishable_recording: publishable_recording,
+        publishable: publishable,
+        title: "ignored"
+      )
+    end
+
+    assert_match(/unknown keyword: :title/, error.message)
+  end
+
   def test_publishable_head_tags_returns_blank_for_unpublished_records
     parent_recordable = Struct.new(:title).new("Launch Checklist")
     parent_recording = ParentRecording.new("Folder", parent_recordable)

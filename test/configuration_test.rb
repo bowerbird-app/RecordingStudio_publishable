@@ -61,10 +61,10 @@ class ConfigurationTest < Minitest::Test
     assert_equal "/blogs/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("Article")
   end
 
-  def test_parent_recordable_defaults_do_not_override_an_existing_custom_path
+  def test_to_defaults_do_not_override_an_existing_custom_path
     RecordingStudioPublishable.configuration.register_public_path("PublishablePathProbe", path: "/blogs/:uuid/:slug")
 
-    klass = Class.new do
+    Class.new do
       def self.name
         "PublishablePathProbe"
       end
@@ -73,7 +73,6 @@ class ConfigurationTest < Minitest::Test
     end
 
     assert_equal "/blogs/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("PublishablePathProbe")
-    assert_equal "/blogs/:uuid/:slug", klass.recording_studio_publishable_path_template
   end
 
   def test_register_public_path_rejects_templates_without_uuid
@@ -88,16 +87,9 @@ class ConfigurationTest < Minitest::Test
     assert_equal "recording_studio_publishable/application", RecordingStudioPublishable.configuration.layout
   end
 
-  def test_default_layout_alias_reads_from_layout
-    RecordingStudioPublishable.configuration.layout = "application"
-
-    assert_equal "application", RecordingStudioPublishable.configuration.default_layout
-  end
-
-  def test_default_layout_alias_writes_to_layout
-    RecordingStudioPublishable.configuration.default_layout = "application"
-
-    assert_equal "application", RecordingStudioPublishable.configuration.layout
+  def test_layout_has_no_default_layout_alias
+    refute_respond_to RecordingStudioPublishable.configuration, :default_layout
+    refute_respond_to RecordingStudioPublishable.configuration, :default_layout=
   end
 
   def test_default_public_renderer_uses_recordable_type_convention
@@ -115,8 +107,8 @@ class ConfigurationTest < Minitest::Test
       include RecordingStudio::Capabilities::Publishable.to
     end
 
-    assert_equal true, klass.recording_studio_publishable_schedule_enabled
-    assert_equal true, klass.recording_studio_publishable_seo_enabled
+    refute_respond_to klass, :recording_studio_publishable_schedule_enabled
+    refute_respond_to klass, :recording_studio_publishable_seo_enabled
     assert_equal true, RecordingStudioPublishable.configuration.schedule_enabled_for(klass)
     assert_equal true, RecordingStudioPublishable.configuration.seo_enabled_for(klass)
   end
@@ -130,8 +122,8 @@ class ConfigurationTest < Minitest::Test
       include RecordingStudio::Capabilities::Publishable.to(schedule: false, seo: false)
     end
 
-    assert_equal false, klass.recording_studio_publishable_schedule_enabled
-    assert_equal false, klass.recording_studio_publishable_seo_enabled
+    refute_respond_to klass, :recording_studio_publishable_schedule_enabled
+    refute_respond_to klass, :recording_studio_publishable_seo_enabled
     assert_equal false, RecordingStudioPublishable.configuration.schedule_enabled_for(klass)
     assert_equal false, RecordingStudioPublishable.configuration.seo_enabled_for(klass)
   end
