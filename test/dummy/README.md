@@ -13,6 +13,26 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 - the default public route at `/published/:uuid/:slug`
 - seeded published indexable, published hidden-from-search, and unpublished pages so head tags and `indexable?` can be checked
 
+## Seeded records
+
+`bin/rails db:setup` (or `bin/rails db:seed` on an existing database) creates both a live page and a draft so screenshots and checks are not empty lists:
+
+| Title | Type | Publish state | Search |
+| --- | --- | --- | --- |
+| Launch Checklist | Page | published | In search |
+| Staff-only notes | Page | published | Hidden from search |
+| Coming soon | Page | draft | Not live |
+| Spring Release Notes | Article | published | In search |
+
+Home (`/`) lists all four. Public routes only exist for the published rows.
+
+To re-seed without resetting the database:
+
+```bash
+cd test/dummy
+bin/rails db:seed
+```
+
 ## Quick Start
 
 ```bash
