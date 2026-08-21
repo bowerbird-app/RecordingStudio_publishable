@@ -12,7 +12,9 @@ class RecordingStudioPublishableTest < Minitest::Test
     readme_source = File.read(readme_path)
 
     assert_includes readme_source, "recording_studio_publishable"
-    assert_includes readme_source, "publishable child recording"
+    assert_includes readme_source, "RecordingStudio::Capabilities::Publishable.to"
+    refute_includes readme_source, "# GemTemplate"
+    refute_includes readme_source, "recording_studio_publishable("
   end
 
   def test_dummy_home_page_mentions_publishable_demo

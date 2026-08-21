@@ -45,19 +45,17 @@ class ConfigurationTest < Minitest::Test
   end
 
   def test_parent_recordable_defaults_do_not_override_an_existing_custom_path
-    RecordingStudioPublishable.configuration.register_public_path("Article", path: "/blogs/:uuid/:slug")
+    RecordingStudioPublishable.configuration.register_public_path("PublishablePathProbe", path: "/blogs/:uuid/:slug")
 
     klass = Class.new do
       def self.name
-        "Article"
+        "PublishablePathProbe"
       end
 
-      include RecordingStudioPublishable::ParentRecordable
-
-      recording_studio_publishable
+      include RecordingStudio::Capabilities::Publishable.to
     end
 
-    assert_equal "/blogs/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("Article")
+    assert_equal "/blogs/:uuid/:slug", RecordingStudioPublishable.configuration.public_path_for("PublishablePathProbe")
     assert_equal "/blogs/:uuid/:slug", klass.recording_studio_publishable_path_template
   end
 
@@ -94,12 +92,10 @@ class ConfigurationTest < Minitest::Test
   def test_schedule_and_seo_capabilities_default_to_true
     klass = Class.new do
       def self.name
-        "CapabilityDefaults"
+        "PublishableCapabilityDefaults"
       end
 
-      include RecordingStudioPublishable::ParentRecordable
-
-      recording_studio_publishable
+      include RecordingStudio::Capabilities::Publishable.to
     end
 
     assert_equal true, klass.recording_studio_publishable_schedule_enabled
@@ -111,12 +107,10 @@ class ConfigurationTest < Minitest::Test
   def test_schedule_and_seo_capabilities_can_be_disabled_from_model_dsl
     klass = Class.new do
       def self.name
-        "CapabilityOptOut"
+        "PublishableCapabilityOptOut"
       end
 
-      include RecordingStudioPublishable::ParentRecordable
-
-      recording_studio_publishable(schedule: false, seo: false)
+      include RecordingStudio::Capabilities::Publishable.to(schedule: false, seo: false)
     end
 
     assert_equal false, klass.recording_studio_publishable_schedule_enabled

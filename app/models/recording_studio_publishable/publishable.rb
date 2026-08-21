@@ -9,6 +9,15 @@ module RecordingStudioPublishable
     )
 
     self.table_name = "recording_studio_publishable_publishables"
+
+    if respond_to?(:recording_studio_recordable)
+      recording_studio_recordable(
+        label: "Publishable",
+        plural_label: "Publishables",
+        root: false
+      )
+    end
+
     belongs_to :social_image_attachment_recording,
                class_name: "RecordingStudio::Recording",
                optional: true

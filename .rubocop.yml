@@ -31,6 +31,7 @@ Metrics/MethodLength:
     - 'lib/generators/**/*'
     - 'lib/recording_studio_publishable/parent_recordable.rb'
     - 'lib/recording_studio_publishable/services/**/*'
+    - 'lib/recording_studio/capabilities/publishable.rb'
 
 Metrics/AbcSize:
   Exclude:

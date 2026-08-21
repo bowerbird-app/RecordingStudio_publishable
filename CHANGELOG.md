@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-21
+
+### Breaking
+- Enablement is now `include RecordingStudio::Capabilities::Publishable.to(**opts)` on opted-in recordables. `ParentRecordable` plus `recording_studio_publishable(...)` is no longer the public host API
+- Publish scopes are no longer mixed into every `RecordingStudio::Recording`. Non-publishable types do not receive `published` / `scheduled` / `draft` / `unpublished`
+- Runtime dependency is now RecordingStudio `~> 4.2`
+
+### Added
+- Canonical `.to` wrapper around core 4.2.0 `RecordingStudio::Capabilities.include_for(:publishable, **options)`
+- Capability registration with `child_recordables: ["RecordingStudioPublishable::Publishable"]`
+- Soft-detection for optional `trashed_at` so Trashable can stay out of the gemspec DAG
+
+### Changed
+- Dummy pins Recording Studio `v4.2.0`, Accessible `v0.6.0`, Attachable `0.4.0`, and Flatpack `v0.1.133`
+- Dummy authenticated layout is Recording Studio's default layout plus Flatpack CSS/JS; Devise keeps its own sign-in layout
+- README now describes Publishable rather than GemTemplate
+
+### Upgrade Notes
+- Host apps must move to RecordingStudio `~> 4.2` with this gem
+- Enable Publishable on each recordable type with `include RecordingStudio::Capabilities::Publishable.to(**opts)`
+- Remove `include RecordingStudioPublishable::ParentRecordable` and `recording_studio_publishable(...)`
+- Do not add `recording_studio_trashable` unless the host actually uses trash. Publish queries skip `trashed_at` when the column is absent
+- Run `bin/rails generate recording_studio_publishable:migrations` and `bin/rails db:migrate` so the unique publishable-child index is created without assuming `trashed_at`
+
 ## [0.1.2] - 2026-06-05
 
 ### Changed
@@ -34,7 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.2.0
 [0.1.2]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.1.2
 [0.1.1]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.1.1
 [0.1.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.1.0

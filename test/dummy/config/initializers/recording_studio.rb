@@ -8,9 +8,11 @@ RecordingStudio.configure do |config|
     "Folder",
     "Page",
     "Article",
+    "RecordingStudioPublishable::Publishable",
     "RecordingStudioAttachable::Attachment"
   ]
   config.require_recordable_declarations = true
+  config.app_name = "Publishable Demo" if config.respond_to?(:app_name=)
   config.actor = -> { Current.actor }
   config.impersonator = -> { Current.impersonator }
   config.event_notifications_enabled = true

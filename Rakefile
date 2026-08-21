@@ -23,6 +23,7 @@ ROOT_TEST_EXCLUSIONS = %w[
   test/services/recording_studio_publishable/publications/update_test.rb
   test/services/recording_studio_publishable/publications/resolve_test.rb
   test/rename_verification_test.rb
+  test/dummy/**/*_test.rb
 ].freeze
 
 def run_command!(env, *command)
@@ -81,6 +82,7 @@ namespace :test do
       env = dummy_bundle_env
 
       run_command!(env, "bin/rails", "db:prepare")
+      run_command!(env, "bundle", "exec", "bin/rails", "test")
       run_command!(env, "bundle", "exec", "ruby", "-I/workspace/test", *DUMMY_TEST_FILES)
     end
   end
@@ -91,7 +93,7 @@ end
 
 namespace :app do
   desc "Run all tests for the gem"
-  task test: :test
+  task test: "test:all"
 end
 
 task default: :test

@@ -35,7 +35,7 @@ RecordingStudioAttachable.configure do |config|
   # }
 
   # Use the gem's blank layout by default, or set a host app layout like "application".
-  config.layout = "flat_pack_sidebar"
+  config.layout = "recording_studio/default_layout"
   config.authorize_with = lambda do |actor:, **|
     actor.present?
   end

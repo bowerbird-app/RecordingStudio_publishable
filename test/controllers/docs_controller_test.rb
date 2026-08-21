@@ -67,7 +67,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Setup"
     assert_includes response.body, "Model setup"
-    assert_includes response.body, "recording_studio_publishable("
+    assert_includes response.body, "include RecordingStudio::Capabilities::Publishable.to"
     assert_includes response.body, "mount RecordingStudioPublishable::Engine, at: &quot;/&quot;"
     assert_includes response.body, "publishable_head_tags"
   end

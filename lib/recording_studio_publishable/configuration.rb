@@ -95,9 +95,11 @@ module RecordingStudioPublishable
     end
 
     def schedule_enabled_for(recordable_type)
+      options = publishable_capability_options(recordable_type)
+      return options[:schedule] != false if options.key?(:schedule)
+
       recordable_class = recordable_type_class(recordable_type)
       return true if recordable_class.blank?
-
       return true unless recordable_class.respond_to?(:recording_studio_publishable_schedule_enabled)
 
       recordable_class.recording_studio_publishable_schedule_enabled != false
@@ -106,9 +108,11 @@ module RecordingStudioPublishable
     end
 
     def seo_enabled_for(recordable_type)
+      options = publishable_capability_options(recordable_type)
+      return options[:seo] != false if options.key?(:seo)
+
       recordable_class = recordable_type_class(recordable_type)
       return true if recordable_class.blank?
-
       return true unless recordable_class.respond_to?(:recording_studio_publishable_seo_enabled)
 
       recordable_class.recording_studio_publishable_seo_enabled != false
@@ -229,6 +233,14 @@ module RecordingStudioPublishable
       return if normalized.blank?
 
       normalized.safe_constantize
+    end
+
+    def publishable_capability_options(recordable_type)
+      return {} unless defined?(RecordingStudio) && RecordingStudio.respond_to?(:capability_options)
+
+      RecordingStudio.capability_options(:publishable, for: recordable_type).to_h.symbolize_keys
+    rescue StandardError
+      {}
     end
 
     def validate_public_path_template!(path)

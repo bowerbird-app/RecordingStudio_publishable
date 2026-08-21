@@ -1,14 +1,15 @@
 # Dummy App
 
-This Rails app validates `recording_studio_publishable` inside a host application.
+This Rails app validates `recording_studio_publishable` inside a host application on Recording Studio 4.2.
 
 ## What it demonstrates
 
 - Devise authentication with seeded admin and viewer users
 - `Current.actor` wiring for Recording Studio events
+- opt-in `include RecordingStudio::Capabilities::Publishable.to(...)` on Page and Article
 - a parent `Page` recording with one publishable child recording
+- Recording Studio's default layout plus Flatpack CSS and JS
 - the FlatPack-based **Edit publishable info** screen
-- reusable publishable status, summary, and quick action UI
 - the default public route at `/published/:uuid/:slug`
 
 ## Quick Start

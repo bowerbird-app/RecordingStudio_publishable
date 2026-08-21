@@ -1,144 +1,148 @@
-# GemTemplate
+# Recording Studio Publishable
 
-Internal template for building Rails engine addons on top of RecordingStudio.
+Recording Studio Publishable is the opt-in publish-state addon for `RecordingStudio`.
 
-## What's Included
+A parent recordable type such as a page or article can hold one child publishable recording. That child stores slug, schedule, SEO, and social card state. Installing the gem does not enable publish behavior on every recordable.
 
-- **RecordingStudio** gem installed and configured
-- **Devise** authentication with a pre-seeded admin user
-- **Workspace**, **Folder**, and **Page** recordables seeded into the dummy host app
-- **FlatPack** UI component library for all views
-- **Dummy app** (`test/dummy/`) with a FlatPack-based sign-in screen, a simple home page, mounted RecordingStudio routes, and FlatPack's built-in rounded theme enabled by default
+## What the gem provides
 
-The dummy app ships with a starter sidebar documentation shell for authenticated pages. The menu entries in `test/dummy/app/views/layouts/flat_pack/_sidebar.html.erb` and the linked docs pages are intended to be rewritten to suit the addon you are building; the template provides the structure and styling, not final product copy. By default, that starter shell uses FlatPack's built-in rounded theme via the root layout attribute rather than custom Tailwind theme recreation.
+- gem name: `recording_studio_publishable`
+- Ruby namespace: `RecordingStudioPublishable`
+- capability opt-in through `RecordingStudio::Capabilities::Publishable.to`
+- a child `RecordingStudioPublishable::Publishable` recordable that holds publish state
+- scopes on opted-in parent types: `published`, `scheduled`, `draft`, `unpublished`, plus window filters
+- recording helpers such as `publishable_child_recording`, `current_publishable`, and `publishable_public_path`
+- public routing and Flatpack management screens for the current publishable child
 
-## Quick Start
+Trashable is optional. Publishable does not depend on it. Query SQL only mentions `trashed_at` when that column exists.
 
-### GitHub Codespaces (Recommended)
+## Installation
 
-1. Click **Code** → **Codespaces** → **Create codespace**
-2. Wait for setup to complete
-3. Run:
-   ```bash
-   cd test/dummy
-   bin/rails db:setup
-   bin/dev
-   ```
-4. Open port 3000 — you'll land on the dummy app home page and can sign in at `/users/sign_in`
-
-The dummy app is intended as a host-app validation surface for authentication, FlatPack rendering, Tailwind source scanning, and RecordingStudio route wiring.
-
-### Login Credentials
-
-| Field    | Value             |
-|----------|-------------------|
-| Email    | admin@admin.com   |
-| Password | Password          |
-
-The login form is prefilled with these credentials for fast access.
-
-### Useful Routes
-
-- `/` — dummy app home page
-- `/users/sign_in` — Devise sign-in page
-- `/recording_studio` — redirect to `/` while the mounted RecordingStudio engine remains data/API-focused
-- `/docs/install` — install guide rendered inside the dummy app
-- `/docs/config`, `/docs/recordable_types`, `/docs/recordings_tree`, `/docs/gem_views`, `/docs/methods` — starter sidebar pages to customize for your gem
-
-The home page in `test/dummy/app/views/home/index.html.erb` is also a deliberate starting point. Keep it focused on a minimal demo of the gem's primary behavior; use the sidebar pages for deeper explanations and supporting reference material.
-
-## Architecture
-
-### Root Recording Pattern
-
-This template follows RecordingStudio's root recording pattern:
-
-- **Workspace** is the top-level recordable
-- **Folder** and **Page** demonstrate nested recordables under the workspace root
-- A root `RecordingStudio::Recording` wraps the Workspace
-- `Current.actor` is set from `current_user` (Devise) in `ApplicationController`
-
-### Extending RecordingStudio
-
-To add new recordable types:
-
-1. Create your model (e.g., `Page`, `Comment`)
-2. Register it in `config/initializers/recording_studio.rb`:
-   ```ruby
-   RecordingStudio.configure do |config|
-     config.recordable_types = ["Workspace", "YourNewType"]
-     config.require_recordable_declarations = true
-   end
-   ```
-3. Declare each configured recordable model with `recording_studio_recordable`:
-   ```ruby
-   class Workspace < ApplicationRecord
-     recording_studio_recordable label: "Workspace", root: true
-   end
-
-   class YourNewType < ApplicationRecord
-     recording_studio_recordable(
-       label: "Your New Type",
-       root: false,
-       allowed_parent_types: ["Workspace", "YourNewType"]
-     )
-   end
-   ```
-4. Create/find the root recording from a persisted root recordable:
-   ```ruby
-   workspace = Workspace.find_or_create_by!(name: "Studio Workspace")
-   root_recording = RecordingStudio.root_recording_for(workspace)
-   ```
-5. Create child recordings under that root:
-   ```ruby
-   root_recording.record(YourNewType, parent_recording: root_recording) do |record|
-     record.title = "Example"
-   end
-   ```
-
-### Capabilities
-
-RecordingStudio core now uses an addon-first capability model. Keep core recordables declared with
-`recording_studio_recordable(...)`, then enable addon capabilities explicitly where needed:
+Add the gems to your host app. This addon requires Recording Studio 4.2.0 or newer:
 
 ```ruby
-class RecordingStudioPage < ApplicationRecord
-  recording_studio_recordable label: "Page", root: false, allowed_parent_types: ["Workspace", "RecordingStudioPage"]
-  include RecordingStudioYourAddon::YourCapability
+gem "recording_studio"
+gem "recording_studio_publishable"
+```
+
+Then run:
+
+```bash
+bundle install
+bin/rails generate recording_studio_publishable:install
+bin/rails generate recording_studio_publishable:migrations
+bin/rails db:migrate
+```
+
+## Setup
+
+Mount the engine if you did not use the install generator:
+
+```ruby
+mount RecordingStudioPublishable::Engine, at: "/"
+```
+
+Configure RecordingStudio normally, then enable Publishable only on the types that should have public publish state:
+
+```ruby
+RecordingStudio.configure do |config|
+  config.recordable_types = %w[
+    Workspace
+    Folder
+    Page
+    Article
+    RecordingStudioPublishable::Publishable
+  ]
+  config.actor = -> { Current.actor }
+end
+
+class Workspace < ApplicationRecord
+  recording_studio_recordable label: "Workspace", plural_label: "Workspaces", root: true
+end
+
+class Folder < ApplicationRecord
+  recording_studio_recordable label: "Folder", root: false, allowed_parent_types: %w[Workspace Folder]
+end
+
+class Page < ApplicationRecord
+  recording_studio_recordable label: "Page", root: false, allowed_parent_types: %w[Workspace Folder Page]
+
+  include RecordingStudio::Capabilities::Publishable.to(
+    public_controller: "pages",
+    public_action: :show,
+    schedule: true,
+    seo: false
+  )
+end
+
+class Article < ApplicationRecord
+  recording_studio_recordable label: "Article", root: false, allowed_parent_types: %w[Workspace Folder Article]
+
+  include RecordingStudio::Capabilities::Publishable.to(
+    public_controller: "articles",
+    public_action: :show,
+    path: "/blogs/:uuid/:slug",
+    schedule: true,
+    seo: true
+  )
 end
 ```
 
-### FlatPack UI Components
+## Adding to a recordable
 
-All views use FlatPack ViewComponents. Available components include:
+Recordables stay opt-in. Include the capability only on the models that should publish:
 
-- `FlatPack::Button::Component` — Buttons (`:primary`, `:secondary`, `:ghost`)
-- `FlatPack::Card::Component` — Cards (`:default`, `:elevated`, `:outlined`)
-- `FlatPack::Alert::Component` — Alerts (`:success`, `:error`, `:warning`, `:info`)
-- `FlatPack::Badge::Component` — Status badges
-- `FlatPack::Table::Component` — Data tables
-- `FlatPack::TextInput::Component`, `EmailInput`, `PasswordInput` — Form inputs
-- `FlatPack::Breadcrumb::Component` — Navigation breadcrumbs
-- `FlatPack::Navbar::Component` — Navigation sidebar
+```ruby
+class Page < ApplicationRecord
+  recording_studio_recordable label: "Page", root: false, allowed_parent_types: %w[Workspace Folder Page]
 
-Use the live FlatPack demo app at [flatpack-c6p8f.ondigitalocean.app](https://flatpack-c6p8f.ondigitalocean.app/) as the approved UI reference for current shared patterns. Its component table is the fastest way to discover available FlatPack components before introducing new custom UI, and user-provided FlatPack demo URLs should be treated as task context.
+  include RecordingStudio::Capabilities::Publishable.to(
+    public_controller: "pages",
+    public_action: :show
+  )
+end
+```
 
-In GitHub Codespaces or other restricted environments, you may need to enable access to that URL before the agent can inspect the app. If access is unavailable, provide sanitized screenshots, copied markup, or component details so the agent can stay aligned with the shared UI.
+That registers the addon capability on `Page` while leaving other recordables, such as `Folder`, unchanged. Non-publishable types do not receive publish scopes.
 
-See the [FlatPack README](https://github.com/bowerbird-app/flatpack) for full documentation.
+`.to` wraps core 4.2.0 `RecordingStudio::Capabilities.include_for(:publishable, **options)`. Do not use `ParentRecordable` plus a `recording_studio_publishable` method as the host enablement API.
 
-## Tech Stack
+Optional `.to` keywords:
 
-| Component       | Version |
-|-----------------|---------|
-| Ruby            | 3.3+    |
-| Rails           | 8.1+    |
-| PostgreSQL      | 16      |
-| TailwindCSS     | 4       |
-| RecordingStudio | recording_studio/v3.0.0 (pinned in `test/dummy/Gemfile`) |
-| FlatPack        | v0.1.74 (pinned in `test/dummy/Gemfile`) |
-| Devise          | latest  |
+- `path` — public path template. Must include `:uuid`. Defaults to `/published/:uuid/:slug`
+- `public_controller` / `public_action` / `public_layout` — how the public route renders the parent
+- `schedule` — whether schedule controls are enabled (default `true`)
+- `seo` — whether SEO-only tags are enabled (default `true`)
+
+## Querying published parents
+
+Scopes live on the opted-in recordable class:
+
+```ruby
+Page.published
+Page.scheduled
+Page.draft
+Page.unpublished
+Page.published_in(2.weeks.ago..Time.current)
+page.published?
+page.published_url
+```
+
+Recording instance helpers work on the parent recording after the capability is enabled:
+
+```ruby
+page_recording.current_publishable
+page_recording.publishable_child_recording
+page_recording.currently_published?
+page_recording.publishable_public_path
+```
+
+## Dummy app
+
+The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.0`, Attachable `0.4.0`, and Flatpack `v0.1.133`. Authenticated dummy pages use Recording Studio's default layout plus Flatpack CSS and JS. Devise keeps its own sign-in layout.
+
+Sign in with `admin@admin.com` / `Password`.
 
 ## Documentation
 
-The original gem template documentation is preserved in `docs/gem_template/` as architectural reference material. Use it as background on the engine conventions; the README and dummy app are the source of truth for the Recording Studio addon workflow.
+Engine internals from the original gem template remain in `docs/gem_template/` as architectural reference. This README and the dummy app are the source of truth for Publishable.

@@ -6,6 +6,14 @@ class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1
   SLUG_INDEX = "index_rs_publishables_on_slug"
   RECORDABLE_TYPE = "RecordingStudioPublishable::Publishable"
 
+  def unique_child_index_where_clause
+    if column_exists?(:recording_studio_recordings, :trashed_at)
+      "recordable_type = '#{RECORDABLE_TYPE}' AND trashed_at IS NULL"
+    else
+      "recordable_type = '#{RECORDABLE_TYPE}'"
+    end
+  end
+
   def change
     create_table :recording_studio_publishable_publishables, id: :uuid do |t|
       t.string :slug, null: false
@@ -31,6 +39,6 @@ class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1
               :parent_recording_id,
               unique: true,
               name: UNIQUE_CHILD_INDEX,
-              where: "recordable_type = '#{RECORDABLE_TYPE}' AND trashed_at IS NULL"
+              where: unique_child_index_where_clause
   end
 end

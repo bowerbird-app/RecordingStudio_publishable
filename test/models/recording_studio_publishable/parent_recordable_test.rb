@@ -186,5 +186,37 @@ module RecordingStudioPublishable
 
       assert_nil page.published_url
     end
+
+    test "publish scopes exist only on opted-in types" do
+      assert_respond_to Page, :published
+      assert_respond_to Article, :scheduled
+      refute_respond_to Folder, :published
+      refute_respond_to Workspace, :published
+      refute RecordingStudio::Recording.respond_to?(:currently_published)
+      assert RecordingStudio.capability_enabled?(:publishable, for: Page)
+      assert RecordingStudio.capability_enabled?(:publishable, for: Article)
+      refute RecordingStudio.capability_enabled?(:publishable, for: Folder)
+      refute RecordingStudio.capability_enabled?(:publishable, for: Workspace)
+    end
+
+    test "publishable join sql omits trashed_at when the column is absent" do
+      quoted_type = Page.connection.quote("Page")
+
+      RecordingStudioPublishable::TrashedAt.stub(:column?, false) do
+        sql = Page.send(:publishable_scope_join_sql, quoted_type)
+
+        refute_includes sql, "trashed_at"
+      end
+    end
+
+    test "publishable join sql filters trashed_at when the column exists" do
+      quoted_type = Page.connection.quote("Page")
+
+      RecordingStudioPublishable::TrashedAt.stub(:column?, true) do
+        sql = Page.send(:publishable_scope_join_sql, quoted_type)
+
+        assert_includes sql, "trashed_at IS NULL"
+      end
+    end
   end
 end

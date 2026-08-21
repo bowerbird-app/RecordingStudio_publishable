@@ -72,17 +72,20 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
 
   test "published page falls back to the gem template when the conventional template is missing" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
-    folder_recording = RecordingStudio::Recording.create!(recordable: Folder.create!, parent_recording: root)
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Missing template page"),
+                                                          parent_recording: root)
     publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: folder_recording,
-      attributes: { slug: "folder-public", status: "published" }
+      parent_recording: parent_recording,
+      attributes: { slug: "public-page", status: "published" }
     ).value
 
-    get "/published/#{publishable_recording.id}/folder-public"
+    RecordingStudioPublishable::PublishedController.any_instance.stub(:public_template, "missing/template") do
+      get "/published/#{publishable_recording.id}/public-page"
+    end
 
     assert_response :success
     assert_includes response.body, "Parent recordable"
-    assert_includes response.body, "Folder"
+    assert_includes response.body, "Page"
   end
 
   test "stale slugs redirect to the canonical path" do

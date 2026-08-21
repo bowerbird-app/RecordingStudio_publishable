@@ -18,17 +18,19 @@ module RecordingStudioPublishable
     end
 
     class_methods do
-      def recording_studio_publishable(
+      def configure_publishable!(
         path: RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH,
         public_controller: nil,
         public_action: nil,
         public_layout: nil,
         schedule: true,
-        seo: true
+        seo: true,
+        **
       )
         configured_path = RecordingStudioPublishable.configuration.public_path_for(name)
         effective_path = path
-        if path == RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH && configured_path != RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH
+        if path == RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH &&
+           configured_path != RecordingStudioPublishable::Configuration::DEFAULT_PUBLIC_PATH
           effective_path = configured_path
         end
 
@@ -94,6 +96,9 @@ module RecordingStudioPublishable
       end
 
       def publishable_scope_join_sql(quoted_recordable_type)
+        trash_sql = RecordingStudioPublishable::TrashedAt.active_sql("publishable_recordings")
+        trash_clause = trash_sql ? "AND #{trash_sql}" : ""
+
         <<~SQL.squish
           INNER JOIN recording_studio_recordings parent_recordings
             ON parent_recordings.recordable_type = #{quoted_recordable_type}
@@ -101,11 +106,15 @@ module RecordingStudioPublishable
           INNER JOIN recording_studio_recordings publishable_recordings
             ON publishable_recordings.parent_recording_id = parent_recordings.id
            AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable'
-           AND publishable_recordings.trashed_at IS NULL
+           #{trash_clause}
           INNER JOIN recording_studio_publishable_publishables
             ON recording_studio_publishable_publishables.id = publishable_recordings.recordable_id
         SQL
       end
+    end
+
+    def self.configure!(base, **options)
+      base.configure_publishable!(**options)
     end
 
     def published?
@@ -129,12 +138,15 @@ module RecordingStudioPublishable
 
       @published_url = begin
         parent_recording = RecordingStudio::Recording.where(
-          recordable_type: self.class.name,
-          recordable_id: id,
-          trashed_at: nil
+          RecordingStudioPublishable::TrashedAt.merge_active(
+            recordable_type: self.class.name,
+            recordable_id: id
+          )
         ).order(:created_at, :id).last
         if parent_recording.present?
-          publishable_recording = parent_recording.respond_to?(:publishable_child_recording) ? parent_recording.publishable_child_recording : nil
+          publishable_recording = if parent_recording.respond_to?(:publishable_child_recording)
+                                    parent_recording.publishable_child_recording
+                                  end
           publishable = publishable_recording&.recordable
 
           if publishable.present? && publishable.currently_published?
