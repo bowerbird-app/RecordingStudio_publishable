@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+ENV["RAILS_ENV"] ||= "test"
+
 require "bundler/gem_tasks"
 require "rake/testtask"
 
@@ -33,30 +35,23 @@ def run_command!(env, *command)
 end
 
 def dummy_bundle_env
-  dummy_bundle_base_env.merge(dummy_bundle_cleared_env)
-end
-
-def dummy_bundle_base_env
   {
-    "BUNDLE_APP_CONFIG" => ENV.fetch("BUNDLE_APP_CONFIG", nil),
     "BUNDLE_GEMFILE" => DUMMY_GEMFILE,
-    "BUNDLE_PATH" => ENV.fetch("BUNDLE_PATH", nil),
     "DISABLE_SIMPLECOV" => "true",
-    "GEM_HOME" => ENV.fetch("BUNDLER_ORIG_GEM_HOME", ENV.fetch("GEM_HOME", nil)),
-    "GEM_PATH" => ENV.fetch("BUNDLER_ORIG_GEM_PATH", nil)
-  }
+    "RAILS_ENV" => ENV.fetch("RAILS_ENV", "test")
+  }.merge(dummy_database_env)
 end
 
-def dummy_bundle_cleared_env
+def dummy_database_env
   {
-    "BUNDLE_BIN_PATH" => nil,
-    "BUNDLE_GEMFILE" => DUMMY_GEMFILE,
-    "BUNDLE_LOCKFILE" => nil,
-    "BUNDLER_SETUP" => nil,
-    "BUNDLER_VERSION" => nil,
-    "RUBYLIB" => nil,
-    "RUBYOPT" => nil
-  }
+    "DATABASE_URL" => ENV.fetch("DATABASE_URL", nil),
+    "DB_HOST" => ENV.fetch("DB_HOST", nil),
+    "DB_NAME" => ENV.fetch("DB_NAME", nil),
+    "DB_PASSWORD" => ENV.fetch("DB_PASSWORD", "postgres"),
+    "DB_PORT" => ENV.fetch("DB_PORT", nil),
+    "DB_TEST_NAME" => ENV.fetch("DB_TEST_NAME", nil),
+    "DB_USER" => ENV.fetch("DB_USER", "postgres")
+  }.compact
 end
 
 Rake::TestTask.new(:test) do |t|
@@ -79,11 +74,13 @@ namespace :test do
   desc "Run dummy app integration tests under the dummy app bundle"
   task :dummy do
     Dir.chdir(DUMMY_APP_ROOT) do
-      env = dummy_bundle_env
+      Bundler.with_unbundled_env do
+        env = dummy_bundle_env
 
-      run_command!(env, "bin/rails", "db:prepare")
-      run_command!(env, "bundle", "exec", "bin/rails", "test")
-      run_command!(env, "bundle", "exec", "ruby", "-I/workspace/test", *DUMMY_TEST_FILES)
+        run_command!(env, "bin/rails", "db:prepare")
+        run_command!(env, "bundle", "exec", "bin/rails", "test")
+        run_command!(env, "bundle", "exec", "ruby", "-I#{File.expand_path('test', __dir__)}", *DUMMY_TEST_FILES)
+      end
     end
   end
 

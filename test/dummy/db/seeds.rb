@@ -29,14 +29,15 @@ article_recording ||= root_recording.record(article, actor: admin_user, parent_r
 Current.actor = RecordingStudio::ActorResolver.resolve_actor.call(admin_user)
 Current.impersonator = nil
 
-admin_access = RecordingStudio::Access.find_or_create_by!(actor: admin_user, role: :admin)
-viewer_access = RecordingStudio::Access.find_or_create_by!(actor: viewer_user, role: :view)
-
-admin_access_recording = root_recording.recording_for(admin_access)
-admin_access_recording ||= root_recording.record(admin_access, actor: admin_user, parent_recording: root_recording)
-
-viewer_access_recording = root_recording.recording_for(viewer_access)
-viewer_access_recording ||= root_recording.record(viewer_access, actor: admin_user, parent_recording: root_recording)
+if defined?(RecordingStudioAccessible)
+  RecordingStudioAccessible.bootstrap_owner_access!(recording: root_recording, actor: admin_user)
+  RecordingStudioAccessible.grant_access(
+    recording: root_recording,
+    actor: viewer_user,
+    role: :view,
+    manager_actor: admin_user
+  )
+end
 
 publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
   parent_recording: page_recording,

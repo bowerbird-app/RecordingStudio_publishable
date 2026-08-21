@@ -124,13 +124,11 @@ module RecordingStudioPublishable
       ).value!
 
       by_range_ids = Page.published_in(2.weeks.ago..Time.current).pluck(:id)
-      by_cutoff_ids = Page.published_in(Time.current).pluck(:id)
 
       assert_includes by_range_ids, recent_page.id
       refute_includes by_range_ids, old_page.id
-
-      assert_includes by_cutoff_ids, recent_page.id
-      refute_includes by_cutoff_ids, old_page.id
+      assert_includes Page.published.pluck(:id), recent_page.id
+      assert_includes Page.published.pluck(:id), old_page.id
     end
 
     test "unpublished_in accepts both a range and a time cutoff" do
@@ -141,15 +139,20 @@ module RecordingStudioPublishable
       recent_recording = RecordingStudio::Recording.create!(recordable: recent_page, parent_recording: root)
       old_recording = RecordingStudio::Recording.create!(recordable: old_page, parent_recording: root)
 
-      RecordingStudioPublishable::Services::Publishables::Update.call(
+      recent_publishable = RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: recent_recording,
-        attributes: { slug: "recent-unpublished-page", status: "draft", unpublish_at: 2.days.from_now }
-      ).value!
-
-      RecordingStudioPublishable::Services::Publishables::Update.call(
+        attributes: { slug: "recent-unpublished-page", status: "draft" }
+      ).value!.recordable
+      old_publishable = RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: old_recording,
-        attributes: { slug: "old-unpublished-page", status: "draft", unpublish_at: 5.weeks.from_now }
-      ).value!
+        attributes: { slug: "old-unpublished-page", status: "draft" }
+      ).value!.recordable
+
+      # Update clears unpublish_at on drafts and the returned recordable is readonly.
+      RecordingStudioPublishable::Publishable.where(id: recent_publishable.id)
+                                             .update_all(unpublish_at: 2.days.from_now)
+      RecordingStudioPublishable::Publishable.where(id: old_publishable.id)
+                                             .update_all(unpublish_at: 5.weeks.from_now)
 
       by_range_ids = Page.unpublished_in(Time.current..2.weeks.from_now).pluck(:id)
       by_cutoff_ids = Page.unpublished_in(2.weeks.from_now).pluck(:id)

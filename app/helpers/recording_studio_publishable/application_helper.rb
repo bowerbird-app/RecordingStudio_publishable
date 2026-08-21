@@ -74,6 +74,11 @@ module RecordingStudioPublishable
     def publishable_public_url(publishable_recording:, publishable:, parent_recordable_type: nil)
       parent_recordable = publishable_recording&.parent_recording&.recordable
       path = parent_recordable.respond_to?(:published_url) ? parent_recordable.published_url : nil
+      path ||= RecordingStudioPublishable::Routing.url_for(
+        publishable_recording: publishable_recording,
+        publishable: publishable,
+        parent_recordable_type: parent_recordable_type || publishable_recording&.parent_recording&.recordable_type
+      )
 
       return path if path.blank?
 

@@ -14,11 +14,12 @@ gem "pg", "~> 1.1"
 gem "puma"
 gem "sprockets-rails"
 
-gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.6.0"
+gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.6.1"
 gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "0.4.0"
 
 group :development, :test do
   gem "debug"
+  gem "minitest-mock"
   gem "simplecov", require: false
 end
 

@@ -21,7 +21,7 @@ class RecordingStudioPublishableTest < Minitest::Test
     view_path = File.expand_path("dummy/app/views/home/index.html.erb", __dir__)
     view_source = File.read(view_path)
 
-    assert_includes view_source, "Dummy pages"
+    assert_includes view_source, "Dummy publishables"
     assert_includes view_source, "Add Page"
     assert_includes view_source, "Public path"
   end

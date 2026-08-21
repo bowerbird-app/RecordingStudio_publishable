@@ -5,11 +5,28 @@ require "test_helper"
 class ConfigurationTest < Minitest::Test
   def setup
     @original_configuration = RecordingStudioPublishable.instance_variable_get(:@configuration)
+    @original_capabilities = snapshot_capability_map
+    @original_capability_options = snapshot_capability_options
     RecordingStudioPublishable.reset_configuration!
   end
 
   def teardown
     RecordingStudioPublishable.instance_variable_set(:@configuration, @original_configuration)
+    restore_capability_state!
+  end
+
+  def snapshot_capability_map
+    current = RecordingStudio.configuration.instance_variable_get(:@capabilities) || {}
+    current.transform_values(&:dup)
+  end
+
+  def snapshot_capability_options
+    (RecordingStudio.configuration.instance_variable_get(:@capability_options) || {}).dup
+  end
+
+  def restore_capability_state!
+    RecordingStudio.configuration.instance_variable_set(:@capabilities, @original_capabilities)
+    RecordingStudio.configuration.instance_variable_set(:@capability_options, @original_capability_options)
   end
 
   def test_register_public_path_persists_template_by_recordable_type

@@ -13,7 +13,7 @@
   data-recording-studio-attachable--attachment-image-picker-image-processing-quality-value="<%= RecordingStudioAttachable.configuration.image_processing_quality %>"
   data-recording-studio-attachable--attachment-image-picker-multiple-selection-value="false"
   data-recording-studio-attachable--attachment-image-picker-modal-id-value="<%= social_image_modal_id %>">
-  <%= render FlatPack::PageNav::Component.new(close_url: @management_close_url) %>
+  <%= render FlatPack::PageNav::Component.new(anchor_href: @management_close_url) %>
 
   <% recordable = @parent_recording.recordable %>
   <% recordable_name = recordable.try(:title).presence || recordable.try(:name).presence || @parent_recording.recordable_type.to_s.demodulize.humanize %>

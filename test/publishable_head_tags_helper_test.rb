@@ -32,7 +32,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
 
   def test_publishable_head_tags_renders_title_description_and_canonical_fallbacks
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     publishable = Publishable.new(
       "SEO headline",
       "Search-friendly description",
@@ -63,7 +63,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
 
   def test_publishable_head_tags_returns_blank_for_unpublished_records
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     publishable = Publishable.new("SEO headline", "Search-friendly description", nil, nil, nil, "launch-checklist")
     publishable.define_singleton_method(:currently_published?) { false }
     publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
@@ -76,7 +76,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
 
   def test_publishable_head_tags_renders_social_image_dimensions_when_image_url_present
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     publishable = Publishable.new("SEO headline", "Search-friendly description", nil, "Social headline", "Social description",
                                   "launch-checklist")
     publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
@@ -97,7 +97,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
 
   def test_publishable_head_tags_resolves_social_image_url_from_attachment_preview
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     attachment_recording = Struct.new(:id).new("attachment-123")
     publishable = SocialPublishable.new("SEO headline", "Search-friendly description", nil, "Social headline",
                                         "Social description", "launch-checklist", attachment_recording)
@@ -123,7 +123,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
 
   def test_publishable_head_tags_omits_seo_tags_when_seo_capability_is_disabled
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     publishable = Publishable.new(
       "SEO headline",
       "Search-friendly description",

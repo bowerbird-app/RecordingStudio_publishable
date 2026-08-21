@@ -8,10 +8,10 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_accessible.git
-  revision: 435876939d9be5b32730b9389dcc3b8e56ad6220
-  tag: v0.6.0
+  revision: eb898857241bc2211803e39086a11fab63ce2f76
+  tag: v0.6.1
   specs:
-    recording_studio_accessible (0.6.0)
+    recording_studio_accessible (0.6.1)
       rails (~> 8.1.0)
       recording_studio (~> 4.1)
 
@@ -238,6 +238,7 @@ GEM
     minitest (6.0.6)
       drb (~> 2.0)
       prism (~> 1.5)
+    minitest-mock (5.27.0)
     msgpack (1.8.0)
     net-imap (0.6.4)
       date
@@ -479,6 +480,7 @@ DEPENDENCIES
   importmap-rails
   jbuilder
   kamal
+  minitest-mock
   pg (~> 1.1)
   propshaft
   puma (>= 5.0)
@@ -570,6 +572,7 @@ CHECKSUMS
   mini_magick (5.3.1) sha256=29395dfd76badcabb6403ee5aff6f681e867074f8f28ce08d78661e9e4a351c4
   mini_mime (1.1.5) sha256=8681b7e2e4215f2a159f9400b5816d85e9d8c6c6b491e96a12797e798f8bccef
   minitest (6.0.6) sha256=153ea36d1d987a62942382b61075745042a2b3123b1cd48f4c3675af9cc7d6f1
+  minitest-mock (5.27.0) sha256=7040ed7185417a966920987eaa6eaf1be4ea1fc5b25bb03ff4703f98564a55b0
   msgpack (1.8.0) sha256=e64ce0212000d016809f5048b48eb3a65ffb169db22238fb4b72472fecb2d732
   net-imap (0.6.4) sha256=9a5598c67a3022c284d98430ef1d4948e7dbdb62596f61081ea8ca933270a02b
   net-pop (0.1.2) sha256=848b4e982013c15b2f0382792268763b748cce91c9e91e36b0f27ed26420dff3
@@ -619,7 +622,7 @@ CHECKSUMS
   rake (13.4.2) sha256=cb825b2bd5f1f8e91ca37bddb4b9aaf345551b4731da62949be002fa89283701
   rdoc (7.2.0) sha256=8650f76cd4009c3b54955eb5d7e3a075c60a57276766ebf36f9085e8c9f23192
   recording_studio (4.2.0)
-  recording_studio_accessible (0.6.0)
+  recording_studio_accessible (0.6.1)
   recording_studio_attachable (0.4.0)
   recording_studio_publishable (0.2.0)
   regexp_parser (2.11.3) sha256=ca13f381a173b7a93450e53459075c9b76a10433caadcb2f1180f2c741fc55a4

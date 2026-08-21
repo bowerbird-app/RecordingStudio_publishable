@@ -5,20 +5,16 @@ require "active_support/concern"
 module RecordingStudioPublishable
   module RecordingExtensions
     def publishable_child_recording
-      return @publishable_child_recording if instance_variable_defined?(:@publishable_child_recording)
-
       relation = child_recordings.of_type(RecordingStudioPublishable::Publishable)
       if RecordingStudioPublishable::TrashedAt.column? && relation.respond_to?(:where)
         relation = relation.where(trashed_at: nil)
       end
 
-      @publishable_child_recording = relation.first
+      relation.first
     end
 
     def current_publishable
-      return @current_publishable if instance_variable_defined?(:@current_publishable)
-
-      @current_publishable = publishable_child_recording&.recordable
+      publishable_child_recording&.recordable
     end
 
     def currently_published?

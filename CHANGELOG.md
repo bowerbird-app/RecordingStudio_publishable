@@ -20,8 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Soft-detection for optional `trashed_at` so Trashable can stay out of the gemspec DAG
 
 ### Changed
-- Dummy pins Recording Studio `v4.2.0`, Accessible `v0.6.0`, Attachable `0.4.0`, and Flatpack `v0.1.133`
+- Dummy pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, and Flatpack `v0.1.133`
 - Dummy authenticated layout is Recording Studio's default layout plus Flatpack CSS/JS; Devise keeps its own sign-in layout
+- Publish edit/success PageNav close control uses Flatpack `anchor_href` so the close URL still wires on Flatpack `v0.1.133`
 - README now describes Publishable rather than GemTemplate
 
 ### Upgrade Notes

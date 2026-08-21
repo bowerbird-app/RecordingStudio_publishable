@@ -139,7 +139,7 @@ page_recording.publishable_public_path
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.0`, Attachable `0.4.0`, and Flatpack `v0.1.133`. Authenticated dummy pages use Recording Studio's default layout plus Flatpack CSS and JS. Devise keeps its own sign-in layout.
+The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, and Flatpack `v0.1.133`. Authenticated dummy pages use Recording Studio's default layout plus Flatpack CSS and JS. Devise keeps its own sign-in layout.
 
 Sign in with `admin@admin.com` / `Password`.
 

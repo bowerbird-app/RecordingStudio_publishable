@@ -1,5 +1,5 @@
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-  <%= render FlatPack::PageNav::Component.new(close_url: @management_close_url) %>
+  <%= render FlatPack::PageNav::Component.new(anchor_href: @management_close_url) %>
 
   <div class="flex flex-wrap items-center justify-between gap-3">
     <%= render FlatPack::PageTitle::Component.new(
