@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Dummy pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.0`
 - Dummy authenticated layout is Recording Studio's default layout (`UsesDefaultLayout`) with PageNav back + close, workspace switcher, and Sign out. There is no homemade Dummy publishables landing or sidebar
+- Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS). Stylesheets load in kit order (`flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind) so Table and Accordion match https://flatpack.bowerbird.io/
 - Dummy Tailwind scans Flatpack components (and a `tmp/tailwind` mirror) so table and accordion utilities such as `w-5` / `h-5` are present. Importmap lazy-loads Flatpack controllers like gem_template v0.2.0
 - Publish edit/success use the layout PageNav (`page_nav_anchor_url` mapped to Flatpack `anchor_href`) so there is one close control, not a second PageNav in the gem view
 - README now describes Publishable rather than GemTemplate

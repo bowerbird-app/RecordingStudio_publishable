@@ -50,6 +50,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
+    assert_select "html[data-theme=rounded]"
     assert_select "body[data-recording-studio-default-layout='true']"
     assert_select ".flat-pack-page-nav", 1
     assert_select "nav[aria-label='Page navigation']"
@@ -71,6 +72,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
 
     assert_response :success
+    assert_select "html[data-theme=rounded]"
     assert_select "body[data-recording-studio-default-layout='true']"
     assert_select ".flat-pack-page-nav", 1
     assert_match "Sign out", response.body
@@ -86,9 +88,8 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
   test "dummy importmap and manifest pin Flatpack CSS and JS" do
     importmap = File.read(Rails.root.join("config/importmap.rb"))
     manifest = File.read(Rails.root.join("app/assets/config/manifest.js"))
-    layout = File.read(
-      RecordingStudio::Engine.root.join("app/views/layouts/recording_studio/default_layout.html.erb")
-    )
+    layout = File.read(Rails.root.join("app/views/layouts/recording_studio/default_layout.html.erb"))
+    devise_layout = File.read(Rails.root.join("app/views/layouts/application.html.erb"))
     controllers = File.read(Rails.root.join("app/javascript/controllers/index.js"))
 
     assert_includes importmap, "controllers/flat_pack"
@@ -100,9 +101,29 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_includes manifest, "flat_pack/application.css"
     assert_includes File.read(Rails.root.join("app/assets/tailwind/application.css")),
                     "tmp/tailwind/flat_pack_components"
-    assert_includes layout, 'stylesheet_link_tag "tailwind"'
+    assert_includes layout, '<html data-theme="rounded">'
     assert_includes layout, 'stylesheet_link_tag "flat_pack/variables"'
+    assert_includes layout, 'stylesheet_link_tag "flat_pack/application"'
+    assert_includes layout, 'stylesheet_link_tag "flat_pack/rich_text"'
+    assert_includes layout, 'stylesheet_link_tag "tailwind"'
     assert_includes layout, "javascript_importmap_tags"
+    assert_includes devise_layout, '<html data-theme="rounded">'
+  end
+
+  test "public publishable pages use default layout with Flatpack rounded theme" do
+    parent_recording = create_publishable_parent("Public theme page")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "public-theme-page", status: "published" }
+    ).value!
+
+    get parent_recording.publishable_public_path
+
+    assert_response :success
+    assert_select "html[data-theme=rounded]"
+    assert_select "body[data-recording-studio-default-layout='true']"
+    assert_flatpack_assets_loaded
   end
 
   test "dummy gemfile pins recording studio 4.2 and dummy-only root switchable" do
@@ -118,6 +139,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
 
   def assert_flatpack_assets_loaded
     assert_match %r{flat_pack/variables}, response.body
+    assert_match %r{flat_pack/application}, response.body
     assert_match %r{stylesheet.*tailwind|tailwind-}, response.body
     assert_match "importmap", response.body
     assert_match %r{controllers/flat_pack}, response.body
