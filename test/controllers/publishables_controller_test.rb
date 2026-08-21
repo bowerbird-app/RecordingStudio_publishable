@@ -115,8 +115,10 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "publishable[canonical_url]"
     assert_includes response.body, "publishable[meta_robots]"
+    assert_includes response.body, "Search engines"
     assert_includes response.body, "Canonical URL"
     assert_includes response.body, "Search listing"
+    refute_includes response.body, ">Search</span>"
     refute_includes response.body, 'name="publishable[meta_robots]" type="hidden"'
   end
 

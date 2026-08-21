@@ -36,4 +36,16 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes layout_source, 'stylesheet_link_tag "flat_pack/application"'
     assert_includes devise_layout, '<html data-theme="rounded">'
   end
+
+  def test_publish_edit_accordion_is_named_search_engines
+    view_source = File.read(
+      File.expand_path("../app/views/recording_studio_publishable/publishables/edit.html.erb", __dir__)
+    )
+
+    assert_includes view_source, "FlatPack::Accordion::Component"
+    assert_includes view_source, 'title: "Search engines"'
+    refute_includes view_source, 'title: "Search"'
+    assert_includes view_source, 'label: "Canonical URL"'
+    assert_includes view_source, 'label: "Search listing"'
+  end
 end

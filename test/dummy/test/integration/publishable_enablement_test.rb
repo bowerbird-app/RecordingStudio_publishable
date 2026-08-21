@@ -77,8 +77,10 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_select ".flat-pack-page-nav", 1
     assert_match "Sign out", response.body
     assert_match "Publish", response.body
+    assert_match "Search engines", response.body
     assert_match "Canonical URL", response.body
     assert_match "Search listing", response.body
+    refute_match ">Search</span>", response.body
     assert_match 'class="w-5 h-5 transition-transform duration-200"', response.body
     refute_match "flat-pack-sidebar-layout", response.body
     refute_match "recording_studio-publishable-layout", response.body

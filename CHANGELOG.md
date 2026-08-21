@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS). Stylesheets load in kit order (`flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind) so Table and Accordion match https://flatpack.bowerbird.io/
 - Dummy Tailwind scans Flatpack components (and a `tmp/tailwind` mirror) so table and accordion utilities such as `w-5` / `h-5` are present. Importmap lazy-loads Flatpack controllers like gem_template v0.2.0
 - Publish edit/success use the layout PageNav (`page_nav_anchor_url` mapped to Flatpack `anchor_href`) so there is one close control, not a second PageNav in the gem view
+- The publish screen accordion for canonical URL and listing is labeled **Search engines**, not Search. Field copy stays Canonical URL and Search listing
 - README now describes Publishable rather than GemTemplate
 - `publishable_head_tags` no longer emits `<title>`. Layouts yield `publishable_document_title` so there is one document title
 
@@ -43,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Do not add `recording_studio_trashable` unless the host actually uses trash. Publish queries skip `trashed_at` when the column is absent
 - Run `bin/rails generate recording_studio_publishable:migrations` and `bin/rails db:migrate` so the unique publishable-child index is created without assuming `trashed_at`
 - Use `Page.indexable` / `page.indexable?` for public lists and search. Do not invent a parallel indexable helper
-- Canonical URL and search listing are on the publish management screen and the Update service. Blank canonical uses the public URL
+- Canonical URL and search listing are on the publish management screen (Search engines accordion) and the Update service. Blank canonical uses the public URL. If you overrode the edit view and still label that accordion Search, rename it to Search engines
 
 ## [0.1.2] - 2026-06-05
 

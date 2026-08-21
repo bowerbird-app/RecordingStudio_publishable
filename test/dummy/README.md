@@ -11,7 +11,7 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 - Recording Studio's default layout (`RecordingStudio::UsesDefaultLayout`) with PageNav back + close, workspace switcher, and Sign out
 - Flatpack's built-in `rounded` theme on `<html data-theme="rounded">` (not custom CSS) on every dummy layout, including Devise and public pages
 - Flatpack CSS and JS loaded the way the [live kit](https://flatpack.bowerbird.io/) does: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then host Tailwind; stylesheets in `manifest.js`; Flatpack controllers lazy-loaded from `importmap.rb`
-- the FlatPack-based **Edit publishable info** screen, including Canonical URL and search listing
+- the FlatPack-based **Edit publishable info** screen, with a Search engines accordion for Canonical URL and search listing
 - the default public route at `/published/:uuid/:slug`
 - seeded published indexable, published hidden-from-search, and unpublished pages so head tags and `indexable?` can be checked
 
