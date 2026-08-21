@@ -1,8 +1,5 @@
-// Import and register all your controllers from the importmap via controllers/**/*_controller
 import { application } from "controllers/application"
-import { eagerLoadControllersFrom } from "@hotwired/stimulus-loading"
-eagerLoadControllersFrom("controllers", application)
+import { lazyLoadControllersFrom } from "@hotwired/stimulus-loading"
 
-// Eager load FlatPack controllers
-eagerLoadControllersFrom("controllers/flat_pack", application)
-eagerLoadControllersFrom("controllers/recording_studio_attachable", application)
+// Lazy load controllers from the host app and FlatPack engine on first use.
+lazyLoadControllersFrom("controllers", application)

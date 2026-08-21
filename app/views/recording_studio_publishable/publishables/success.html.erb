@@ -1,5 +1,14 @@
+<% if respond_to?(:recording_studio_page_nav) %>
+  <% recording_studio_page_nav(
+    title: "Published!",
+    page_nav_back_url: (main_app.root_path if main_app.respond_to?(:root_path)),
+    page_nav_back_label: "Home",
+    page_nav_anchor_url: @management_close_url,
+    page_nav_anchor_label: "Close"
+  ) %>
+<% end %>
+
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-  <%= render FlatPack::PageNav::Component.new(anchor_href: @management_close_url) %>
 
   <div class="flex flex-wrap items-center justify-between gap-3">
     <%= render FlatPack::PageTitle::Component.new(
@@ -27,7 +36,7 @@
       text: "View",
       style: :primary,
       size: :md,
-      url: @public_url,
+      href: @public_url,
       class: "w-full"
     ) %>
   </div>

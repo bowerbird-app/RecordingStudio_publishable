@@ -26,9 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `indexable` / `indexable?` on opted-in parent types for public lists and search
 
 ### Changed
-- Dummy pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, and Flatpack `v0.1.133`
-- Dummy authenticated layout is Recording Studio's default layout plus Flatpack CSS/JS (`UsesDefaultLayout`, `config.layout = "recording_studio/default_layout"`); Devise keeps its own sign-in layout
-- Publish edit/success PageNav close control uses Flatpack `anchor_href` so the close URL still wires on Flatpack `v0.1.133`
+- Dummy pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.0`
+- Dummy authenticated layout is Recording Studio's default layout (`UsesDefaultLayout`) with PageNav back + close, workspace switcher, and Sign out. There is no homemade Dummy publishables landing or sidebar
+- Dummy Tailwind scans Flatpack components (and a `tmp/tailwind` mirror) so table and accordion utilities such as `w-5` / `h-5` are present. Importmap lazy-loads Flatpack controllers like gem_template v0.2.0
+- Publish edit/success use the layout PageNav (`page_nav_anchor_url` mapped to Flatpack `anchor_href`) so there is one close control, not a second PageNav in the gem view
 - README now describes Publishable rather than GemTemplate
 - `publishable_head_tags` no longer emits `<title>`. Layouts yield `publishable_document_title` so there is one document title
 

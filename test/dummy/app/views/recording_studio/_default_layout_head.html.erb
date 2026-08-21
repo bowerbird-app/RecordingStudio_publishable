@@ -1,1 +1,13 @@
 <%= publishable_head_tags %>
+<% if user_signed_in? && !controller.is_a?(RecordingStudioPublishable::PublishedController) && !content_for?(:page_nav_right) %>
+  <% recording_studio_page_nav_right do %>
+    <%= recording_studio_root_switch_dropdown(style: :ghost, size: :md) %>
+    <%= render FlatPack::Button::Component.new(
+      text: "Sign out",
+      style: :ghost,
+      size: :md,
+      href: main_app.destroy_user_session_path,
+      data: { turbo_method: :delete }
+    ) %>
+  <% end %>
+<% end %>

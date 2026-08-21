@@ -40,10 +40,15 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     get "/"
 
     assert_response :success
-    assert_includes response.body, "Dummy publishables"
-    assert_includes response.body, "Add Page"
+    assert_includes response.body, "Pages"
+    assert_includes response.body, "Add page"
+    assert_includes response.body, "Sign out"
     assert_includes response.body, "Home page"
     assert_includes response.body, "Second page"
+    assert_includes response.body, "<thead"
+    assert_includes response.body, "<td"
+    refute_includes response.body, "Dummy publishables"
+    refute_includes response.body, "You are already signed in"
     assert_includes response.body,
                     recording_studio_publishable.edit_recording_publishable_path(recording_id: @page_recording.id)
   end

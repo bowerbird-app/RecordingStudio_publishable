@@ -18,12 +18,13 @@ class RecordingStudioPublishableTest < Minitest::Test
     refute_includes readme_source, "ParentRecordable"
   end
 
-  def test_dummy_home_page_mentions_publishable_demo
+  def test_dummy_home_page_uses_default_layout_table
     view_path = File.expand_path("dummy/app/views/home/index.html.erb", __dir__)
     view_source = File.read(view_path)
 
-    assert_includes view_source, "Dummy publishables"
-    assert_includes view_source, "Add Page"
-    assert_includes view_source, "Public path"
+    assert_includes view_source, "dummy_page_nav"
+    assert_includes view_source, "FlatPack::Table::Component"
+    assert_includes view_source, "Add page"
+    refute_includes view_source, "Dummy publishables"
   end
 end

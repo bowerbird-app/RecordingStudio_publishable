@@ -42,16 +42,25 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
 
   test "dummy uses core default layout rather than a custom sidebar shell" do
     assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
+    assert_includes ApplicationController.ancestors, RecordingStudio::RootSwitchable::ControllerSupport
     assert_equal "recording_studio/default_layout", RecordingStudioPublishable.configuration.layout
 
     sign_in @user
+    create_publishable_parent("Layout home page")
     get root_path
 
     assert_response :success
     assert_select "body[data-recording-studio-default-layout='true']"
+    assert_select ".flat-pack-page-nav", 1
+    assert_select "nav[aria-label='Page navigation']"
+    assert_match "Pages", response.body
+    assert_match "Sign out", response.body
+    assert_select "thead"
+    assert_select "td"
+    refute_match "Dummy publishables", response.body
+    refute_match "You are already signed in", response.body
     refute_match "flat-pack-sidebar-layout", response.body
     refute_match "recording_studio-publishable-layout", response.body
-    assert_match "Dummy publishables", response.body
     assert_flatpack_assets_loaded
   end
 
@@ -63,9 +72,14 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "body[data-recording-studio-default-layout='true']"
+    assert_select ".flat-pack-page-nav", 1
+    assert_match "Sign out", response.body
+    assert_match "Publish", response.body
+    assert_match "Canonical URL", response.body
+    assert_match "Search listing", response.body
+    assert_match 'class="w-5 h-5 transition-transform duration-200"', response.body
     refute_match "flat-pack-sidebar-layout", response.body
     refute_match "recording_studio-publishable-layout", response.body
-    assert_match "Publish", response.body
     assert_flatpack_assets_loaded
   end
 
@@ -75,23 +89,28 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     layout = File.read(
       RecordingStudio::Engine.root.join("app/views/layouts/recording_studio/default_layout.html.erb")
     )
+    controllers = File.read(Rails.root.join("app/javascript/controllers/index.js"))
 
     assert_includes importmap, "controllers/flat_pack"
     assert_includes importmap, "flat_pack/heroicons"
-    assert_includes File.read(Rails.root.join("app/javascript/controllers/index.js")),
-                    'eagerLoadControllersFrom("controllers/flat_pack"'
+    assert_includes importmap, "preload: false"
+    assert_includes controllers, 'lazyLoadControllersFrom("controllers"'
+    refute_includes controllers, "eagerLoadControllersFrom"
     assert_includes manifest, "flat_pack/variables.css"
     assert_includes manifest, "flat_pack/application.css"
+    assert_includes File.read(Rails.root.join("app/assets/tailwind/application.css")),
+                    "tmp/tailwind/flat_pack_components"
     assert_includes layout, 'stylesheet_link_tag "tailwind"'
     assert_includes layout, 'stylesheet_link_tag "flat_pack/variables"'
     assert_includes layout, "javascript_importmap_tags"
   end
 
-  test "dummy gemfile pins recording studio 4.2" do
+  test "dummy gemfile pins recording studio 4.2 and dummy-only root switchable" do
     gemfile = File.read(Rails.root.join("Gemfile"))
 
     assert_includes gemfile, 'tag: "v4.2.0"'
     assert_includes gemfile, 'tag: "v0.6.1"'
+    assert_includes gemfile, "recording_studio_root_switchable"
     refute_includes gemfile, "recording_studio_trashable"
   end
 
