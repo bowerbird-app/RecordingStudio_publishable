@@ -122,6 +122,16 @@ class DocsController < ApplicationController
         RUBY
       },
       {
+        title: "Recordable.indexable",
+        subtitle: "Returns live pages that search can list: published, not hidden from search, and with a public URL.",
+        code: <<~RUBY
+          Recordable.indexable
+
+          recordable = Recordable.find(recordable_id)
+          recordable.indexable?
+        RUBY
+      },
+      {
         title: "recordable.published?",
         subtitle: "Checks whether one Recordable record is currently published.",
         code: <<~RUBY
@@ -322,7 +332,9 @@ class DocsController < ApplicationController
       ["scheduled_for_future", @header_publishable.scheduled_for_future?.to_s],
       ["publish_at", @header_publishable.publish_at&.iso8601.to_s.presence || "-"],
       ["unpublish_at", @header_publishable.unpublish_at&.iso8601.to_s.presence || "-"],
-      ["seo_enabled", header_seo_enabled?.to_s]
+      ["seo_enabled", header_seo_enabled?.to_s],
+      ["indexable", header_indexable?.to_s],
+      ["robots", @header_publishable.robots_value.to_s]
     ]
   end
 
@@ -376,6 +388,13 @@ class DocsController < ApplicationController
     RecordingStudioPublishable.configuration.seo_enabled_for(recordable_type)
   rescue StandardError
     true
+  end
+
+  def header_indexable?
+    recordable = @header_parent_recording&.recordable
+    recordable.respond_to?(:indexable?) && recordable.indexable?
+  rescue StandardError
+    false
   end
 
   def component_demo_recording

@@ -18,12 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Canonical `.to` wrapper around core 4.2.0 `RecordingStudio::Capabilities.include_for(:publishable, **options)`
 - Capability registration with `child_recordables: ["RecordingStudioPublishable::Publishable"]`
 - Soft-detection for optional `trashed_at` so Trashable can stay out of the gemspec DAG
+- `publishable_head_tags` now emits `meta name="robots"` from `meta_robots` (default `index,follow`)
+- Canonical URL is an optional override on the management screen and Update service. Blank uses the public URL
+- `indexable` / `indexable?` on opted-in parent types for public lists and search
 
 ### Changed
 - Dummy pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, and Flatpack `v0.1.133`
 - Dummy authenticated layout is Recording Studio's default layout plus Flatpack CSS/JS; Devise keeps its own sign-in layout
 - Publish edit/success PageNav close control uses Flatpack `anchor_href` so the close URL still wires on Flatpack `v0.1.133`
 - README now describes Publishable rather than GemTemplate
+- `publishable_head_tags` no longer emits `<title>`. Layouts yield `publishable_document_title` so there is one document title
 
 ### Upgrade Notes
 - Host apps must move to RecordingStudio `~> 4.2` with this gem
@@ -31,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove `include RecordingStudioPublishable::ParentRecordable` and `recording_studio_publishable(...)`
 - Do not add `recording_studio_trashable` unless the host actually uses trash. Publish queries skip `trashed_at` when the column is absent
 - Run `bin/rails generate recording_studio_publishable:migrations` and `bin/rails db:migrate` so the unique publishable-child index is created without assuming `trashed_at`
+- Stop relying on `publishable_head_tags` for `<title>`. Yield `publishable_document_title` from the layout or public view
+- Use `Page.indexable` / `page.indexable?` for public lists and search. Do not invent a parallel indexable helper
+- Canonical URL and search listing are on the publish management screen and the Update service. Blank canonical uses the public URL
 
 ## [0.1.2] - 2026-06-05
 

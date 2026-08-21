@@ -47,8 +47,22 @@ module RecordingStudioPublishable
     scope :draft, -> { where(status: statuses[:draft]) }
     scope :unpublished, -> { where(status: statuses[:draft]).where.not(unpublish_at: nil) }
 
+    DEFAULT_ROBOTS = "index,follow"
+
     def published_state?
       status == self.class.statuses[:published]
+    end
+
+    def robots_value
+      meta_robots.to_s.strip.presence || DEFAULT_ROBOTS
+    end
+
+    def noindex?
+      robots_value.downcase.split(/[\s,]+/).include?("noindex")
+    end
+
+    def index_url(public_url = nil)
+      canonical_url.presence || public_url.presence
     end
 
     def draft_state?

@@ -107,6 +107,28 @@
         </div>
       <% end %>
 
+      <% accordion.item(id: "publishable-search-fields", title: "Search", open: false) do %>
+        <div class="space-y-4">
+          <%= render FlatPack::TextInput::Component.new(
+            name: "publishable[canonical_url]",
+            label: "Canonical URL",
+            value: @publishable.canonical_url,
+            placeholder: "Leave blank to use the public URL",
+            help_text: "Leave this blank unless search should treat another address as the original."
+          ) %>
+          <%= render FlatPack::Select::Component.new(
+            name: "publishable[meta_robots]",
+            label: "Search listing",
+            options: [
+              ["Show this page in search", "index,follow"],
+              ["Keep this page out of search", "noindex,follow"]
+            ],
+            value: (@publishable.noindex? ? "noindex,follow" : "index,follow"),
+            help_text: "Search engines only see this while the page is live."
+          ) %>
+        </div>
+      <% end %>
+
       <% if seo_enabled %>
         <% accordion.item(id: "publishable-seo-fields", title: "SEO", open: false) do %>
           <div class="space-y-8 bg-(--surface-raised-background-color)">
@@ -134,7 +156,6 @@
                 max_characters: 160,
                 placeholder: "Short summary for search engines"
               ) %>
-              <%= form.hidden_field :meta_robots, value: "index,follow" %>
             </section>
           </div>
         <% end %>

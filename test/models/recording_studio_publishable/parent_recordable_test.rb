@@ -190,6 +190,64 @@ module RecordingStudioPublishable
       assert_nil page.published_url
     end
 
+    test "indexable includes published indexable parents and excludes noindex, draft, and unpublished" do
+      root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Indexable workspace"))
+      indexable_page = Page.create!(title: "Indexable page")
+      noindex_page = Page.create!(title: "Noindex page")
+      draft_page = Page.create!(title: "Draft page")
+      indexable_recording = RecordingStudio::Recording.create!(recordable: indexable_page, parent_recording: root)
+      noindex_recording = RecordingStudio::Recording.create!(recordable: noindex_page, parent_recording: root)
+      draft_recording = RecordingStudio::Recording.create!(recordable: draft_page, parent_recording: root)
+
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: indexable_recording,
+        attributes: { slug: "indexable-page", status: "published", meta_robots: "index,follow" }
+      ).value!
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: noindex_recording,
+        attributes: { slug: "noindex-page", status: "published", meta_robots: "noindex,follow" }
+      ).value!
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: draft_recording,
+        attributes: { slug: "draft-index-page", status: "draft" }
+      ).value!
+
+      indexable_ids = Page.indexable.pluck(:id)
+
+      assert_includes indexable_ids, indexable_page.id
+      refute_includes indexable_ids, noindex_page.id
+      refute_includes indexable_ids, draft_page.id
+      assert indexable_page.reload.indexable?
+      refute noindex_page.reload.indexable?
+      refute draft_page.reload.indexable?
+      assert indexable_page.indexable_url.present?
+    end
+
+    test "indexable excludes an invalid canonical override" do
+      root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Invalid canonical workspace"))
+      page = Page.create!(title: "Invalid canonical page")
+      page_recording = RecordingStudio::Recording.create!(recordable: page, parent_recording: root)
+
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: page_recording,
+        attributes: {
+          slug: "invalid-canonical-page",
+          status: "published",
+          canonical_url: "not a url"
+        }
+      ).value!
+
+      refute page.reload.indexable?
+      assert_nil page.indexable_url
+      refute_includes Page.indexable.pluck(:id), page.id
+    end
+
+    test "indexable is not mixed into non-publishable types" do
+      refute_respond_to Folder, :indexable
+      refute_respond_to Workspace, :indexable
+      refute RecordingStudio::Recording.respond_to?(:indexable)
+    end
+
     test "publish scopes exist only on opted-in types" do
       assert_respond_to Page, :published
       assert_respond_to Article, :scheduled

@@ -9,8 +9,9 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 - opt-in `include RecordingStudio::Capabilities::Publishable.to(...)` on Page and Article
 - a parent `Page` recording with one publishable child recording
 - Recording Studio's default layout plus Flatpack CSS and JS
-- the FlatPack-based **Edit publishable info** screen
+- the FlatPack-based **Edit publishable info** screen, including Canonical URL and search listing
 - the default public route at `/published/:uuid/:slug`
+- seeded published indexable, published hidden-from-search, and unpublished pages so head tags and `indexable?` can be checked
 
 ## Quick Start
 

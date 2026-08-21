@@ -22,6 +22,7 @@
                 <th class="px-4 py-3 font-medium">Title</th>
                 <th class="px-4 py-3 font-medium">Parent</th>
                 <th class="px-4 py-3 font-medium">Public path</th>
+                <th class="px-4 py-3 font-medium">Search</th>
                 <th class="px-4 py-3 font-medium">Actions</th>
               </tr>
             </thead>
@@ -37,6 +38,16 @@
                       <%= link_to public_path, public_path, class: "text-(--surface-primary-content-color) underline underline-offset-2" %>
                     <% else %>
                       Not published yet
+                    <% end %>
+                  </td>
+                  <td class="px-4 py-3">
+                    <% recordable = recording.recordable %>
+                    <% if recordable.respond_to?(:indexable?) && recordable.indexable? %>
+                      <%= render FlatPack::Badge::Component.new(text: "In search", style: :success, size: :sm) %>
+                    <% elsif public_path.present? %>
+                      <%= render FlatPack::Badge::Component.new(text: "Hidden from search", style: :default, size: :sm) %>
+                    <% else %>
+                      <%= render FlatPack::Badge::Component.new(text: "Not live", style: :default, size: :sm) %>
                     <% end %>
                   </td>
                   <td class="px-4 py-3">

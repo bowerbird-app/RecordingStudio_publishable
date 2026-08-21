@@ -144,10 +144,8 @@ module RecordingStudioPublishable
 
       attributes.concat(%i[publish_at unpublish_at time_zone]) if schedule_enabled_for_recordable?
 
-      if seo_enabled_for_recordable?
-        attributes.concat(%i[seo_title seo_description meta_robots])
-        attributes << :canonical_url
-      end
+      attributes.concat(%i[canonical_url meta_robots])
+      attributes.concat(%i[seo_title seo_description]) if seo_enabled_for_recordable?
 
       attributes
     end

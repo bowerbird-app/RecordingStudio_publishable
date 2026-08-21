@@ -123,10 +123,18 @@ Page.published
 Page.scheduled
 Page.draft
 Page.unpublished
+Page.indexable
 Page.published_in(2.weeks.ago..Time.current)
 page.published?
+page.indexable?
 page.published_url
 ```
+
+`indexable` is the list Support and Press kits should use for public search. A parent is indexable when it is currently published, not trashed (if `trashed_at` exists), not marked `noindex`, and has a canonical URL or public URL.
+
+`publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>`. Layouts should yield `publishable_document_title` as the single document title.
+
+Canonical URL is an optional override. Leave it blank to use the public URL. The management screen and the Update service both accept it, including when SEO tags are turned off for that type.
 
 Recording instance helpers work on the parent recording after the capability is enabled:
 

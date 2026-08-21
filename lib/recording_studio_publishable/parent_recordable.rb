@@ -87,7 +87,76 @@ module RecordingStudioPublishable
         unpublished.where(recording_studio_publishable_publishables: { unpublish_at: unpublish_window })
       end
 
+      def indexable
+        indexable_join_scope.merge(indexable_robots_scope).merge(indexable_url_scope)
+      end
+
+      def indexable_url?(url)
+        return false if url.blank?
+
+        value = url.to_s.strip
+        return true if value.start_with?("/")
+
+        uri = URI.parse(value)
+        %w[http https].include?(uri.scheme) && uri.host.present?
+      rescue URI::InvalidURIError
+        false
+      end
+
       private
+
+      def indexable_join_scope
+        quoted_recordable_type = connection.quote(name)
+        joins(indexable_scope_join_sql(quoted_recordable_type)).distinct
+      end
+
+      def indexable_robots_scope
+        RecordingStudioPublishable::Publishable.currently_published.where(<<~SQL.squish, noindex: "%noindex%")
+          recording_studio_publishable_publishables.meta_robots IS NULL
+          OR BTRIM(recording_studio_publishable_publishables.meta_robots) = ''
+          OR recording_studio_publishable_publishables.meta_robots NOT ILIKE :noindex
+        SQL
+      end
+
+      def indexable_url_scope
+        RecordingStudioPublishable::Publishable.where(<<~SQL.squish)
+          recording_studio_publishable_publishables.canonical_url IS NULL
+          OR BTRIM(recording_studio_publishable_publishables.canonical_url) = ''
+          OR recording_studio_publishable_publishables.canonical_url LIKE '/%'
+          OR recording_studio_publishable_publishables.canonical_url ILIKE 'http://%'
+          OR recording_studio_publishable_publishables.canonical_url ILIKE 'https://%'
+        SQL
+      end
+
+      def indexable_scope_join_sql(quoted_recordable_type)
+        child_trash_sql = RecordingStudioPublishable::TrashedAt.active_sql("publishable_recordings")
+        parent_trash_sql = RecordingStudioPublishable::TrashedAt.active_sql("parent_recordings")
+        child_trash_clause = child_trash_sql ? "AND #{child_trash_sql}" : ""
+        parent_trash_clause = parent_trash_sql ? "AND #{parent_trash_sql}" : ""
+        recordable_trash_clause = recordable_trashed_at_sql
+
+        <<~SQL.squish
+          INNER JOIN recording_studio_recordings parent_recordings
+            ON parent_recordings.recordable_type = #{quoted_recordable_type}
+           AND parent_recordings.recordable_id = #{table_name}.id
+           #{parent_trash_clause}
+          INNER JOIN recording_studio_recordings publishable_recordings
+            ON publishable_recordings.parent_recording_id = parent_recordings.id
+           AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable'
+           #{child_trash_clause}
+          INNER JOIN recording_studio_publishable_publishables
+            ON recording_studio_publishable_publishables.id = publishable_recordings.recordable_id
+          #{recordable_trash_clause}
+        SQL
+      end
+
+      def recordable_trashed_at_sql
+        return "" unless column_names.include?("trashed_at")
+
+        "AND #{table_name}.trashed_at IS NULL"
+      rescue StandardError
+        ""
+      end
 
       def joins_publishable_scope
         quoted_recordable_type = connection.quote(name)
@@ -133,6 +202,21 @@ module RecordingStudioPublishable
       self.class.unpublished.where(id: id).exists?
     end
 
+    def indexable?
+      self.class.indexable.where(id: id).exists? && indexable_url.present?
+    end
+
+    def indexable_url
+      return unless published?
+
+      publishable = current_publishable_for_index
+      return if publishable.blank?
+      return if publishable.noindex?
+
+      url = publishable.canonical_url.presence || published_url
+      url if self.class.indexable_url?(url)
+    end
+
     def published_url
       return @published_url if instance_variable_defined?(:@published_url)
 
@@ -160,6 +244,24 @@ module RecordingStudioPublishable
       rescue StandardError
         nil
       end
+    end
+
+    def current_publishable_for_index
+      parent_recording = RecordingStudio::Recording.where(
+        RecordingStudioPublishable::TrashedAt.merge_active(
+          recordable_type: self.class.name,
+          recordable_id: id
+        )
+      ).order(:created_at, :id).last
+      return if parent_recording.blank?
+
+      if parent_recording.respond_to?(:current_publishable)
+        parent_recording.current_publishable
+      else
+        parent_recording.publishable_child_recording&.recordable
+      end
+    rescue StandardError
+      nil
     end
   end
 end

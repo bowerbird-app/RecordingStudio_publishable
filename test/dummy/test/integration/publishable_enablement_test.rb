@@ -31,6 +31,8 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     refute_respond_to Folder, :published
     refute_respond_to Page, :recording_studio_publishable
     refute RecordingStudio::Recording.respond_to?(:published)
+    assert_respond_to Page, :indexable
+    refute_respond_to Folder, :indexable
     assert_includes Array(RecordingStudio.configuration.recordable_types).map(&:to_s),
                     "RecordingStudioPublishable::Publishable"
   end

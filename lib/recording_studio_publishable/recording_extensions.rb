@@ -53,6 +53,10 @@ module RecordingStudioPublishable
       current_publishable&.unpublished? || false
     end
 
+    def indexable?
+      recordable.respond_to?(:indexable?) && recordable.indexable?
+    end
+
     def social_image_supported?
       current_publishable&.social_image_supported? || false
     end

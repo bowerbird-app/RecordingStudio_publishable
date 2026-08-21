@@ -1,3 +1,4 @@
+<% content_for :title, publishable_document_title %>
 <% page_title = @article&.title.presence || @publishable.seo_title.presence || @publishable.slug.to_s.tr("-", " ").humanize %>
 <% public_renderer = RecordingStudioPublishable.configuration.public_renderer_for(@recording&.recordable_type) %>
 <% resolved_public_path = @article.respond_to?(:published_url) ? @article.published_url : nil %>
