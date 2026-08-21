@@ -30,6 +30,9 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
       attributes: { slug: "home-page", status: "published" }
     ).value!
 
+    result = RecordingStudioAccessible.bootstrap_owner_access!(recording: root, actor: @user)
+    result.respond_to?(:value!) ? result.value! : result
+
     sign_in @user
   end
 
@@ -37,10 +40,16 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     get "/"
 
     assert_response :success
-    assert_includes response.body, "Dummy pages"
-    assert_includes response.body, "Add Page"
+    assert_includes response.body, '<html data-theme="rounded">'
+    assert_includes response.body, "Pages"
+    assert_includes response.body, "Add page"
+    assert_includes response.body, "Sign out"
     assert_includes response.body, "Home page"
     assert_includes response.body, "Second page"
+    assert_includes response.body, "<thead"
+    assert_includes response.body, "<td"
+    refute_includes response.body, "Dummy publishables"
+    refute_includes response.body, "You are already signed in"
     assert_includes response.body,
                     recording_studio_publishable.edit_recording_publishable_path(recording_id: @page_recording.id)
   end
@@ -84,11 +93,11 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Publish"
-    refute_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
-    refute_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
+    assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
+    assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
     refute_includes response.body, "SEO title"
     refute_includes response.body, "SEO description"
-    assert_includes response.body, "Upload Photo"
+    assert_includes response.body, "Select social image"
   end
 
   test "edit page accepts a publishable child recording id without nesting another publishable" do

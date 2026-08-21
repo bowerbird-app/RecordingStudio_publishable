@@ -89,6 +89,17 @@ module RecordingStudioPublishable
       RecordingStudioPublishable.configuration.default_time_zone = original_time_zone
     end
 
+    test "robots_value defaults to index,follow and noindex? reads the field" do
+      publishable = Publishable.new(status: :published, slug: "demo")
+
+      assert_equal "index,follow", publishable.robots_value
+      refute publishable.noindex?
+
+      publishable.meta_robots = "noindex,follow"
+      assert publishable.noindex?
+      assert_equal "noindex,follow", publishable.robots_value
+    end
+
     test "social image selection api is available" do
       publishable = Publishable.new(status: :draft, slug: "demo")
 

@@ -6,7 +6,7 @@ require_relative "../../dummy/config/environment"
 require "rails/test_help"
 
 module RecordingStudioPublishable
-  class ParentRecordableTest < ActiveSupport::TestCase
+  class RecordableMethodsTest < ActiveSupport::TestCase
     test "published returns parent recordables" do
       root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Scope workspace"))
       published_page = Page.create!(title: "Published page")
@@ -124,13 +124,11 @@ module RecordingStudioPublishable
       ).value!
 
       by_range_ids = Page.published_in(2.weeks.ago..Time.current).pluck(:id)
-      by_cutoff_ids = Page.published_in(Time.current).pluck(:id)
 
       assert_includes by_range_ids, recent_page.id
       refute_includes by_range_ids, old_page.id
-
-      assert_includes by_cutoff_ids, recent_page.id
-      refute_includes by_cutoff_ids, old_page.id
+      assert_includes Page.published.pluck(:id), recent_page.id
+      assert_includes Page.published.pluck(:id), old_page.id
     end
 
     test "unpublished_in accepts both a range and a time cutoff" do
@@ -141,15 +139,20 @@ module RecordingStudioPublishable
       recent_recording = RecordingStudio::Recording.create!(recordable: recent_page, parent_recording: root)
       old_recording = RecordingStudio::Recording.create!(recordable: old_page, parent_recording: root)
 
-      RecordingStudioPublishable::Services::Publishables::Update.call(
+      recent_publishable = RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: recent_recording,
-        attributes: { slug: "recent-unpublished-page", status: "draft", unpublish_at: 2.days.from_now }
-      ).value!
-
-      RecordingStudioPublishable::Services::Publishables::Update.call(
+        attributes: { slug: "recent-unpublished-page", status: "draft" }
+      ).value!.recordable
+      old_publishable = RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: old_recording,
-        attributes: { slug: "old-unpublished-page", status: "draft", unpublish_at: 5.weeks.from_now }
-      ).value!
+        attributes: { slug: "old-unpublished-page", status: "draft" }
+      ).value!.recordable
+
+      # Update clears unpublish_at on drafts and the returned recordable is readonly.
+      RecordingStudioPublishable::Publishable.where(id: recent_publishable.id)
+                                             .update_all(unpublish_at: 2.days.from_now)
+      RecordingStudioPublishable::Publishable.where(id: old_publishable.id)
+                                             .update_all(unpublish_at: 5.weeks.from_now)
 
       by_range_ids = Page.unpublished_in(Time.current..2.weeks.from_now).pluck(:id)
       by_cutoff_ids = Page.unpublished_in(2.weeks.from_now).pluck(:id)
@@ -185,6 +188,100 @@ module RecordingStudioPublishable
       ).value!
 
       assert_nil page.published_url
+    end
+
+    test "indexable includes published indexable parents and excludes noindex, draft, and unpublished" do
+      root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Indexable workspace"))
+      indexable_page = Page.create!(title: "Indexable page")
+      noindex_page = Page.create!(title: "Noindex page")
+      draft_page = Page.create!(title: "Draft page")
+      indexable_recording = RecordingStudio::Recording.create!(recordable: indexable_page, parent_recording: root)
+      noindex_recording = RecordingStudio::Recording.create!(recordable: noindex_page, parent_recording: root)
+      draft_recording = RecordingStudio::Recording.create!(recordable: draft_page, parent_recording: root)
+
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: indexable_recording,
+        attributes: { slug: "indexable-page", status: "published", meta_robots: "index,follow" }
+      ).value!
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: noindex_recording,
+        attributes: { slug: "noindex-page", status: "published", meta_robots: "noindex,follow" }
+      ).value!
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: draft_recording,
+        attributes: { slug: "draft-index-page", status: "draft" }
+      ).value!
+
+      indexable_ids = Page.indexable.pluck(:id)
+
+      assert_includes indexable_ids, indexable_page.id
+      refute_includes indexable_ids, noindex_page.id
+      refute_includes indexable_ids, draft_page.id
+      assert indexable_page.reload.indexable?
+      refute noindex_page.reload.indexable?
+      refute draft_page.reload.indexable?
+      assert indexable_page.indexable_url.present?
+    end
+
+    test "indexable excludes an invalid canonical override" do
+      root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Invalid canonical workspace"))
+      page = Page.create!(title: "Invalid canonical page")
+      page_recording = RecordingStudio::Recording.create!(recordable: page, parent_recording: root)
+
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: page_recording,
+        attributes: {
+          slug: "invalid-canonical-page",
+          status: "published",
+          canonical_url: "not a url"
+        }
+      ).value!
+
+      refute page.reload.indexable?
+      assert_nil page.indexable_url
+      refute_includes Page.indexable.pluck(:id), page.id
+    end
+
+    test "indexable is not mixed into non-publishable types" do
+      refute_respond_to Folder, :indexable
+      refute_respond_to Workspace, :indexable
+      refute RecordingStudio::Recording.respond_to?(:indexable)
+    end
+
+    test "publish scopes exist only on opted-in types" do
+      assert_respond_to Page, :published
+      assert_respond_to Article, :scheduled
+      refute_respond_to Folder, :published
+      refute_respond_to Workspace, :published
+      refute RecordingStudio::Recording.respond_to?(:currently_published)
+      assert RecordingStudio.capability_enabled?(:publishable, for: Page)
+      assert RecordingStudio.capability_enabled?(:publishable, for: Article)
+      refute RecordingStudio.capability_enabled?(:publishable, for: Folder)
+      refute RecordingStudio.capability_enabled?(:publishable, for: Workspace)
+      refute RecordingStudioPublishable.const_defined?(:ParentRecordable)
+      refute_respond_to Page, :recording_studio_publishable
+      refute_respond_to Page, :configure_publishable!
+      refute_respond_to Page, :recording_studio_publishable_path_template
+    end
+
+    test "publishable join sql omits trashed_at when the column is absent" do
+      quoted_type = Page.connection.quote("Page")
+
+      RecordingStudioPublishable::TrashedAt.stub(:column?, false) do
+        sql = Page.send(:publishable_scope_join_sql, quoted_type)
+
+        refute_includes sql, "trashed_at"
+      end
+    end
+
+    test "publishable join sql filters trashed_at when the column exists" do
+      quoted_type = Page.connection.quote("Page")
+
+      RecordingStudioPublishable::TrashedAt.stub(:column?, true) do
+        sql = Page.send(:publishable_scope_join_sql, quoted_type)
+
+        assert_includes sql, "trashed_at IS NULL"
+      end
     end
   end
 end

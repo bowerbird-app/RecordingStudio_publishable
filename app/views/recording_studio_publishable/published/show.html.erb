@@ -1,4 +1,7 @@
-<div class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
+<% content_for :title, publishable_document_title %>
+
+<div
+  class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
   <%= render FlatPack::PageTitle::Component.new(
     title: @parent_recordable.respond_to?(:title) ? @parent_recordable.title : @parent_recording.recordable_type.to_s.demodulize.underscore.humanize,
     subtitle: @publishable.seo_description.presence || "Published from the parent recording's current recordable.",

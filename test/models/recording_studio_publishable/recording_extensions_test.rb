@@ -79,7 +79,7 @@ module RecordingStudioPublishable
       refute @parent_recording.social_image_attached?
     end
 
-    test "query aliases return recording relations" do
+    test "query aliases stay on opted-in recordables rather than every recording" do
       result = RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: @parent_recording,
         attributes: {
@@ -90,13 +90,13 @@ module RecordingStudioPublishable
       )
       assert result.success?
 
-      assert_includes RecordingStudio::Recording.scheduled.to_a, @parent_recording
-      assert_includes RecordingStudio::Recording.scheduled_in(2.weeks.from_now).to_a, @parent_recording
-      assert_includes RecordingStudio::Recording.scheduled_between(Time.current..2.weeks.from_now).to_a,
-                      @parent_recording
-      refute_includes RecordingStudio::Recording.published.to_a, @parent_recording
-      refute_includes RecordingStudio::Recording.draft.to_a, @parent_recording
-      refute_includes RecordingStudio::Recording.unpublished.to_a, @parent_recording
+      assert_includes Page.scheduled.to_a, @parent_recording.recordable
+      assert_includes Page.scheduled_in(2.weeks.from_now).to_a, @parent_recording.recordable
+      refute_includes Page.published.to_a, @parent_recording.recordable
+      refute_includes Page.draft.to_a, @parent_recording.recordable
+      refute_includes Page.unpublished.to_a, @parent_recording.recordable
+      refute RecordingStudio::Recording.respond_to?(:published)
+      refute RecordingStudio::Recording.respond_to?(:scheduled)
     end
   end
 end

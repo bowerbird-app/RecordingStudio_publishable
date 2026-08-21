@@ -6,6 +6,11 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
+  # Dummy copies engine migrations under host timestamps. The gem's original
+  # db/migrate versions would otherwise look pending when Rails includes engine
+  # paths during maintain_test_schema.
+  config.active_record.maintain_test_schema = false
+
   # While tests run files are not watched, reloading is not necessary.
   config.enable_reloading = false
 

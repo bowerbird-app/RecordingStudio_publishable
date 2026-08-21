@@ -15,9 +15,10 @@ module RecordingStudioPublishable
 
         def perform
           publishable_recording = RecordingStudio::Recording.find_by(
-            id: uuid,
-            recordable_type: RecordingStudioPublishable::Publishable.name,
-            trashed_at: nil
+            RecordingStudioPublishable::TrashedAt.merge_active(
+              id: uuid,
+              recordable_type: RecordingStudioPublishable::Publishable.name
+            )
           )
           return failure("Publishable recording was not found") unless publishable_recording
 

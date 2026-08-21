@@ -15,7 +15,9 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "published routes use the blank engine layout by default" do
+  test "published routes use the blank engine layout when that layout is configured" do
+    original_layout = RecordingStudioPublishable.configuration.layout
+    RecordingStudioPublishable.configuration.layout = "recording_studio_publishable/application"
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
     parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"),
                                                           parent_recording: root)
@@ -34,6 +36,8 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "recording_studio-publishable-layout"
     refute_includes response.body, "flat-pack-sidebar-layout"
+  ensure
+    RecordingStudioPublishable.configuration.layout = original_layout
   end
 
   test "published content is reachable without signing in" do
@@ -63,8 +67,10 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     get "/published/#{publishable_recording.id}/public-page"
 
     assert_response :success
-    assert_includes response.body, "<title>Public page SEO</title>"
-    assert_includes response.body, '<meta name="description" content="Search description for the public page">'
+    assert_select "title", count: 1
+    assert_select "title", text: "Public page"
+    refute_includes response.body, "<title>Public page SEO</title>"
+    assert_includes response.body, '<meta name="robots"'
     assert_includes response.body, "Rendered through the parent type&#39;s conventional public template."
     assert_includes response.body, "Page title:"
     assert_includes response.body, "Public page"
@@ -72,17 +78,20 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
 
   test "published page falls back to the gem template when the conventional template is missing" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
-    folder_recording = RecordingStudio::Recording.create!(recordable: Folder.create!, parent_recording: root)
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Missing template page"),
+                                                          parent_recording: root)
     publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: folder_recording,
-      attributes: { slug: "folder-public", status: "published" }
+      parent_recording: parent_recording,
+      attributes: { slug: "public-page", status: "published" }
     ).value
 
-    get "/published/#{publishable_recording.id}/folder-public"
+    RecordingStudioPublishable::PublishedController.any_instance.stub(:public_template, "missing/template") do
+      get "/published/#{publishable_recording.id}/public-page"
+    end
 
     assert_response :success
     assert_includes response.body, "Parent recordable"
-    assert_includes response.body, "Folder"
+    assert_includes response.body, "Page"
   end
 
   test "stale slugs redirect to the canonical path" do
@@ -113,5 +122,25 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Blog post"
+    assert_select "title", count: 1
+    assert_select "title", text: "Blog post"
+    assert_includes response.body, '<meta name="robots" content="index,follow">'
+    assert_includes response.body, '<link rel="canonical"'
+  end
+
+  test "published noindex page emits robots and is not indexable" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    page = Page.create!(title: "Hidden page")
+    parent_recording = RecordingStudio::Recording.create!(recordable: page, parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: { slug: "hidden-page", status: "published", meta_robots: "noindex,follow" }
+    ).value
+
+    get "/published/#{publishable_recording.id}/hidden-page"
+
+    assert_response :success
+    assert_includes response.body, '<meta name="robots" content="noindex,follow">'
+    refute page.reload.indexable?
   end
 end

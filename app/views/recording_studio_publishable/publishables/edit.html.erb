@@ -1,4 +1,13 @@
 <% social_image_modal_id = "publishable-social-image-picker-modal" %>
+<% if respond_to?(:recording_studio_page_nav) %>
+  <% recording_studio_page_nav(
+    title: "Publish",
+    page_nav_back_url: (main_app.root_path if main_app.respond_to?(:root_path)),
+    page_nav_back_label: "Home",
+    page_nav_anchor_url: @management_close_url,
+    page_nav_anchor_label: "Close"
+  ) %>
+<% end %>
 
 <div
   class="mx-auto flex w-full max-w-6xl flex-col gap-6"
@@ -13,7 +22,6 @@
   data-recording-studio-attachable--attachment-image-picker-image-processing-quality-value="<%= RecordingStudioAttachable.configuration.image_processing_quality %>"
   data-recording-studio-attachable--attachment-image-picker-multiple-selection-value="false"
   data-recording-studio-attachable--attachment-image-picker-modal-id-value="<%= social_image_modal_id %>">
-  <%= render FlatPack::PageNav::Component.new(close_url: @management_close_url) %>
 
   <% recordable = @parent_recording.recordable %>
   <% recordable_name = recordable.try(:title).presence || recordable.try(:name).presence || @parent_recording.recordable_type.to_s.demodulize.humanize %>
@@ -107,6 +115,28 @@
         </div>
       <% end %>
 
+      <% accordion.item(id: "publishable-search-fields", title: "Search engines", open: false) do %>
+        <div class="space-y-4">
+          <%= render FlatPack::TextInput::Component.new(
+            name: "publishable[canonical_url]",
+            label: "Canonical URL",
+            value: @publishable.canonical_url,
+            placeholder: "Leave blank to use the public URL",
+            help_text: "Leave this blank unless search should treat another address as the original."
+          ) %>
+          <%= render FlatPack::Select::Component.new(
+            name: "publishable[meta_robots]",
+            label: "Search listing",
+            options: [
+              ["Show this page in search", "index,follow"],
+              ["Keep this page out of search", "noindex,follow"]
+            ],
+            value: (@publishable.noindex? ? "noindex,follow" : "index,follow"),
+            help_text: "Search engines only see this while the page is live."
+          ) %>
+        </div>
+      <% end %>
+
       <% if seo_enabled %>
         <% accordion.item(id: "publishable-seo-fields", title: "SEO", open: false) do %>
           <div class="space-y-8 bg-(--surface-raised-background-color)">
@@ -134,7 +164,6 @@
                 max_characters: 160,
                 placeholder: "Short summary for search engines"
               ) %>
-              <%= form.hidden_field :meta_robots, value: "index,follow" %>
             </section>
           </div>
         <% end %>

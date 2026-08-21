@@ -97,14 +97,29 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
     assert_response :success
-    assert_includes response.body, "href=\"/workspace/#{parent_recording.id}\""
+    assert_includes response.body, "/workspace/#{parent_recording.id}"
 
     patch recording_studio_publishable.transition_recording_publishable_path(recording_id: parent_recording.id,
                                                                              transition: "publish")
     follow_redirect!
 
     assert_response :success
-    assert_includes response.body, "href=\"/workspace/#{parent_recording.id}\""
+    assert_includes response.body, "/workspace/#{parent_recording.id}"
+  end
+
+  test "edit form exposes canonical url and search listing" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "publishable[canonical_url]"
+    assert_includes response.body, "publishable[meta_robots]"
+    assert_includes response.body, "Search engines"
+    assert_includes response.body, "Canonical URL"
+    assert_includes response.body, "Search listing"
+    refute_includes response.body, ">Search</span>"
+    refute_includes response.body, 'name="publishable[meta_robots]" type="hidden"'
   end
 
   private
@@ -126,7 +141,10 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
   end
 
   def grant_edit_access!(root_recording)
-    access = RecordingStudio::Access.create!(actor: @user, role: :edit)
-    RecordingStudio::Recording.create!(recordable: access, parent_recording: root_recording)
+    result = RecordingStudioAccessible.bootstrap_owner_access!(
+      recording: root_recording,
+      actor: @user
+    )
+    result.respond_to?(:value!) ? result.value! : result
   end
 end

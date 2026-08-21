@@ -55,35 +55,24 @@ module RecordingStudioPublishable
       engine = self
 
       config.to_prepare do
+        RecordingStudioPublishable.install_recording_capabilities!
         engine.send(:register_publishable_recordable_type)
-        engine.send(:extend_recording_model)
       end
     end
 
     private
 
     def register_publishable_recordable_type
-      return unless defined?(RecordingStudio) && RecordingStudio.respond_to?(:configuration)
-      return unless RecordingStudio.configuration.respond_to?(:recordable_types)
+      return unless publishable_parent_types_registered?
 
-      recordable_types = normalized_recordable_types
-      publishable_type = RecordingStudioPublishable::Publishable.name
-      return if recordable_types.include?(publishable_type)
-
-      RecordingStudio.configuration.recordable_types = (recordable_types + [publishable_type]).uniq
+      RecordingStudio::Capabilities::Publishable.ensure_child_recordable_registered!
     end
 
-    def normalized_recordable_types
-      Array(RecordingStudio.configuration.recordable_types).map do |recordable_type|
-        recordable_type.is_a?(Class) ? recordable_type.name : recordable_type.to_s
-      end
-    end
+    def publishable_parent_types_registered?
+      return false unless defined?(RecordingStudio) && RecordingStudio.respond_to?(:configuration)
+      return false unless RecordingStudio.configuration.respond_to?(:enabled_recordable_types_for)
 
-    def extend_recording_model
-      return unless defined?(RecordingStudio::Recording)
-      return if RecordingStudio::Recording < RecordingStudioPublishable::RecordingExtensions
-
-      RecordingStudio::Recording.include RecordingStudioPublishable::RecordingExtensions
+      RecordingStudio.configuration.enabled_recordable_types_for(:publishable).any?
     end
   end
 end

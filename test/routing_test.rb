@@ -8,7 +8,12 @@ class RoutingTest < Minitest::Test
   Publishable = Struct.new(:slug)
 
   def setup
+    @original_configuration = RecordingStudioPublishable.instance_variable_get(:@configuration)
     RecordingStudioPublishable.reset_configuration!
+  end
+
+  def teardown
+    RecordingStudioPublishable.instance_variable_set(:@configuration, @original_configuration)
   end
 
   def test_url_for_returns_path_when_host_is_not_provided

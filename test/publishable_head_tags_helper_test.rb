@@ -11,18 +11,27 @@ class PublishableHeadTagsHelperTest < Minitest::Test
     include RecordingStudioPublishable::ApplicationHelper
   end
 
-  Publishable = Struct.new(:seo_title, :seo_description, :canonical_url, :social_title, :social_description, :slug) do
+  Publishable = Struct.new(:seo_title, :seo_description, :canonical_url, :social_title, :social_description, :slug,
+                           :meta_robots) do
     def currently_published?
       true
+    end
+
+    def robots_value
+      meta_robots.to_s.strip.presence || "index,follow"
     end
   end
 
   PublishableRecording = Struct.new(:id, :recordable, :parent_recording)
   ParentRecording = Struct.new(:recordable_type, :recordable)
   SocialPublishable = Struct.new(:seo_title, :seo_description, :canonical_url, :social_title, :social_description, :slug,
-                                 :social_image_attachment_recording) do
+                                 :social_image_attachment_recording, :meta_robots) do
     def currently_published?
       true
+    end
+
+    def robots_value
+      meta_robots.to_s.strip.presence || "index,follow"
     end
 
     def social_image_attached?
@@ -32,7 +41,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
 
   def test_publishable_head_tags_renders_title_description_and_canonical_fallbacks
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     publishable = Publishable.new(
       "SEO headline",
       "Search-friendly description",
@@ -50,9 +59,15 @@ class PublishableHeadTagsHelperTest < Minitest::Test
       parent_recordable: parent_recordable
     )
 
-    assert_includes html, "<title>SEO headline</title>"
+    refute_includes html, "<title>"
+    assert_equal "SEO headline", view.publishable_document_title(
+      publishable_recording: publishable_recording,
+      publishable: publishable,
+      parent_recordable: parent_recordable
+    )
     assert_includes html, '<meta name="description" content="Search-friendly description">'
     assert_includes html, '<link rel="canonical" href="https://example.test/published/123/launch-checklist">'
+    assert_includes html, '<meta name="robots" content="index,follow">'
     assert_includes html, '<meta property="og:title" content="Social headline">'
     assert_includes html, '<meta property="og:description" content="Social description">'
     assert_includes html, '<meta property="og:url" content="https://example.test/published/123/launch-checklist">'
@@ -61,9 +76,27 @@ class PublishableHeadTagsHelperTest < Minitest::Test
     assert_includes html, '<meta name="twitter:description" content="Social description">'
   end
 
+  def test_publishable_head_tags_does_not_accept_title
+    parent_recordable = Struct.new(:title).new("Launch Checklist")
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
+    publishable = Publishable.new("SEO headline", "Search-friendly description", nil, nil, nil, "launch-checklist")
+    publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
+    view = ViewContext.new(Struct.new(:base_url).new("https://example.test"))
+
+    error = assert_raises(ArgumentError) do
+      view.publishable_head_tags(
+        publishable_recording: publishable_recording,
+        publishable: publishable,
+        title: "ignored"
+      )
+    end
+
+    assert_match(/unknown keyword: :title/, error.message)
+  end
+
   def test_publishable_head_tags_returns_blank_for_unpublished_records
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     publishable = Publishable.new("SEO headline", "Search-friendly description", nil, nil, nil, "launch-checklist")
     publishable.define_singleton_method(:currently_published?) { false }
     publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
@@ -76,7 +109,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
 
   def test_publishable_head_tags_renders_social_image_dimensions_when_image_url_present
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     publishable = Publishable.new("SEO headline", "Search-friendly description", nil, "Social headline", "Social description",
                                   "launch-checklist")
     publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
@@ -97,7 +130,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
 
   def test_publishable_head_tags_resolves_social_image_url_from_attachment_preview
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     attachment_recording = Struct.new(:id).new("attachment-123")
     publishable = SocialPublishable.new("SEO headline", "Search-friendly description", nil, "Social headline",
                                         "Social description", "launch-checklist", attachment_recording)
@@ -123,7 +156,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
 
   def test_publishable_head_tags_omits_seo_tags_when_seo_capability_is_disabled
     parent_recordable = Struct.new(:title).new("Launch Checklist")
-    parent_recording = ParentRecording.new("Article", parent_recordable)
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
     publishable = Publishable.new(
       "SEO headline",
       "Search-friendly description",
@@ -149,8 +182,36 @@ class PublishableHeadTagsHelperTest < Minitest::Test
     refute_includes html, "<title>"
     refute_includes html, '<meta name="description"'
     refute_includes html, '<link rel="canonical"'
+    assert_includes html, '<meta name="robots" content="index,follow">'
     assert_includes html, '<meta property="og:title" content="Social headline">'
     assert_includes html, '<meta property="og:description" content="Social description">'
     assert_includes html, '<meta name="twitter:title" content="Social headline">'
+  end
+
+  def test_publishable_head_tags_uses_canonical_override_and_emits_noindex_robots
+    parent_recordable = Struct.new(:title).new("Launch Checklist")
+    parent_recording = ParentRecording.new("Article", parent_recordable)
+    publishable = Publishable.new(
+      "SEO headline",
+      "Search-friendly description",
+      "https://example.test/original",
+      "Social headline",
+      "Social description",
+      "launch-checklist",
+      "noindex,follow"
+    )
+    publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
+    view = ViewContext.new(Struct.new(:base_url).new("https://example.test"))
+
+    html = view.publishable_head_tags(
+      publishable_recording: publishable_recording,
+      publishable: publishable,
+      parent_recordable: parent_recordable
+    )
+
+    refute_includes html, "<title>"
+    assert_includes html, '<link rel="canonical" href="https://example.test/original">'
+    assert_includes html, '<meta name="robots" content="noindex,follow">'
+    refute_includes html, '<link rel="canonical" href="https://example.test/published/123/launch-checklist">'
   end
 end

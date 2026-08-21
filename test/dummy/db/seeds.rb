@@ -11,6 +11,8 @@ end
 workspace = Workspace.find_or_create_by!(name: "Studio Workspace")
 folder = Folder.find_or_create_by!(name: "Product Docs")
 page = Page.find_or_create_by!(title: "Launch Checklist")
+hidden_page = Page.find_or_create_by!(title: "Staff-only notes")
+draft_page = Page.find_or_create_by!(title: "Coming soon")
 article = Article.find_or_create_by!(title: "Spring Release Notes") do |record|
   record.excerpt = "A second publishable recordable type routed through ArticlesController#show."
 end
@@ -23,20 +25,27 @@ folder_recording ||= root_recording.record(folder, actor: admin_user, parent_rec
 page_recording = root_recording.recording_for(page)
 page_recording ||= root_recording.record(page, actor: admin_user, parent_recording: folder_recording)
 
+hidden_page_recording = root_recording.recording_for(hidden_page)
+hidden_page_recording ||= root_recording.record(hidden_page, actor: admin_user, parent_recording: folder_recording)
+
+draft_page_recording = root_recording.recording_for(draft_page)
+draft_page_recording ||= root_recording.record(draft_page, actor: admin_user, parent_recording: folder_recording)
+
 article_recording = root_recording.recording_for(article)
 article_recording ||= root_recording.record(article, actor: admin_user, parent_recording: folder_recording)
 
 Current.actor = RecordingStudio::ActorResolver.resolve_actor.call(admin_user)
 Current.impersonator = nil
 
-admin_access = RecordingStudio::Access.find_or_create_by!(actor: admin_user, role: :admin)
-viewer_access = RecordingStudio::Access.find_or_create_by!(actor: viewer_user, role: :view)
-
-admin_access_recording = root_recording.recording_for(admin_access)
-admin_access_recording ||= root_recording.record(admin_access, actor: admin_user, parent_recording: root_recording)
-
-viewer_access_recording = root_recording.recording_for(viewer_access)
-viewer_access_recording ||= root_recording.record(viewer_access, actor: admin_user, parent_recording: root_recording)
+if defined?(RecordingStudioAccessible)
+  RecordingStudioAccessible.bootstrap_owner_access!(recording: root_recording, actor: admin_user)
+  RecordingStudioAccessible.grant_access(
+    recording: root_recording,
+    actor: viewer_user,
+    role: :view,
+    manager_actor: admin_user
+  )
+end
 
 publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
   parent_recording: page_recording,
@@ -51,6 +60,27 @@ publishable_recording = RecordingStudioPublishable::Services::Publishables::Upda
     meta_robots: "index,follow"
   }
 ).value!
+
+hidden_publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+  parent_recording: hidden_page_recording,
+  actor: admin_user,
+  attributes: {
+    slug: "staff-only-notes",
+    status: "published",
+    social_title: "Staff-only notes",
+    social_description: "Live, but hidden from search.",
+    meta_robots: "noindex,follow"
+  }
+).value!
+
+RecordingStudioPublishable::Services::Publishables::Update.call(
+  parent_recording: draft_page_recording,
+  actor: admin_user,
+  attributes: {
+    slug: "coming-soon",
+    status: "draft"
+  }
+)
 
 article_publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
   parent_recording: article_recording,
@@ -70,4 +100,6 @@ puts "Seeded: admin@admin.com / Password"
 puts "Seeded: viewer@admin.com / Password"
 puts "Seeded: Workspace '#{workspace.name}' with root recording ##{root_recording.id}"
 puts "Seeded: Page '#{page.title}' with publishable child ##{publishable_recording.id}"
+puts "Seeded: Page '#{hidden_page.title}' published with noindex"
+puts "Seeded: Page '#{draft_page.title}' as unpublished draft"
 puts "Seeded: Article '#{article.title}' with publishable child ##{article_publishable_recording.id}"

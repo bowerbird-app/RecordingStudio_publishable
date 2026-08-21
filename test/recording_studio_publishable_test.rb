@@ -12,15 +12,40 @@ class RecordingStudioPublishableTest < Minitest::Test
     readme_source = File.read(readme_path)
 
     assert_includes readme_source, "recording_studio_publishable"
-    assert_includes readme_source, "publishable child recording"
+    assert_includes readme_source, "RecordingStudio::Capabilities::Publishable.to"
+    refute_includes readme_source, "# GemTemplate"
+    refute_includes readme_source, "recording_studio_publishable("
+    refute_includes readme_source, "ParentRecordable"
   end
 
-  def test_dummy_home_page_mentions_publishable_demo
+  def test_dummy_home_page_uses_default_layout_table
     view_path = File.expand_path("dummy/app/views/home/index.html.erb", __dir__)
     view_source = File.read(view_path)
+    layout_source = File.read(
+      File.expand_path("dummy/app/views/layouts/recording_studio/default_layout.html.erb", __dir__)
+    )
+    devise_layout = File.read(
+      File.expand_path("dummy/app/views/layouts/application.html.erb", __dir__)
+    )
 
-    assert_includes view_source, "Dummy pages"
-    assert_includes view_source, "Add Page"
-    assert_includes view_source, "Public path"
+    assert_includes view_source, "dummy_page_nav"
+    assert_includes view_source, "FlatPack::Table::Component"
+    assert_includes view_source, "Add page"
+    refute_includes view_source, "Dummy publishables"
+    assert_includes layout_source, '<html data-theme="rounded">'
+    assert_includes layout_source, 'stylesheet_link_tag "flat_pack/application"'
+    assert_includes devise_layout, '<html data-theme="rounded">'
+  end
+
+  def test_publish_edit_accordion_is_named_search_engines
+    view_source = File.read(
+      File.expand_path("../app/views/recording_studio_publishable/publishables/edit.html.erb", __dir__)
+    )
+
+    assert_includes view_source, "FlatPack::Accordion::Component"
+    assert_includes view_source, 'title: "Search engines"'
+    refute_includes view_source, 'title: "Search"'
+    assert_includes view_source, 'label: "Canonical URL"'
+    assert_includes view_source, 'label: "Search listing"'
   end
 end

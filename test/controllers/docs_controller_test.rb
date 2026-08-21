@@ -67,7 +67,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Setup"
     assert_includes response.body, "Model setup"
-    assert_includes response.body, "recording_studio_publishable("
+    assert_includes response.body, "include RecordingStudio::Capabilities::Publishable.to"
     assert_includes response.body, "mount RecordingStudioPublishable::Engine, at: &quot;/&quot;"
     assert_includes response.body, "publishable_head_tags"
   end
@@ -106,6 +106,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Returns whether schedule controls are enabled for Recordable recordables."
     refute_includes response.body, "RecordingStudioPublishable::Publishable"
     refute_includes response.body, "class Page < ApplicationRecord"
+    assert_includes response.body, "Recordable.indexable"
+    assert_includes response.body, "recordable.indexable?"
     assert_includes response.body, "Recordable.published"
     assert_includes response.body, "Recordable.published_in(2.weeks.ago..Time.current)"
     assert_includes response.body, "Recordable.scheduled_in(Time.current..2.weeks.from_now)"
@@ -174,10 +176,12 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "seo_enabled"
     assert_includes response.body, "false"
+    assert_includes response.body, "meta[name=robots]"
     assert_includes response.body, "meta[property=og:title]"
     assert_includes response.body, "meta[name=twitter:title]"
     refute_includes response.body, "meta[name=description]"
     refute_includes response.body, "link[rel=canonical]"
+    refute_includes response.body, "font-medium\">title</td>"
   end
 
   test "headers resolved values show seo tags when enabled for article" do
@@ -200,10 +204,11 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "seo_enabled"
     assert_includes response.body, "true"
-    assert_includes response.body, "title"
-    assert_includes response.body, "Headers SEO Title"
-    assert_includes response.body, "meta[name=description]"
+    assert_includes response.body, "meta[name=robots]"
     assert_includes response.body, "Headers SEO Description"
+    assert_includes response.body, "meta[name=description]"
     assert_includes response.body, "link[rel=canonical]"
+    refute_includes response.body, "<title>Headers SEO Title</title>"
+    refute_includes response.body, "font-medium\">title</td>"
   end
 end

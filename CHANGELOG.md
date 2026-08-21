@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-08-21
+
+### Breaking
+- Host enablement is only `include RecordingStudio::Capabilities::Publishable.to(**opts)` on opted-in recordables. `RecordingStudioPublishable::ParentRecordable` and `recording_studio_publishable(...)` are removed
+- The engine does not include publish helpers on every `RecordingStudio::Recording`. Scopes live on opted-in types only
+- Runtime dependency is now RecordingStudio `~> 4.2`
+- `config.layout` is the layout setter. `config.default_layout` is removed
+- `publishable_head_tags` no longer accepts `title:`
+- Path, schedule, and SEO come from `.to` keywords plus `capability_options` / `register_public_renderer`. Class attributes `recording_studio_publishable_path_template`, `_schedule_enabled`, and `_seo_enabled` are removed
+
+### Added
+- Canonical `.to` wrapper around core 4.2.0 `RecordingStudio::Capabilities.include_for(:publishable, **options)`
+- Capability registration with `child_recordables: ["RecordingStudioPublishable::Publishable"]`
+- Soft-detection for optional `trashed_at` so Trashable can stay out of the gemspec DAG
+- `publishable_head_tags` now emits `meta name="robots"` from `meta_robots` (default `index,follow`)
+- Canonical URL is an optional override on the management screen and Update service. Blank uses the public URL
+- `indexable` / `indexable?` on opted-in parent types for public lists and search
+
+### Changed
+- Dummy pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.0`
+- Dummy authenticated layout is Recording Studio's default layout (`UsesDefaultLayout`) with PageNav back + close, workspace switcher, and Sign out. There is no homemade Dummy publishables landing or sidebar
+- Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS). Stylesheets load in kit order (`flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind) so Table and Accordion match https://flatpack.bowerbird.io/
+- Dummy Tailwind scans Flatpack components (and a `tmp/tailwind` mirror) so table and accordion utilities such as `w-5` / `h-5` are present. Importmap lazy-loads Flatpack controllers like gem_template v0.2.0
+- Publish edit/success use the layout PageNav (`page_nav_anchor_url` mapped to Flatpack `anchor_href`) so there is one close control, not a second PageNav in the gem view
+- The publish screen accordion for canonical URL and listing is labeled **Search engines**, not Search. Field copy stays Canonical URL and Search listing
+- README now describes Publishable rather than GemTemplate
+- `publishable_head_tags` no longer emits `<title>`. Layouts yield `publishable_document_title` so there is one document title
+
+### Upgrade Notes
+- Host apps must move to RecordingStudio `~> 4.2` with this gem
+- Replace `include RecordingStudioPublishable::ParentRecordable` and `recording_studio_publishable(...)` with `include RecordingStudio::Capabilities::Publishable.to(**opts)`. There is no alias
+- Use `config.layout`. Do not set `config.default_layout`
+- Stop passing `title:` to `publishable_head_tags`. Yield `publishable_document_title` from the layout or public view
+- Do not read `recording_studio_publishable_path_template`, `recording_studio_publishable_schedule_enabled`, or `recording_studio_publishable_seo_enabled` from the model. Use `.to` keywords, `RecordingStudio.capability_options(:publishable, for: Type)`, and `configuration.public_path_for`
+- Do not add `recording_studio_trashable` unless the host actually uses trash. Publish queries skip `trashed_at` when the column is absent
+- Run `bin/rails generate recording_studio_publishable:migrations` and `bin/rails db:migrate` so the unique publishable-child index is created without assuming `trashed_at`
+- Use `Page.indexable` / `page.indexable?` for public lists and search. Do not invent a parallel indexable helper
+- Canonical URL and search listing are on the publish management screen (Search engines accordion) and the Update service. Blank canonical uses the public URL. If you overrode the edit view and still label that accordion Search, rename it to Search engines
+
 ## [0.1.2] - 2026-06-05
 
 ### Changed
@@ -34,7 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.2.0
 [0.1.2]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.1.2
 [0.1.1]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.1.1
 [0.1.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.1.0

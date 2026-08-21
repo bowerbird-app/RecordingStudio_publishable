@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 module RecordingStudioPublishable
-  module ApplicationHelper
+  module ApplicationHelper # rubocop:disable Metrics/ModuleLength
     DEFAULT_SOCIAL_IMAGE_WIDTH = 1200
     DEFAULT_SOCIAL_IMAGE_HEIGHT = 630
     DEFAULT_SOCIAL_IMAGE_VARIANT = :social_share
 
     def publishable_head_tags(publishable_recording: nil, publishable: nil, parent_recordable: nil,
-                              public_url: nil, title: nil, description: nil, canonical_url: nil,
+                              public_url: nil, description: nil, canonical_url: nil,
                               social_title: nil, social_description: nil, social_image_url: nil,
                               social_image_width: nil, social_image_height: nil)
       publishable_recording ||= instance_variable_defined?(:@publishable_recording) ? @publishable_recording : nil
@@ -24,11 +24,11 @@ module RecordingStudioPublishable
       )
 
       seo_enabled = seo_enabled_for_publishable?(publishable_recording: publishable_recording)
+      robots = robots_content_for(publishable)
 
       if seo_enabled
-        title ||= publishable.seo_title.presence || parent_recordable&.try(:title).presence || "Published page"
         description ||= publishable.seo_description.presence
-        canonical_url ||= publishable.canonical_url.presence || public_url
+        canonical_url ||= canonical_url_for(publishable: publishable, public_url: public_url)
       end
 
       social_title ||= publishable.social_title.presence || parent_recordable&.try(:title).presence || "Published page"
@@ -42,10 +42,10 @@ module RecordingStudioPublishable
 
       tag_rows = []
       if seo_enabled
-        tag_rows << tag.title(title) if title.present?
         tag_rows << tag.meta(name: "description", content: description) if description.present?
         tag_rows << tag.link(rel: "canonical", href: canonical_url) if canonical_url.present?
       end
+      tag_rows << tag.meta(name: "robots", content: robots) if robots.present?
       tag_rows << tag.meta(property: "og:type", content: "article")
       tag_rows << tag.meta(property: "og:title", content: social_title)
       tag_rows << tag.meta(property: "og:description", content: social_description) if social_description.present?
@@ -61,6 +61,17 @@ module RecordingStudioPublishable
       safe_join(tag_rows, "\n")
     end
 
+    def publishable_document_title(publishable_recording: nil, publishable: nil, parent_recordable: nil, title: nil)
+      publishable_recording ||= instance_variable_defined?(:@publishable_recording) ? @publishable_recording : nil
+      publishable ||= instance_variable_defined?(:@publishable) ? @publishable : nil
+      parent_recordable ||= instance_variable_defined?(:@parent_recordable) ? @parent_recordable : nil
+      parent_recordable ||= publishable_recording&.parent_recording&.recordable
+
+      return if publishable.blank? || publishable_recording.blank? || !publishable.currently_published?
+
+      title.presence || document_title_for(publishable: publishable, parent_recordable: parent_recordable)
+    end
+
     def render_publishable_status_badge(publishable)
       render RecordingStudioPublishable::StatusBadge::Component.new(publishable: publishable)
     end
@@ -74,6 +85,11 @@ module RecordingStudioPublishable
     def publishable_public_url(publishable_recording:, publishable:, parent_recordable_type: nil)
       parent_recordable = publishable_recording&.parent_recording&.recordable
       path = parent_recordable.respond_to?(:published_url) ? parent_recordable.published_url : nil
+      path ||= RecordingStudioPublishable::Routing.url_for(
+        publishable_recording: publishable_recording,
+        publishable: publishable,
+        parent_recordable_type: parent_recordable_type || publishable_recording&.parent_recording&.recordable_type
+      )
 
       return path if path.blank?
 
@@ -120,6 +136,22 @@ module RecordingStudioPublishable
       RecordingStudioPublishable.configuration.seo_enabled_for(recordable_type)
     rescue StandardError
       true
+    end
+
+    def document_title_for(publishable:, parent_recordable:)
+      publishable.try(:seo_title).presence || parent_recordable&.try(:title).presence ||
+        publishable.try(:social_title).presence || "Published page"
+    end
+
+    def canonical_url_for(publishable:, public_url:)
+      publishable.try(:canonical_url).presence || public_url.presence
+    end
+
+    def robots_content_for(publishable)
+      return publishable.robots_value if publishable.respond_to?(:robots_value)
+
+      publishable.try(:meta_robots).to_s.strip.presence ||
+        RecordingStudioPublishable::Publishable::DEFAULT_ROBOTS
     end
   end
 end

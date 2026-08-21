@@ -4,57 +4,17 @@ require "active_support/concern"
 
 module RecordingStudioPublishable
   module RecordingExtensions
-    extend ActiveSupport::Concern
-
-    included do
-      scope :with_publishable_child, lambda {
-        joins(<<~SQL.squish)
-          INNER JOIN recording_studio_recordings publishable_recordings
-            ON publishable_recordings.parent_recording_id = recording_studio_recordings.id
-           AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable'
-           AND publishable_recordings.trashed_at IS NULL
-          INNER JOIN recording_studio_publishable_publishables
-            ON recording_studio_publishable_publishables.id = publishable_recordings.recordable_id
-        SQL
-      }
-
-      scope :currently_published, -> { with_publishable_child.merge(RecordingStudioPublishable::Publishable.currently_published).distinct }
-      scope :scheduled_publishables, -> { with_publishable_child.merge(RecordingStudioPublishable::Publishable.scheduled).distinct }
-      scope :draft_publishables, -> { with_publishable_child.merge(RecordingStudioPublishable::Publishable.draft).distinct }
-      scope :unpublished_publishables, -> { with_publishable_child.merge(RecordingStudioPublishable::Publishable.unpublished).distinct }
-
-      scope :published, -> { currently_published }
-      scope :scheduled, -> { scheduled_publishables }
-      scope :draft, -> { draft_publishables }
-      scope :unpublished, -> { unpublished_publishables }
-
-      scope :scheduled_in, lambda { |at_or_before|
-        next none if at_or_before.blank?
-
-        if at_or_before.is_a?(Range)
-          scheduled_between(at_or_before)
-        else
-          scheduled_between(Time.current..at_or_before)
-        end
-      }
-
-      scope :scheduled_between, lambda { |publish_window|
-        next none unless publish_window.is_a?(Range)
-
-        scheduled.where(recording_studio_publishable_publishables: { publish_at: publish_window })
-      }
-    end
-
     def publishable_child_recording
-      return @publishable_child_recording if instance_variable_defined?(:@publishable_child_recording)
+      relation = child_recordings.of_type(RecordingStudioPublishable::Publishable)
+      if RecordingStudioPublishable::TrashedAt.column? && relation.respond_to?(:where)
+        relation = relation.where(trashed_at: nil)
+      end
 
-      @publishable_child_recording = child_recordings.of_type(RecordingStudioPublishable::Publishable).first
+      relation.first
     end
 
     def current_publishable
-      return @current_publishable if instance_variable_defined?(:@current_publishable)
-
-      @current_publishable = publishable_child_recording&.recordable
+      publishable_child_recording&.recordable
     end
 
     def currently_published?
@@ -91,6 +51,10 @@ module RecordingStudioPublishable
 
     def unpublished?
       current_publishable&.unpublished? || false
+    end
+
+    def indexable?
+      recordable.respond_to?(:indexable?) && recordable.indexable?
     end
 
     def social_image_supported?

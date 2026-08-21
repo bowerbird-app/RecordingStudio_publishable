@@ -9,16 +9,16 @@
     <section class="space-y-4">
       <%= render FlatPack::SectionTitle::Component.new(
         title: "Model setup",
-        subtitle: "Include ParentRecordable and define publishable behavior per model."
+        subtitle: "Enable Publishable on each recordable type with the canonical .to include."
       ) %>
 
       <%= render FlatPack::CodeBlock::Component.new(
         language: :ruby,
         code: <<~RUBY
           class Page < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
+            recording_studio_recordable label: "Page", root: false, allowed_parent_types: ["Workspace", "Folder", "Page"]
 
-            recording_studio_publishable(
+            include RecordingStudio::Capabilities::Publishable.to(
               public_controller: "pages",
               public_action: :show,
               schedule: false,
@@ -27,9 +27,9 @@
           end
 
           class Article < ApplicationRecord
-            include RecordingStudioPublishable::ParentRecordable
+            recording_studio_recordable label: "Article", root: false, allowed_parent_types: ["Workspace", "Folder", "Article"]
 
-            recording_studio_publishable(
+            include RecordingStudio::Capabilities::Publishable.to(
               public_controller: "articles",
               public_action: :show,
               path: "/blogs/:uuid/:slug",
