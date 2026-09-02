@@ -153,6 +153,15 @@ Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `Reco
 
 Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates a published page and an unpublished draft so screenshots are not empty lists.
 
+## Cloud Agent boot
+
+Cloud Agent Builds run `.cursor/install.sh`, then `.cursor/fetch-skills.sh`.
+The install hook provisions a cold image. On a warm snapshot it skips apt,
+ruby-build, db:prepare, and tailwind when Ruby, bundle, and Postgres are
+already usable. Fetch-skills always runs last. `.cursor/start.sh` starts
+PostgreSQL on each boot. Rebuild with Draft off to load a new pack. See
+[Cursor skills in Cloud Agents](docs/cursor-skills.md).
+
 ## Documentation
 
 Engine internals from the original gem template remain in `docs/gem_template/` as architectural reference. This README and the dummy app are the source of truth for Publishable.
