@@ -48,6 +48,9 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Second page"
     assert_includes response.body, "<thead"
     assert_includes response.body, "<td"
+    assert_includes response.body, "Published"
+    assert_includes response.body, "Back to draft"
+    assert_includes response.body, "Publish settings"
     refute_includes response.body, "Dummy publishables"
     refute_includes response.body, "You are already signed in"
     assert_includes response.body,

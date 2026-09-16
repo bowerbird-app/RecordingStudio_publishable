@@ -121,6 +121,27 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "components page lists addon partial entry points" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Components Workspace"))
+    draft_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Components Draft"),
+                                                        parent_recording: root)
+    scheduled_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Components Scheduled"),
+                                                               parent_recording: root)
+    published_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Components Published"),
+                                                               parent_recording: root)
+
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: draft_recording,
+      attributes: { slug: "components-draft", status: "draft" }
+    )
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: scheduled_recording,
+      attributes: { slug: "components-scheduled", status: "published", publish_at: 1.day.from_now }
+    )
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: published_recording,
+      attributes: { slug: "components-published", status: "published" }
+    )
+
     get docs_components_path
 
     assert_response :success
@@ -134,6 +155,10 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "RecordingStudioPublishable::Publishable"
     assert_includes response.body, "RecordingStudio::Recording"
     assert_includes response.body, "All possible status badge states"
+    assert_includes response.body, "RecordingStudioPublishable::QuickActions::Component.new(recording: recording)"
+    assert_includes response.body, "Status on the button. Verbs in the menu."
+    assert_includes response.body, "Publish now"
+    assert_includes response.body, "Publish settings"
   end
 
   test "headers page renders platform-style social previews for draft publishables" do

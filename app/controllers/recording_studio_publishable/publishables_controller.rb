@@ -102,6 +102,8 @@ module RecordingStudioPublishable
       end
 
       publishable = @parent_recording.reload.publishable_child_recording&.recordable
+      return respond_inline_transition(result, publishable) if inline_transition?
+
       return redirect_to_edit(alert: "Publishable not found") if publishable.blank?
 
       return redirect_to_publish_success if publish_success_transition?(previous_publishable, publishable)
@@ -201,6 +203,53 @@ module RecordingStudioPublishable
       ).includes(recordable: [{ file_attachment: :blob }])
     rescue StandardError
       []
+    end
+
+    def inline_transition?
+      params[:inline].present? || turbo_stream_request?
+    end
+
+    def turbo_stream_request?
+      return true if request.format.symbol == :turbo_stream
+
+      request.get_header("HTTP_ACCEPT").to_s.include?("text/vnd.turbo-stream.html")
+    end
+
+    def respond_inline_transition(result, publishable)
+      if result.failure? || publishable.blank?
+        message = result.error.presence || "Could not update this page."
+        return render_inline_transition(alert: message, status: :unprocessable_entity)
+      end
+
+      notice = if publishable.published_state? && !publishable.scheduled_for_future?
+        "It's live."
+      else
+        "Back to a draft."
+      end
+
+      render_inline_transition(notice: notice)
+    end
+
+    def render_inline_transition(notice: nil, alert: nil, status: :ok)
+      if turbo_stream_request?
+        @transition_notice = notice
+        @transition_alert = alert
+        return render :transition, formats: [:turbo_stream], status: status
+      end
+
+      redirect_back(
+        fallback_location: inline_fallback_location,
+        notice: notice,
+        alert: alert,
+        status: :see_other,
+        allow_other_host: false
+      )
+    end
+
+    def inline_fallback_location
+      return main_app.root_path if defined?(main_app) && main_app.respond_to?(:root_path)
+
+      edit_recording_publishable_path(recording_id: @parent_recording.id)
     end
 
     def redirect_to_edit(notice: nil, alert: nil)

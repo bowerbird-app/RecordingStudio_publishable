@@ -4,6 +4,7 @@ ENV["RAILS_ENV"] = "test"
 require_relative "../test_helper"
 require_relative "../dummy/config/environment"
 
+require "cgi"
 require "devise/test/integration_helpers"
 require "rails/test_help"
 
@@ -79,6 +80,80 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     refute_includes response.body, "Published!"
+  end
+
+  test "inline html publish stays on the referring page" do
+    parent_recording = build_publishable_parent(title: "Inline Publish Page")
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "publish",
+      inline: 1
+    ), headers: { "HTTP_REFERER" => "http://www.example.com/" }
+
+    assert_redirected_to "http://www.example.com/"
+    follow_redirect!
+
+    assert_response :success
+    refute_includes response.body, "Published!"
+    assert parent_recording.reload.current_publishable.currently_published?
+  end
+
+  test "inline html draft stays on the referring page" do
+    parent_recording = build_publishable_parent(title: "Inline Draft Page")
+    publish_parent_recording!(parent_recording)
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "draft",
+      inline: 1
+    ), headers: { "HTTP_REFERER" => "http://www.example.com/" }
+
+    assert_redirected_to "http://www.example.com/"
+    follow_redirect!
+
+    assert_response :success
+    refute_includes response.body, "Published!"
+    assert parent_recording.reload.current_publishable.draft_state?
+  end
+
+  test "turbo stream publish replaces the dropdown and stays off the success page" do
+    parent_recording = build_publishable_parent(title: "Stream Publish Page")
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "publish",
+      inline: 1
+    ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_includes response.body, "turbo-stream"
+    assert_includes response.body, RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)
+    assert_includes CGI.unescapeHTML(response.body), "It's live."
+    assert_includes response.body, "Published"
+    assert_includes response.body, "Back to draft"
+    refute_includes response.body, "Published!"
+    assert parent_recording.reload.current_publishable.currently_published?
+  end
+
+  test "turbo stream draft replaces the dropdown with draft actions" do
+    parent_recording = build_publishable_parent(title: "Stream Draft Page")
+    publish_parent_recording!(parent_recording)
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "draft",
+      inline: 1
+    ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert_equal "text/vnd.turbo-stream.html", response.media_type
+    assert_includes response.body, "Back to a draft."
+    assert_includes response.body, "Draft"
+    assert_includes response.body, "Publish now"
+    refute_includes response.body, "Published!"
+    assert parent_recording.reload.current_publishable.draft_state?
   end
 
   test "direct success page access redirects back to edit" do

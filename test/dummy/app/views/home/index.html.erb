@@ -35,13 +35,8 @@
         render FlatPack::Badge::Component.new(text: "Not live", style: :default, size: :sm)
       end
     }) %>
-    <% table.column(title: "Edit", html: ->(recording) {
-      render FlatPack::Button::Component.new(
-        text: "Edit",
-        style: :secondary,
-        size: :sm,
-        href: recording_studio_publishable.edit_recording_publishable_path(recording_id: recording.id)
-      )
+    <% table.column(title: "Publish", html: ->(recording) {
+      render RecordingStudioPublishable::QuickActions::Component.new(recording: recording, size: :sm)
     }) %>
   <% end %>
 <% else %>

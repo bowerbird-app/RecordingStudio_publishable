@@ -31,7 +31,11 @@
             </div>
           </div>
         <% when :quick_actions %>
-          <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @component_demo_recording) %>
+          <div class="flex flex-wrap gap-3">
+            <% @component_demo_quick_action_recordings.each do |recording| %>
+              <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: recording, size: :sm) %>
+            <% end %>
+          </div>
         <% when :edit_button %>
           <div class="space-y-4">
             <div class="space-y-2">

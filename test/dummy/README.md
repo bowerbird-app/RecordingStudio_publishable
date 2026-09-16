@@ -12,21 +12,23 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 - Flatpack's built-in `rounded` theme on `<html data-theme="rounded">` (not custom CSS) on every dummy layout, including Devise and public pages
 - Flatpack CSS and JS loaded the way the [live kit](https://flatpack.bowerbird.io/) does: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then host Tailwind; stylesheets in `manifest.js`; Flatpack controllers lazy-loaded from `importmap.rb`
 - the FlatPack-based **Edit publishable info** screen, with a Search engines accordion for Canonical URL and search listing
+- a host **publish dropdown** on the Pages table (`QuickActions`) so a page can go live or back to draft without opening that screen
 - the default public route at `/published/:uuid/:slug`
-- seeded published indexable, published hidden-from-search, and unpublished pages so head tags and `indexable?` can be checked
+- seeded published indexable, published hidden-from-search, scheduled, and draft pages so head tags, `indexable?`, and the three dropdown states can be checked
 
 ## Seeded records
 
-`bin/rails db:setup` (or `bin/rails db:seed` on an existing database) creates both a live page and a draft so screenshots and checks are not empty lists:
+`bin/rails db:setup` (or `bin/rails db:seed` on an existing database) creates published, scheduled, and draft pages so screenshots and checks are not empty lists:
 
 | Title | Type | Publish state | Search |
 | --- | --- | --- | --- |
 | Launch Checklist | Page | published | In search |
 | Staff-only notes | Page | published | Hidden from search |
 | Coming soon | Page | draft | Not live |
+| Winter preview | Page | scheduled | Not live |
 | Spring Release Notes | Article | published | In search |
 
-Home (`/`) lists all four. Public routes only exist for the published rows.
+Home (`/`) lists all five. Public routes only exist for the published rows.
 
 To re-seed without resetting the database:
 

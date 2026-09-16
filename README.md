@@ -145,13 +145,26 @@ page_recording.currently_published?
 page_recording.publishable_public_path
 ```
 
+## Host publish control
+
+Put `QuickActions` on a host page to show the current state and change it there.
+
+```erb
+<%= render RecordingStudioPublishable::QuickActions::Component.new(recording: page_recording) %>
+<%= render_publishable_quick_actions(page_recording) %>
+```
+
+The closed button names Draft, Scheduled, or Published. The menu holds the other verbs (`Publish now`, `Back to draft`) plus Publish settings, which opens the gem Publish screen.
+
+A change from this control stays on the host page. With Turbo, the dropdown replaces itself. Without Turbo, the request returns to the same page with a flash. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
+
 ## Dummy app
 
 The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.0`.
 
 Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close, the workspace switcher, and Sign out. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins Flatpack controllers with `preload: false` and lazy-loads them the same way gem_template v0.2.0 does. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table; publish edit uses Flatpack Accordion. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
 
-Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates a published page and an unpublished draft so screenshots are not empty lists.
+Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates published, scheduled, and draft pages so screenshots are not empty lists.
 
 ## Cloud Agent boot
 

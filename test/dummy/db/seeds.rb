@@ -13,6 +13,7 @@ folder = Folder.find_or_create_by!(name: "Product Docs")
 page = Page.find_or_create_by!(title: "Launch Checklist")
 hidden_page = Page.find_or_create_by!(title: "Staff-only notes")
 draft_page = Page.find_or_create_by!(title: "Coming soon")
+scheduled_page = Page.find_or_create_by!(title: "Winter preview")
 article = Article.find_or_create_by!(title: "Spring Release Notes") do |record|
   record.excerpt = "A second publishable recordable type routed through ArticlesController#show."
 end
@@ -30,6 +31,9 @@ hidden_page_recording ||= root_recording.record(hidden_page, actor: admin_user, 
 
 draft_page_recording = root_recording.recording_for(draft_page)
 draft_page_recording ||= root_recording.record(draft_page, actor: admin_user, parent_recording: folder_recording)
+
+scheduled_page_recording = root_recording.recording_for(scheduled_page)
+scheduled_page_recording ||= root_recording.record(scheduled_page, actor: admin_user, parent_recording: folder_recording)
 
 article_recording = root_recording.recording_for(article)
 article_recording ||= root_recording.record(article, actor: admin_user, parent_recording: folder_recording)
@@ -82,6 +86,20 @@ RecordingStudioPublishable::Services::Publishables::Update.call(
   }
 )
 
+RecordingStudioPublishable::Services::Publishables::Update.call(
+  parent_recording: scheduled_page_recording,
+  actor: admin_user,
+  attributes: {
+    slug: "winter-preview",
+    status: "published",
+    publish_at: 2.weeks.from_now,
+    seo_title: "Winter preview",
+    seo_description: "A demo page scheduled for later.",
+    social_title: "Winter preview",
+    social_description: "Dummy app scheduled publishable state"
+  }
+)
+
 article_publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
   parent_recording: article_recording,
   actor: admin_user,
@@ -102,4 +120,5 @@ puts "Seeded: Workspace '#{workspace.name}' with root recording ##{root_recordin
 puts "Seeded: Page '#{page.title}' with publishable child ##{publishable_recording.id}"
 puts "Seeded: Page '#{hidden_page.title}' published with noindex"
 puts "Seeded: Page '#{draft_page.title}' as unpublished draft"
+puts "Seeded: Page '#{scheduled_page.title}' scheduled for later"
 puts "Seeded: Article '#{article.title}' with publishable child ##{article_publishable_recording.id}"
