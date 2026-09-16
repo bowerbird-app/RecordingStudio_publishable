@@ -51,6 +51,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Published"
     assert_includes response.body, "Back to draft"
     assert_includes response.body, "Publish settings"
+    assert_includes response.body, "@hotwired/turbo-rails"
     refute_includes response.body, "Dummy publishables"
     refute_includes response.body, "You are already signed in"
     assert_includes response.body,

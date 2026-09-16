@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inline transitions (`inline=1` or a Turbo Stream request) stay on the host page. Turbo Stream replaces the dropdown. HTML falls back to `redirect_back`
 
 ### Changed
-- Dummy home uses the dropdown in the Publish column. The dummy article page uses it for signed-in people
+- Dummy home uses the dropdown in the Publish column. The dummy article page uses it for signed-in people. Dummy now loads Turbo so those PATCHes stay on the page
 - Dummy seeds a scheduled Winter preview page so the three closed states can be shown
 
 ### Upgrade Notes
