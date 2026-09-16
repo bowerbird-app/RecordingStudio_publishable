@@ -123,11 +123,11 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
   test "components page lists addon partial entry points" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Components Workspace"))
     draft_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Components Draft"),
-                                                        parent_recording: root)
+                                                         parent_recording: root)
     scheduled_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Components Scheduled"),
-                                                               parent_recording: root)
+                                                             parent_recording: root)
     published_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Components Published"),
-                                                               parent_recording: root)
+                                                             parent_recording: root)
 
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: draft_recording,

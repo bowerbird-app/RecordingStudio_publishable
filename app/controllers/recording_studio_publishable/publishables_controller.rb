@@ -221,11 +221,8 @@ module RecordingStudioPublishable
         return render_inline_transition(alert: message, status: :unprocessable_entity)
       end
 
-      notice = if publishable.published_state? && !publishable.scheduled_for_future?
-        "It's live."
-      else
-        "Back to a draft."
-      end
+      live = publishable.published_state? && !publishable.scheduled_for_future?
+      notice = live ? "It's live." : "Back to a draft."
 
       render_inline_transition(notice: notice)
     end
