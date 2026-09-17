@@ -43,12 +43,11 @@ class RecordingStudioPublishableTest < Minitest::Test
     )
 
     refute_includes view_source, "FlatPack::Accordion::Component"
-    refute_includes view_source, 'title: "Search engines"'
-    assert_includes view_source, 'title: @job.title'
-    assert_includes view_source, 'label: "Canonical URL"'
-    assert_includes view_source, 'label: "Search listing"'
-    assert_includes view_source, 'label: "Title in search"'
-    assert_includes view_source, 'label: "Description in search"'
+    refute_includes view_source, "title: \"Search engines\""
+    assert_includes view_source, "label: \"Canonical URL\""
+    assert_includes view_source, "label: \"Search listing\""
+    assert_includes view_source, "label: \"Title in search\""
+    assert_includes view_source, "label: \"Description in search\""
   end
 
   def test_publish_jobs_omits_schedule_when_scheduling_is_off

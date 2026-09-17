@@ -196,9 +196,9 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "How this looks when someone shares it."
     assert_includes response.body, RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)
     assert_includes response.body, "Publish now"
-    assert_includes response.body, recording_studio_publishable.schedule_recording_publishable_path(recording_id: parent_recording.id)
-    assert_includes response.body, recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
-    assert_includes response.body, recording_studio_publishable.social_recording_publishable_path(recording_id: parent_recording.id)
+    assert_includes response.body, schedule_path_for(parent_recording)
+    assert_includes response.body, search_path_for(parent_recording)
+    assert_includes response.body, social_path_for(parent_recording)
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "Title in search"
     refute_includes response.body, "publishable[canonical_url]"
@@ -371,9 +371,9 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
       get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
 
       assert_response :success
-      refute_includes response.body, recording_studio_publishable.schedule_recording_publishable_path(recording_id: parent_recording.id)
-      assert_includes response.body, recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
-      assert_includes response.body, recording_studio_publishable.social_recording_publishable_path(recording_id: parent_recording.id)
+      refute_includes response.body, schedule_path_for(parent_recording)
+      assert_includes response.body, search_path_for(parent_recording)
+      assert_includes response.body, social_path_for(parent_recording)
     end
   end
 
