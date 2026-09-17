@@ -37,15 +37,24 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes devise_layout, '<html data-theme="rounded">'
   end
 
-  def test_publish_edit_accordion_is_named_search_engines
+  def test_publish_search_screen_uses_search_listing_labels
     view_source = File.read(
-      File.expand_path("../app/views/recording_studio_publishable/publishables/edit.html.erb", __dir__)
+      File.expand_path("../app/views/recording_studio_publishable/publishables/search.html.erb", __dir__)
     )
 
-    assert_includes view_source, "FlatPack::Accordion::Component"
-    assert_includes view_source, 'title: "Search engines"'
-    refute_includes view_source, 'title: "Search"'
+    refute_includes view_source, "FlatPack::Accordion::Component"
+    refute_includes view_source, 'title: "Search engines"'
+    assert_includes view_source, 'title: @job.title'
     assert_includes view_source, 'label: "Canonical URL"'
     assert_includes view_source, 'label: "Search listing"'
+    assert_includes view_source, 'label: "Title in search"'
+    assert_includes view_source, 'label: "Description in search"'
+  end
+
+  def test_publish_jobs_omits_schedule_when_scheduling_is_off
+    listed = RecordingStudioPublishable::PublishJobs.listed(schedule_enabled: false)
+
+    refute_includes listed.map(&:key), :schedule
+    assert_equal %i[search social], listed.map(&:key)
   end
 end

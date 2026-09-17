@@ -93,6 +93,9 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "app/views/recording_studio_publishable/publishables/edit.html.erb"
+    assert_includes response.body, "app/views/recording_studio_publishable/publishables/schedule.html.erb"
+    assert_includes response.body, "app/views/recording_studio_publishable/publishables/search.html.erb"
+    assert_includes response.body, "app/views/recording_studio_publishable/publishables/social.html.erb"
   end
 
   test "methods page lists addon method families" do

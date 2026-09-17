@@ -75,7 +75,7 @@ module RecordingStudioPublishable
       def action_href(action)
         return transition_url(action[:transition]) if action[:transition]
 
-        edit_url(schedule: 1)
+        schedule_url
       end
 
       def action_data(action)
@@ -96,10 +96,15 @@ module RecordingStudioPublishable
         )
       end
 
-      def edit_url(**query)
+      def schedule_url
+        helpers.recording_studio_publishable.schedule_recording_publishable_path(
+          recording_id: recording.id
+        )
+      end
+
+      def edit_url
         helpers.recording_studio_publishable.edit_recording_publishable_path(
-          recording_id: recording.id,
-          **query
+          recording_id: recording.id
         )
       end
     end

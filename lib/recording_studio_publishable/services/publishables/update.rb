@@ -156,7 +156,7 @@ module RecordingStudioPublishable
           validated[:status] = status
 
           if status == "published"
-            validated[:unpublish_at] = nil
+            validated[:unpublish_at] = nil unless attributes.key?(:unpublish_at)
             publish_at_submitted = attributes.key?(:publish_at)
             publish_at_cleared = publish_at_submitted && attributes[:publish_at].to_s.strip.empty?
 

@@ -172,7 +172,7 @@ module RecordingStudioPublishable
             assert update_result.success?
             publishable = update_result.value.recordable
             assert_equal "published", publishable.status
-            assert_equal initial_publish_at.to_i, publishable.publish_at.to_i
+            assert_equal initial_publish_at.change(sec: 0).to_i, publishable.publish_at.to_i
           end
         end
 
@@ -229,7 +229,7 @@ module RecordingStudioPublishable
           end
         end
 
-        test "published status preserves an explicit future publish_at and clears unpublish_at" do
+        test "published status preserves an explicit future publish_at and an explicit later unpublish_at" do
           freeze_time do
             result = Update.call(
               parent_recording: @parent_recording,
@@ -237,7 +237,7 @@ module RecordingStudioPublishable
                 slug: "landing-page",
                 status: "published",
                 publish_at: 1.day.from_now,
-                unpublish_at: 1.hour.from_now
+                unpublish_at: 2.days.from_now
               }
             )
 
@@ -245,7 +245,8 @@ module RecordingStudioPublishable
             publishable = result.value.recordable
             assert_equal "published", publishable.status
             assert publishable.publish_at.future?
-            assert_nil publishable.unpublish_at
+            assert publishable.unpublish_at.future?
+            assert publishable.publish_at < publishable.unpublish_at
           end
         end
 

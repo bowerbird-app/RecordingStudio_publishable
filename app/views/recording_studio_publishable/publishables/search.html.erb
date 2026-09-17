@@ -1,0 +1,104 @@
+<% seo_title_max_characters = 60 %>
+
+<% if respond_to?(:recording_studio_page_nav) %>
+  <% recording_studio_page_nav(
+    title: @job.title,
+    page_nav_back_url: edit_recording_publishable_path(recording_id: @parent_recording.id),
+    page_nav_back_label: "Publish",
+    page_nav_anchor_url: @management_close_url,
+    page_nav_anchor_label: "Close"
+  ) %>
+<% end %>
+
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: @job.title,
+    subtitle: @job.subtitle,
+    variant: :h1
+  ) %>
+
+  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, class: "space-y-4", html: { novalidate: true } do |_form| %>
+    <%= hidden_field_tag :section, @job.key %>
+
+    <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
+
+    <%= render FlatPack::TextInput::Component.new(
+      name: "publishable[canonical_url]",
+      label: "Canonical URL",
+      value: @publishable.canonical_url,
+      placeholder: "Leave blank to use the public URL",
+      help_text: "Leave this blank unless search should treat another address as the original."
+    ) %>
+
+    <%= render FlatPack::Select::Component.new(
+      name: "publishable[meta_robots]",
+      label: "Search listing",
+      options: [
+        ["Show this page in search", "index,follow"],
+        ["Keep this page out of search", "noindex,follow"]
+      ],
+      value: (@publishable.noindex? ? "noindex,follow" : "index,follow"),
+      help_text: "Search engines only see this while the page is live."
+    ) %>
+
+    <% if @seo_enabled != false %>
+      <div class="space-y-1">
+        <%= render FlatPack::TextInput::Component.new(
+          name: "publishable[seo_title]",
+          id: "publishable-seo-title-input",
+          label: "Title in search",
+          value: @publishable.seo_title,
+          maxlength: seo_title_max_characters,
+          data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
+        ) %>
+        <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
+      </div>
+
+      <%= render FlatPack::TextArea::Component.new(
+        name: "publishable[seo_description]",
+        label: "Description in search",
+        value: @publishable.seo_description,
+        rows: 4,
+        character_count: true,
+        max_characters: 160,
+        placeholder: "A short line for search results"
+      ) %>
+    <% end %>
+
+    <%= render FlatPack::Button::Component.new(text: "Save", style: :primary, size: :md, type: "submit") %>
+  <% end %>
+</div>
+
+<script>
+  function initializePublishableTitleCounters() {
+    document.querySelectorAll("[data-publishable-title-counter-input]").forEach(function(input) {
+      if (input.dataset.publishableTitleCounterInitialized === "true") {
+        return;
+      }
+
+      input.dataset.publishableTitleCounterInitialized = "true";
+
+      var targetKey = input.dataset.publishableTitleCounterTarget;
+      var limit = parseInt(input.dataset.publishableTitleCounterLimit || "0", 10);
+      if (!targetKey || !limit) {
+        return;
+      }
+
+      var counter = document.querySelector('[data-publishable-title-counter="' + targetKey + '"]');
+      if (!counter) {
+        return;
+      }
+
+      function updateCounter() {
+        counter.textContent = String(input.value || "").length + " / " + limit + " characters";
+      }
+
+      input.addEventListener("input", updateCounter);
+      input.addEventListener("change", updateCounter);
+      updateCounter();
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", initializePublishableTitleCounters);
+  document.addEventListener("turbo:load", initializePublishableTitleCounters);
+</script>

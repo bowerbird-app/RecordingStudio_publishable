@@ -134,7 +134,7 @@ page.published_url
 
 `publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title.
 
-Canonical URL is an optional override. Leave it blank to use the public URL. The management screen's Search engines accordion and the Update service both accept it, including when SEO tags are turned off for that type.
+Canonical URL is an optional override. Leave it blank to use the public URL. The Search screen and the Update service both accept it, including when SEO tags are turned off for that type.
 
 Recording instance helpers work on the parent recording after the capability is enabled:
 
@@ -154,7 +154,9 @@ Put `QuickActions` on a host page to show the current state and change it there.
 <%= render_publishable_quick_actions(page_recording) %>
 ```
 
-The closed button names Draft, Scheduled, or Published. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Unpublish` on live pages, `Back to draft` on scheduled pages) plus Publish settings, which opens the gem Publish screen. Schedule opens that screen with the date fields already open.
+The closed button names Draft, Scheduled, or Published. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Unpublish` on live pages, `Back to draft` on scheduled pages) plus Publish settings.
+
+Publish settings is a hub. Schedule, Search, and Social are their own screens. Schedule in the dropdown opens the schedule screen.
 
 A change from this control stays on the host page. With Turbo, the dropdown replaces itself. Without Turbo, the request returns to the same page with a flash. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
 
@@ -162,7 +164,7 @@ A change from this control stays on the host page. With Turbo, the dropdown repl
 
 The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.0`.
 
-Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close, the workspace switcher, and Sign out. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table; publish edit uses Flatpack Accordion. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
+Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close, the workspace switcher, and Sign out. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that links to Schedule, Search, and Social. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
 
 Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates published, scheduled, and draft pages so screenshots are not empty lists.
 

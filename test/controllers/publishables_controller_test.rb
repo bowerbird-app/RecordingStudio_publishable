@@ -66,15 +66,14 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     publish_parent_recording!(parent_recording)
 
     patch recording_studio_publishable.publishable_path(recording_id: parent_recording.id), params: {
+      section: "schedule",
       publishable: {
-        slug: "spring-release-notes",
-        status: "published",
         publish_at: 1.day.from_now.utc.strftime("%Y-%m-%dT%H:%M"),
         time_zone: "UTC"
       }
     }
 
-    assert_redirected_to recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+    assert_redirected_to schedule_path_for(parent_recording)
 
     follow_redirect!
 
@@ -183,22 +182,218 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "/workspace/#{parent_recording.id}"
   end
 
-  test "edit form exposes canonical url and search listing" do
+  test "hub lists publish jobs and quick actions without job fields" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
 
     get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
 
     assert_response :success
+    assert_includes response.body, "Schedule"
+    assert_includes response.body, "Search"
+    assert_includes response.body, "Social"
+    assert_includes response.body, "Pick when this goes live."
+    assert_includes response.body, "How this shows up in search."
+    assert_includes response.body, "How this looks when someone shares it."
+    assert_includes response.body, RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)
+    assert_includes response.body, "Publish now"
+    assert_includes response.body, recording_studio_publishable.schedule_recording_publishable_path(recording_id: parent_recording.id)
+    assert_includes response.body, recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
+    assert_includes response.body, recording_studio_publishable.social_recording_publishable_path(recording_id: parent_recording.id)
+    refute_includes response.body, "datetime-local"
+    refute_includes response.body, "Title in search"
+    refute_includes response.body, "publishable[canonical_url]"
+    refute_includes response.body, "publishable[social_title]"
+  end
+
+  test "schedule page has times and not search or social fields" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    get recording_studio_publishable.schedule_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Pick when this goes live."
+    assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
+    assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
+    refute_includes response.body, "Title in search"
+    refute_includes response.body, "data-publishable-social-image-picker"
+    refute_includes response.body, "Select social image"
+  end
+
+  test "search page has listing fields and not times or social image" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    get recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "publishable[slug]"
     assert_includes response.body, "publishable[canonical_url]"
     assert_includes response.body, "publishable[meta_robots]"
-    assert_includes response.body, "Search engines"
     assert_includes response.body, "Canonical URL"
     assert_includes response.body, "Search listing"
-    refute_includes response.body, ">Search</span>"
+    assert_includes response.body, "Title in search"
+    assert_includes response.body, "Description in search"
+    refute_includes response.body, "datetime-local"
+    refute_includes response.body, "data-publishable-social-image-picker"
+    refute_includes response.body, "Select social image"
     refute_includes response.body, 'name="publishable[meta_robots]" type="hidden"'
   end
 
+  test "social page has preview fields and not times" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    get recording_studio_publishable.social_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Social title"
+    assert_includes response.body, "How this looks when someone shares it."
+    assert_includes response.body, "publishable[social_title]"
+    assert_includes response.body, "data-publishable-social-image-picker"
+    assert_includes response.body, "Select social image"
+    refute_includes response.body, "datetime-local"
+  end
+
+  test "schedule save redirects to schedule and persists publish_at" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    publish_at = 2.days.from_now.utc.strftime("%Y-%m-%dT%H:%M")
+
+    patch recording_studio_publishable.publishable_path(recording_id: parent_recording.id), params: {
+      section: "schedule",
+      publishable: {
+        publish_at: publish_at,
+        time_zone: "UTC"
+      }
+    }
+
+    assert_redirected_to schedule_path_for(parent_recording)
+
+    publishable = parent_recording.reload.current_publishable
+    assert publishable.publish_at.present?
+    assert_equal "published", publishable.status
+    assert publishable.scheduled_for_future?
+
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "Times saved."
+    refute_includes response.body, "Published!"
+  end
+
+  test "search save stays on search" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    patch recording_studio_publishable.publishable_path(recording_id: parent_recording.id), params: {
+      section: "search",
+      publishable: {
+        slug: "spring-release-notes",
+        canonical_url: "https://example.test/canonical",
+        meta_robots: "noindex,follow"
+      }
+    }
+
+    assert_redirected_to search_path_for(parent_recording)
+
+    publishable = parent_recording.reload.current_publishable
+    assert_equal "spring-release-notes", publishable.slug
+    assert_equal "https://example.test/canonical", publishable.canonical_url
+    assert_equal "noindex,follow", publishable.meta_robots
+
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "Search listing saved."
+    refute_includes response.body, "Published!"
+  end
+
+  test "search save ignores social fields" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    patch recording_studio_publishable.publishable_path(recording_id: parent_recording.id), params: {
+      section: "search",
+      publishable: {
+        slug: "spring-release-notes",
+        social_title: "should-not-save"
+      }
+    }
+
+    assert_redirected_to search_path_for(parent_recording)
+    assert_nil parent_recording.reload.current_publishable.social_title
+  end
+
+  test "social save stays on social" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    patch recording_studio_publishable.publishable_path(recording_id: parent_recording.id), params: {
+      section: "social",
+      publishable: {
+        social_title: "Share this",
+        social_description: "A line for the card."
+      }
+    }
+
+    assert_redirected_to social_path_for(parent_recording)
+
+    publishable = parent_recording.reload.current_publishable
+    assert_equal "Share this", publishable.social_title
+    assert_equal "A line for the card.", publishable.social_description
+
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "Social preview saved."
+    refute_includes response.body, "Published!"
+  end
+
+  test "update without a section returns to the hub" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    patch recording_studio_publishable.publishable_path(recording_id: parent_recording.id), params: {
+      publishable: { slug: "should-not-change" }
+    }
+
+    assert_redirected_to recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+    refute_equal "should-not-change", parent_recording.reload.current_publishable&.slug
+  end
+
+  test "schedule page redirects to the hub when scheduling is off" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    RecordingStudioPublishable.configuration.stub :schedule_enabled_for, false do
+      get recording_studio_publishable.schedule_recording_publishable_path(recording_id: parent_recording.id)
+
+      assert_redirected_to edit_path_for(parent_recording)
+    end
+  end
+
+  test "hub omits schedule when scheduling is off" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    RecordingStudioPublishable.configuration.stub :schedule_enabled_for, false do
+      get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+
+      assert_response :success
+      refute_includes response.body, recording_studio_publishable.schedule_recording_publishable_path(recording_id: parent_recording.id)
+      assert_includes response.body, recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
+      assert_includes response.body, recording_studio_publishable.social_recording_publishable_path(recording_id: parent_recording.id)
+    end
+  end
+
   private
+
+  def edit_path_for(parent_recording)
+    recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+  end
+
+  def schedule_path_for(parent_recording)
+    recording_studio_publishable.schedule_recording_publishable_path(recording_id: parent_recording.id)
+  end
+
+  def search_path_for(parent_recording)
+    recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
+  end
+
+  def social_path_for(parent_recording)
+    recording_studio_publishable.social_recording_publishable_path(recording_id: parent_recording.id)
+  end
 
   def build_publishable_parent(title:)
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Publishable workspace"))

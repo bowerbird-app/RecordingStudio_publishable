@@ -98,21 +98,43 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Publish"
-    assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
-    assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
-    refute_includes response.body, "SEO title"
-    refute_includes response.body, "SEO description"
-    assert_includes response.body, "Select social image"
+    assert_includes response.body, "Sign out"
+    assert_includes response.body, "Schedule"
+    assert_includes response.body, "Search"
+    assert_includes response.body, "Social"
+    refute_includes response.body, "datetime-local"
+    refute_includes response.body, "Title in search"
+    refute_includes response.body, "Description in search"
+    refute_includes response.body, "Select social image"
   end
 
-  test "edit page opens the schedule section when requested from the dropdown" do
-    get recording_studio_publishable.edit_recording_publishable_path(
-      recording_id: @page_recording.id,
-      schedule: 1
-    )
+  test "schedule page renders datetime fields" do
+    get recording_studio_publishable.schedule_recording_publishable_path(recording_id: @page_recording.id)
 
     assert_response :success
-    assert_select '[aria-controls="publishable-schedule-window-content"][aria-expanded="true"]'
+    assert_includes response.body, "Schedule"
+    assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
+    assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
+  end
+
+  test "search page on pages omits title in search" do
+    get recording_studio_publishable.search_recording_publishable_path(recording_id: @page_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Search listing"
+    assert_includes response.body, "publishable[canonical_url]"
+    refute_includes response.body, "Title in search"
+    refute_includes response.body, "Description in search"
+    refute_includes response.body, "datetime-local"
+  end
+
+  test "social page renders preview fields" do
+    get recording_studio_publishable.social_recording_publishable_path(recording_id: @page_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Social title"
+    assert_includes response.body, "Select social image"
+    refute_includes response.body, "datetime-local"
   end
 
   test "edit page accepts a publishable child recording id without nesting another publishable" do
@@ -127,6 +149,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Publish"
-    assert_includes response.body, recording_studio_publishable.publishable_path(recording_id: @page_recording.id)
+    assert_includes response.body,
+                    recording_studio_publishable.schedule_recording_publishable_path(recording_id: @page_recording.id)
   end
 end

@@ -49,8 +49,16 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     schedule_link = schedule_menu_link(section)
     assert schedule_link
-    assert_includes schedule_link["href"], "schedule=1"
+    assert_includes schedule_link["href"],
+                    recording_studio_publishable.schedule_recording_publishable_path(recording_id: recording.id)
+    refute_includes schedule_link["href"], "schedule="
     assert_nil schedule_link["data-turbo-method"]
+
+    settings_link = settings_menu_link(section)
+    assert settings_link
+    assert_includes settings_link["href"],
+                    recording_studio_publishable.edit_recording_publishable_path(recording_id: recording.id)
+    refute_includes settings_link["href"], "schedule="
   end
 
   test "draft dropdown omits schedule when scheduling is off" do
@@ -127,6 +135,10 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
   def schedule_menu_link(section)
     Nokogiri::HTML(section).css("a").find { |link| link.at_css("span")&.text == "Schedule" }
+  end
+
+  def settings_menu_link(section)
+    Nokogiri::HTML(section).css("a").find { |link| link.at_css("span")&.text == "Publish settings" }
   end
 
   def create_parent(title)
