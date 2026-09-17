@@ -28,7 +28,7 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 | Winter preview | Page | scheduled | Not live |
 | Spring Release Notes | Article | published | In search |
 
-Home (`/`) lists all five. Public routes only exist for the published rows. Preview is a signed-in editor route for Coming soon and Winter preview. It is not the public URL.
+Home (`/`) lists all five. Public routes only exist for the published rows. Preview is a signed-in route for people who can see Coming soon or Winter preview. Logged-out visitors get 404. It is not the public URL.
 
 To re-seed without resetting the database:
 
