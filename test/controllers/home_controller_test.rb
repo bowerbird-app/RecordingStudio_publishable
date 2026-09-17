@@ -105,6 +105,8 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Publish"
     assert_includes response.body, "Sign out"
+    assert_includes response.body, "View"
+    assert_includes response.body, "See it live."
     assert_includes response.body, "Schedule"
     assert_includes response.body, "SEO"
     assert_includes response.body, "Social"

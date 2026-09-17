@@ -174,6 +174,10 @@ module RecordingStudioPublishable
     def assign_publishable_hub_state
       @management_close_url = management_close_url
       @recordable_name = parent_page_name
+      @page_link = RecordingStudioPublishable::PageLink.for(
+        recording: @parent_recording,
+        preview_href: preview_recording_publishable_path(recording_id: @parent_recording.id)
+      )
       @publish_jobs = RecordingStudioPublishable::PublishJobs.listed(schedule_enabled: schedule_enabled_for_recordable?)
     end
 

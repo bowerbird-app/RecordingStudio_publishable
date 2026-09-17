@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `QuickActions` is a Flatpack status dropdown for host pages. The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. The menu holds `Publish now` (`rocket-launch`), `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`, Preview or View, then SEO and Social. Draft uses `pencil-square`
 - Draft and scheduled menus open Preview in a new tab at `/recordings/:recording_id/publishable/preview`. That route is for people who can see the page, renders the public template, and sends `noindex,nofollow`. Logged-out visitors get 404. Live menus open View at the public URL
 - Inline transitions (`inline=1` or a Turbo Stream request) stay on the host page. Turbo Stream replaces the dropdown. HTML falls back to `redirect_back`
-- Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen. SEO and Social in the dropdown open those screens
+- Publish settings is a hub. Preview or View sits at the top of that list, then Schedule, SEO, and Social. Schedule in the dropdown opens the schedule screen. SEO and Social in the dropdown open those screens
 - Inline publish and unpublish replace the dropdown only. They do not insert a success banner next to it
 - Inline Turbo replace keeps the host `size` so a small Pages dropdown does not jump to medium after publish
 
@@ -31,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade Notes
 - Render `RecordingStudioPublishable::QuickActions::Component` (or `render_publishable_quick_actions`) on host pages where people should see and change publish state
 - The component always sends `inline=1`. Those requests no longer open the gem Publish or success screens
-- Publish settings opens the hub. Schedule, SEO, and Social in the dropdown open `/recordings/:recording_id/publishable/schedule`, `/search`, and `/social`
+- Publish settings opens the hub. That list starts with Preview or View, then Schedule, SEO, and Social. Those jobs open `/recordings/:recording_id/publishable/schedule`, `/search`, and `/social`
 - Preview is not a query param on the public URL. People who can see the page can open Preview. Live menus use View. Public templates can render `publishable_preview_badge`
 - PATCH without `inline=1` still redirects to the gem screens, as before
 - Hosts that overrode `edit.html.erb` as one form should switch to the hub and the job screens

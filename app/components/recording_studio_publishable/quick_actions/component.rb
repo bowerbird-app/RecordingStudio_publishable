@@ -109,14 +109,10 @@ module RecordingStudioPublishable
       end
 
       def page_link
-        child = recording.publishable_child_recording if closed_state == :published
-        href = RecordingStudioPublishable::Routing.path_for(
-          publishable_recording: child,
-          parent_recordable_type: recording.recordable_type
-        )
-        return { text: "View", icon: "arrow-top-right-on-square", href: href } if href.present?
-
-        { text: "Preview", icon: "eye", href: job_url(:preview) }
+        RecordingStudioPublishable::PageLink.for(
+          recording: recording,
+          preview_href: job_url(:preview)
+        ).to_h
       end
 
       private

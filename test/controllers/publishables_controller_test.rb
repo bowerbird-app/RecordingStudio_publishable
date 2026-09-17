@@ -5,6 +5,7 @@ require_relative "../test_helper"
 require_relative "../dummy/config/environment"
 
 require "cgi"
+require "nokogiri"
 require "devise/test/integration_helpers"
 require "rails/test_help"
 
@@ -307,6 +308,9 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
 
     assert_response :success
+    assert_equal %w[Preview Schedule SEO Social], hub_list_titles
+    assert_includes response.body, "See it before it goes live."
+    assert_includes response.body, preview_path_for(parent_recording)
     assert_includes response.body, "Schedule"
     assert_includes response.body, "SEO"
     assert_includes response.body, "Social"
@@ -322,6 +326,36 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Title in search"
     refute_includes response.body, "publishable[canonical_url]"
     refute_includes response.body, "publishable[social_title]"
+  end
+
+  test "published hub lists View first at the live url" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    publish_parent_recording!(parent_recording)
+
+    get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_equal %w[View Schedule SEO Social], hub_list_titles
+    assert_includes response.body, "See it live."
+    child = parent_recording.publishable_child_recording
+    assert child
+    assert_includes response.body, child.id.to_s
+    refute_includes Nokogiri::HTML(response.body).at_css('[role=listitem] a')["href"], "preview"
+  end
+
+  test "scheduled hub lists Preview first" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "spring-release-notes", status: "published", publish_at: 2.days.from_now }
+    ).value!
+
+    get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_equal %w[Preview Schedule SEO Social], hub_list_titles
+    assert_includes response.body, preview_path_for(parent_recording)
   end
 
   test "schedule page has times and not search or social fields" do
@@ -515,6 +549,14 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
   def social_path_for(parent_recording)
     recording_studio_publishable.social_recording_publishable_path(recording_id: parent_recording.id)
+  end
+
+  def preview_path_for(parent_recording)
+    recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
+  end
+
+  def hub_list_titles
+    Nokogiri::HTML(response.body).css("[role=listitem] p.font-medium").map { |node| node.text.strip }
   end
 
   def build_publishable_parent(title:)

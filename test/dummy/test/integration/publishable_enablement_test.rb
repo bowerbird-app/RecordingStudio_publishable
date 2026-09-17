@@ -77,6 +77,8 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_select ".flat-pack-page-nav", 1
     assert_match "Sign out", response.body
     assert_match "Publish", response.body
+    assert_match "Preview", response.body
+    assert_match "See it before it goes live.", response.body
     assert_match "Schedule", response.body
     assert_match "SEO", response.body
     assert_match "Social", response.body
