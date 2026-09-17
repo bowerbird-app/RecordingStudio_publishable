@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "recording_studio_publishable/publish_jobs"
+require "recording_studio_publishable/page_link"
 
 module RecordingStudioPublishable
   class PublishablesController < ApplicationController
