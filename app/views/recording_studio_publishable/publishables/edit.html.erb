@@ -720,12 +720,41 @@
     });
   }
 
+  function openPublishableScheduleSectionIfRequested() {
+    if (!new URLSearchParams(window.location.search).has("schedule")) {
+      return;
+    }
+
+    window.setTimeout(function() {
+      var trigger = document.querySelector('button[aria-controls="publishable-schedule-window-content"]');
+      var content = document.getElementById("publishable-schedule-window-content");
+      if (!trigger || !content) {
+        return;
+      }
+
+      var expanded = trigger.getAttribute("aria-expanded") === "true";
+      var visible = !content.hidden && content.offsetHeight > 8;
+      if (expanded && visible) {
+        return;
+      }
+
+      if (expanded && !visible) {
+        content.hidden = false;
+        content.style.maxHeight = content.scrollHeight + "px";
+        return;
+      }
+
+      trigger.click();
+    }, 100);
+  }
+
   document.addEventListener("DOMContentLoaded", function() {
     initializePublishableTimeZoneDefault();
     initializePublishableFormState();
     initializeUnpublishNeverDisplay();
     initializePublishableTitleCounters();
     initializePublishableDirtyTracking();
+    openPublishableScheduleSectionIfRequested();
   });
 
   document.addEventListener("turbo:load", function() {
@@ -737,6 +766,7 @@
     document.querySelectorAll("form.publishable-edit-form").forEach(function(form) {
       updatePublishableScheduleLabel(form);
     });
+    openPublishableScheduleSectionIfRequested();
   });
 
   document.addEventListener("input", function(event) {
