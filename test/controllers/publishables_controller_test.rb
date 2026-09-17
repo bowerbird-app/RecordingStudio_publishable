@@ -386,32 +386,32 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "publishable[slug]"
     assert_includes response.body, "publishable[canonical_url]"
     assert_includes response.body, "publishable[meta_robots]"
-    assert_includes response.body, "Original URL"
+    assert_includes response.body, "Canonical URL"
     assert_includes response.body, "Advanced"
     assert_includes response.body, "flat-pack--collapse"
-    assert_includes response.body, "Leave this blank unless this page is replacing an older address."
-    assert_includes response.body, "Paste that old full https:// address so search still treats this as the same page."
+    assert_includes response.body, "The preferred URL for this page."
     refute_includes response.body, "Search listing"
     refute_includes response.body, "Title in search"
     refute_includes response.body, "Description in search"
     refute_includes response.body, "Hide from search"
-    assert_includes response.body, "Keep this out of search engines"
-    assert_includes response.body, "The page stays live. Google and the rest just skip it."
+    refute_includes response.body, "Original URL"
+    refute_includes response.body, "Keep this out of search engines"
+    assert_includes response.body, "Ask search engines not to index this page. It stays live."
     labels = Nokogiri::HTML(response.body).css("form label").map { |node| node.text.gsub(/\s+/, " ").strip }
     title_index = labels.index { |text| text == "Title" }
     slug_index = labels.index { |text| text.include?("Slug") }
     description_index = labels.index { |text| text == "Description" }
-    skip_index = labels.index { |text| text.include?("Keep this out of search engines") }
-    original_index = labels.index { |text| text.include?("Original URL") }
+    noindex_index = labels.index { |text| text == "noindex" }
+    canonical_index = labels.index { |text| text.include?("Canonical URL") }
     assert title_index
     assert slug_index
     assert description_index
-    assert skip_index
-    assert original_index
+    assert noindex_index
+    assert canonical_index
     assert title_index < slug_index
     assert slug_index < description_index
-    assert description_index < skip_index
-    assert skip_index < original_index
+    assert description_index < noindex_index
+    assert noindex_index < canonical_index
     html = Nokogiri::HTML(response.body)
     collapse = html.at_css('[data-controller="flat-pack--collapse"]')
     assert collapse
@@ -428,7 +428,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Show this page in search"
   end
 
-  test "search page opens advanced when original url is set" do
+  test "search page opens advanced when canonical url is set" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,
@@ -445,7 +445,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "true", collapse["data-flat-pack--collapse-open-value"]
   end
 
-  test "search page opens advanced when search engines are asked to skip" do
+  test "search page opens advanced when noindex is set" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,

@@ -53,16 +53,16 @@
           name: "publishable[meta_robots]",
           value: "noindex,follow",
           checked: @publishable.noindex?,
-          label: "Keep this out of search engines",
-          help_text: "The page stays live. Google and the rest just skip it."
+          label: "noindex",
+          help_text: "Ask search engines not to index this page. It stays live."
         ) %>
 
         <%= render FlatPack::TextInput::Component.new(
           name: "publishable[canonical_url]",
-          label: "Original URL",
+          label: "Canonical URL",
           value: @publishable.canonical_url,
-          placeholder: "Leave blank to use this page's URL",
-          help_text: "Leave this blank unless this page is replacing an older address. Paste that old full https:// address so search still treats this as the same page."
+          placeholder: "https://",
+          help_text: "The preferred URL for this page. Leave blank to use this page's URL."
         ) %>
       </div>
     <% end %>

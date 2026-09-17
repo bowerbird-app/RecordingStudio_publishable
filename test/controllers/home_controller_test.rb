@@ -135,18 +135,21 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     get recording_studio_publishable.search_recording_publishable_path(recording_id: @page_recording.id)
 
     assert_response :success
-    assert_includes response.body, "Keep this out of search engines"
+    assert_includes response.body, "noindex"
     assert_includes response.body, "publishable[canonical_url]"
-    assert_includes response.body, "Original URL"
+    assert_includes response.body, "Canonical URL"
     assert_includes response.body, "Advanced"
-    assert_includes response.body, "Leave this blank unless this page is replacing an older address."
+    assert_includes response.body, "The preferred URL for this page."
     labels = Nokogiri::HTML(response.body).css("form label").map { |node| node.text.gsub(/\s+/, " ").strip }
     assert_includes labels, "Title"
     assert_includes labels, "Description"
-    assert_includes labels, "Keep this out of search engines"
+    assert_includes labels, "noindex"
+    assert_includes labels, "Canonical URL"
     refute_includes response.body, "Title in search"
     refute_includes response.body, "Search listing"
     refute_includes response.body, "Hide from search"
+    refute_includes response.body, "Original URL"
+    refute_includes response.body, "Keep this out of search engines"
     assert_includes response.body, "publishable[seo_description]"
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "Sign out"

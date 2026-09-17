@@ -14,7 +14,7 @@
     <%= publishable_preview_badge %>
     <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
     <%= render FlatPack::Badge::Component.new(
-      text: (@page.respond_to?(:indexable?) && @page.indexable?) ? "In search engines" : "Out of search engines",
+      text: (@page.respond_to?(:indexable?) && @page.indexable?) ? "Indexable" : "noindex",
       style: (@page.respond_to?(:indexable?) && @page.indexable?) ? :success : :default,
       size: :sm
     ) %>
@@ -28,9 +28,9 @@
         <p><strong>Public path:</strong> <%= resolved_public_path %></p>
         <p><strong>Public URL:</strong> <%= resolved_public_url %></p>
         <% if @publishable.canonical_url.present? %>
-          <p><strong>Original URL for search:</strong> <%= @publishable.canonical_url %></p>
+          <p><strong>Canonical URL:</strong> <%= @publishable.canonical_url %></p>
         <% end %>
-        <p><strong>Keep out of search engines:</strong> <%= @publishable.noindex? ? "Yes" : "No" %></p>
+        <p><strong>noindex:</strong> <%= @publishable.noindex? ? "Yes" : "No" %></p>
       </div>
     <% end %>
   <% end %>

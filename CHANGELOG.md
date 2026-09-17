@@ -11,13 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Dummy Pages turn SEO title and description on. The SEO screen for a page now has Title and Description, not only slug
-- The SEO form leads with Title, then Slug and Description. Advanced holds Keep this out of search engines and Original URL. Advanced starts open when either of those is set
-- Keep this out of search engines is the noindex checkbox. The page stays live. Search engines skip it. It is not a site-index hide and not robots.txt
+- The SEO form leads with Title, then Slug and Description. Advanced holds noindex and Canonical URL. Advanced starts open when either of those is set
+- noindex asks search engines not to index the page. Canonical URL is the preferred URL. Help text explains both in plain language and does not promise search engines will obey
 
 ### Upgrade Notes
 - Bump to `recording_studio_publishable` `0.3.1`
 - Dummy Pages now use `seo: true` (the default). Hosts that still want those search tags off keep `seo: false` on the type
-- Hosts that overrode `search.html.erb` should match Title, Description, and Advanced (Keep this out of search engines, Original URL) if they want the same layout and copy
+- Hosts that overrode `search.html.erb` should match Title, Description, and Advanced (noindex, Canonical URL) if they want the same layout and copy
 
 ## [0.3.0] - 2026-09-16
 
