@@ -215,7 +215,7 @@ module RecordingStudioPublishable
     end
 
     def preview_authorized?
-      RecordingStudioPublishable.configuration.authorize_management?(
+      RecordingStudioPublishable.configuration.authorize_preview?(
         recording: @parent_recording,
         actor: current_publishable_actor,
         controller: self

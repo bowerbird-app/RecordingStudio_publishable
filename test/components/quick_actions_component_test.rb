@@ -163,7 +163,10 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_equal "false", link["data-turbo"]
 
     if public
-      assert_includes link["href"], recording.publishable_public_path
+      child = recording.publishable_child_recording
+      assert child
+      assert_includes link["href"], child.id.to_s
+      refute_includes link["href"], "preview"
     else
       assert_includes link["href"],
                       recording_studio_publishable.preview_recording_publishable_path(recording_id: recording.id)

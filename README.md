@@ -156,7 +156,7 @@ Put `QuickActions` on a host page to show the current state and change it there.
 
 The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary, Scheduled is default, Published is success. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`), then Preview or View, then SEO and Social.
 
-Preview is for drafts and scheduled pages. It opens in a new tab and uses a signed-in edit route, not the public URL. People who are logged out or only allowed to look get 404. Live pages use View, which opens the public URL in a new tab. Preview sends `noindex,nofollow` and does not emit the live social or canonical tags. Host public templates can render `publishable_preview_badge`.
+Preview is for drafts and scheduled pages. It opens in a new tab for people who can see the page. Logged-out visitors get 404. It is not the public URL. Live pages use View, which opens the public URL in a new tab. Preview sends `noindex,nofollow` and does not emit the live social or canonical tags. Host public templates can render `publishable_preview_badge`.
 
 Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen. SEO and Social in the dropdown open those screens.
 

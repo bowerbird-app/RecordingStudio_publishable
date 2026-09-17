@@ -56,7 +56,7 @@ Or test unauthorized edit behavior with:
 - Email: `viewer@admin.com`
 - Password: `Password`
 
-The admin account has edit/admin access through RecordingStudio Accessible. The viewer account has view-only access and should be unauthorized for publishable edit actions.
+The admin account has edit/admin access through RecordingStudio Accessible. The viewer account has view-only access and cannot change publish settings, but can open Preview.
 
 Authenticated pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. Publishable `config.layout` is `recording_studio/default_layout`. Dummy overrides that layout only so `<html data-theme="rounded">` is set — Flatpack's built-in rounded theme, the same one the live kit uses. Devise `application` layout sets the same attribute. Stylesheets load like the kit (`flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind). Dummy `config/importmap.rb` pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`; `app/javascript/application.js` imports Turbo; `app/javascript/controllers/index.js` lazy-loads Stimulus controllers. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home is the Flatpack Table of Pages. Publish settings is a hub that links to Schedule, SEO, and Social. Schedule, SEO, and Social hide the workspace switcher and Sign out. There is no custom sidebar and no custom CSS to shrink chevrons or unstack rows.
 

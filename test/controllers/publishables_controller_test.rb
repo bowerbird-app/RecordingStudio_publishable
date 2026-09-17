@@ -103,7 +103,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
-  test "preview returns not found for a view-only person" do
+  test "preview shows the public template to a view-only person" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,
@@ -124,7 +124,10 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
 
-    assert_response :not_found
+    assert_response :success
+    assert_includes response.body, "Spring Release Notes"
+    assert_includes response.body, '<meta name="robots" content="noindex,nofollow">'
+    assert_includes response.body, "Preview"
   end
 
   test "preview does not create a publishable child" do

@@ -48,9 +48,7 @@ module RecordingStudioPublishable
         "publishable_quick_actions_#{recording.id}"
       end
 
-      def wrapper_id
-        self.class.wrapper_id(recording)
-      end
+      def wrapper_id = self.class.wrapper_id(recording)
 
       def closed_state
         publishable = recording.current_publishable
@@ -111,17 +109,17 @@ module RecordingStudioPublishable
       end
 
       def page_link
-        return preview_link unless closed_state == :published
+        child = recording.publishable_child_recording if closed_state == :published
+        href = RecordingStudioPublishable::Routing.path_for(
+          publishable_recording: child,
+          parent_recordable_type: recording.recordable_type
+        )
+        return { text: "View", icon: "arrow-top-right-on-square", href: href } if href.present?
 
-        href = recording.publishable_public_path
-        { text: "View", icon: "arrow-top-right-on-square", href: href } if href.present?
+        { text: "Preview", icon: "eye", href: job_url(:preview) }
       end
 
       private
-
-      def preview_link
-        { text: "Preview", icon: "eye", href: job_url(:preview) }
-      end
 
       def scheduled_trigger_text
         publishable = recording.current_publishable
