@@ -57,6 +57,8 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_response :success
     section = wrapper_html(recording)
     assert_includes section, "Published"
+    assert_includes section, "check-circle"
+    assert_includes section, "button-success-background-color"
     assert_includes section, "Back to draft"
     refute_includes section, "Publish now"
   end

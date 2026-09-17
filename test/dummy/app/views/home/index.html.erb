@@ -3,14 +3,16 @@
 <%= render FlatPack::PageTitle::Component.new(
   title: "Pages",
   variant: :h1
-) %>
-
-<%= render FlatPack::Button::Component.new(
-  text: "Add page",
-  style: :primary,
-  size: :md,
-  href: new_dummy_page_path
-) %>
+) do |page_title| %>
+  <% page_title.slot do %>
+    <%= render FlatPack::Button::Component.new(
+      text: "Add page",
+      style: :primary,
+      size: :md,
+      href: new_dummy_page_path
+    ) %>
+  <% end %>
+<% end %>
 
 <% if @publishable_parent_recordings.any? %>
   <%= render FlatPack::Table::Component.new(data: @publishable_parent_recordings) do |table| %>

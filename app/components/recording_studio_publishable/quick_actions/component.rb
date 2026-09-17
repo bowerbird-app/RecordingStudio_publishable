@@ -18,8 +18,8 @@ module RecordingStudioPublishable
         },
         published: {
           trigger: "Published",
-          style: :primary,
-          icon: "globe-alt",
+          style: :success,
+          icon: "check-circle",
           actions: %i[draft]
         }
       }.freeze

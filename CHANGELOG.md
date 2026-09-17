@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Dummy home uses the dropdown in the Publish column. The dummy article page uses it for signed-in people. Dummy now loads Turbo so those PATCHes stay on the page
+- Published uses Flatpack success style and the `check-circle` icon. Dummy Pages puts Add page in the page title slot so there is space above the table
 - Dummy seeds a scheduled Winter preview page so the three closed states can be shown
 
 ### Upgrade Notes

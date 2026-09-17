@@ -43,6 +43,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '<html data-theme="rounded">'
     assert_includes response.body, "Pages"
     assert_includes response.body, "Add page"
+    assert_includes response.body, "page-title-actions"
     assert_includes response.body, "Sign out"
     assert_includes response.body, "Home page"
     assert_includes response.body, "Second page"
