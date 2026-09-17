@@ -340,7 +340,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     child = parent_recording.publishable_child_recording
     assert child
     assert_includes response.body, child.id.to_s
-    refute_includes Nokogiri::HTML(response.body).at_css('[role=listitem] a')["href"], "preview"
+    refute_includes Nokogiri::HTML(response.body).at_css("[role=listitem] a")["href"], "preview"
   end
 
   test "scheduled hub lists Preview first" do
