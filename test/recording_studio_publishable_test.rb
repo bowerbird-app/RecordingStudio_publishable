@@ -55,6 +55,13 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes view_source, "label: \"Title in search\""
     assert_includes view_source, "label: \"Description in search\""
     assert_includes view_source, "help_text: \"The line under the title in search results.\""
+    title_index = view_source.index("label: \"Title in search\"")
+    slug_index = view_source.index("label: \"Slug\"")
+    description_index = view_source.index("label: \"Description in search\"")
+    listing_index = view_source.index("label: \"Search listing\"")
+    assert title_index < slug_index
+    assert slug_index < description_index
+    assert description_index < listing_index
   end
 
   def test_publish_jobs_omits_schedule_when_scheduling_is_off

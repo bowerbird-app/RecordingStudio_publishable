@@ -12,11 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Dummy Pages turn SEO title and description on. The SEO screen for a page now has Title in search and Description in search, not only slug and Search listing
 - Original URL (the canonical override) sits in an Advanced collapse at the bottom of the SEO form. Leave it blank unless this page is replacing an older address
+- The SEO form leads with Title in search. Search listing sits below Description in search
 
 ### Upgrade Notes
 - Bump to `recording_studio_publishable` `0.3.1`
 - Dummy Pages now use `seo: true` (the default). Hosts that still want those search tags off keep `seo: false` on the type
-- Hosts that overrode `search.html.erb` should move the canonical field into the Advanced collapse if they want the same layout
+- Hosts that overrode `search.html.erb` should move the canonical field into the Advanced collapse, put Title in search first, and put Search listing below Description in search if they want the same layout
 
 ## [0.3.0] - 2026-09-16
 

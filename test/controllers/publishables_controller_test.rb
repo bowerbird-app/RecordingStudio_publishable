@@ -397,6 +397,18 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Search listing"
     assert_includes response.body, "Title in search"
     assert_includes response.body, "Description in search"
+    labels = Nokogiri::HTML(response.body).css("form label").map { |node| node.text.gsub(/\s+/, " ").strip }
+    title_index = labels.index { |text| text.include?("Title in search") }
+    slug_index = labels.index { |text| text.include?("Slug") }
+    description_index = labels.index { |text| text.include?("Description in search") }
+    listing_index = labels.index { |text| text.include?("Search listing") }
+    assert title_index
+    assert slug_index
+    assert description_index
+    assert listing_index
+    assert title_index < slug_index
+    assert slug_index < description_index
+    assert description_index < listing_index
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "data-publishable-social-image-picker"
     refute_includes response.body, "Select social image"
