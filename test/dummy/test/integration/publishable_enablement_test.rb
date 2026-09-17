@@ -120,7 +120,11 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,
       actor: @user,
-      attributes: { slug: "public-theme-page", status: "published" }
+      attributes: {
+        slug: "public-theme-page",
+        status: "published",
+        seo_description: "A short line for search results."
+      }
     ).value!
 
     get parent_recording.publishable_public_path
@@ -128,6 +132,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "html[data-theme=rounded]"
     assert_select "body[data-recording-studio-default-layout='true']"
+    assert_select "meta[name=description][content='A short line for search results.']"
     assert_flatpack_assets_loaded
   end
 

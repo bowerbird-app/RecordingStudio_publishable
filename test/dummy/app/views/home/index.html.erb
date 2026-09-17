@@ -31,9 +31,9 @@
       recordable = recording.recordable
       public_path = recording.publishable_public_path
       if recordable.respond_to?(:indexable?) && recordable.indexable?
-        render FlatPack::Badge::Component.new(text: "In search", style: :success, size: :sm)
+        render FlatPack::Badge::Component.new(text: "Indexable", style: :success, size: :sm)
       elsif public_path.present?
-        render FlatPack::Badge::Component.new(text: "Hidden from search", style: :default, size: :sm)
+        render FlatPack::Badge::Component.new(text: "noindex", style: :default, size: :sm)
       else
         render FlatPack::Badge::Component.new(text: "Not live", style: :default, size: :sm)
       end

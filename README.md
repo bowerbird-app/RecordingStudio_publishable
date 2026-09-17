@@ -71,7 +71,7 @@ class Page < ApplicationRecord
     public_controller: "pages",
     public_action: :show,
     schedule: true,
-    seo: false
+    seo: true
   )
 end
 
@@ -134,7 +134,7 @@ page.published_url
 
 `publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title. On Preview it emits only `noindex,nofollow`.
 
-Canonical URL is an optional override. Leave it blank to use the public URL. The SEO screen and the Update service both accept it, including when SEO tags are turned off for that type.
+Canonical URL is an optional override on the SEO screen, under Advanced. Leave it blank to use the public URL. Fill it only when another address should be the preferred URL. noindex is on that same Advanced panel. It asks search engines not to index the page. The page stays live. The SEO screen and the Update service both accept those fields, including when SEO tags are turned off for that type.
 
 Recording instance helpers work on the parent recording after the capability is enabled:
 
@@ -166,7 +166,7 @@ A change from this control stays on the host page. With Turbo, the dropdown repl
 
 The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.0`.
 
-Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish hub, Schedule, SEO, and Social keep back and close and hide the switcher and Sign out. The hub list and those job forms use a narrower desktop width and stay left-aligned. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that starts with Preview or View, then Schedule, SEO, and Social. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
+Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish hub, Schedule, SEO, and Social keep back and close and hide the switcher and Sign out. The hub list and those job forms use a narrower desktop width and stay left-aligned. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that starts with Preview or View, then Schedule, SEO, and Social. Dummy Pages and Articles both collect Title and Description. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
 
 Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates published, scheduled, and draft pages so screenshots are not empty lists.
 

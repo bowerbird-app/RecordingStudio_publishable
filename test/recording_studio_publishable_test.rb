@@ -39,17 +39,38 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes devise_layout, '<html data-theme="rounded">'
   end
 
-  def test_publish_search_screen_uses_search_listing_labels
+  def test_publish_search_screen_uses_plain_field_labels
     view_source = File.read(
       File.expand_path("../app/views/recording_studio_publishable/publishables/search.html.erb", __dir__)
     )
 
     refute_includes view_source, "FlatPack::Accordion::Component"
     refute_includes view_source, "title: \"Search engines\""
+    refute_includes view_source, "Title in search"
+    refute_includes view_source, "Description in search"
+    refute_includes view_source, "Search listing"
+    refute_includes view_source, "Hide from search"
+    refute_includes view_source, "Original URL"
+    refute_includes view_source, "Keep this out of search engines"
+    assert_includes view_source, "FlatPack::Collapse::Component"
+    assert_includes view_source, "FlatPack::Checkbox::Component"
+    assert_includes view_source, "title: \"Advanced\""
     assert_includes view_source, "label: \"Canonical URL\""
-    assert_includes view_source, "label: \"Search listing\""
-    assert_includes view_source, "label: \"Title in search\""
-    assert_includes view_source, "label: \"Description in search\""
+    assert_includes view_source, "The preferred URL for this page. Leave blank to use this page's URL."
+    assert_includes view_source, "label: \"noindex\""
+    assert_includes view_source, "Ask search engines not to index this page. It stays live."
+    assert_includes view_source, "label: \"Title\""
+    assert_includes view_source, "label: \"Description\""
+    assert_includes view_source, "help_text: \"The line under the title in search results.\""
+    title_index = view_source.index("label: \"Title\"")
+    slug_index = view_source.index("label: \"Slug\"")
+    description_index = view_source.index("label: \"Description\"")
+    noindex_index = view_source.index("label: \"noindex\"")
+    canonical_index = view_source.index("label: \"Canonical URL\"")
+    assert title_index < slug_index
+    assert slug_index < description_index
+    assert description_index < noindex_index
+    assert noindex_index < canonical_index
   end
 
   def test_publish_jobs_omits_schedule_when_scheduling_is_off

@@ -5,6 +5,7 @@ require_relative "../test_helper"
 require_relative "../dummy/config/environment"
 
 require "devise/test/integration_helpers"
+require "nokogiri"
 require "rails/test_help"
 
 class HomeControllerTest < ActionDispatch::IntegrationTest
@@ -130,14 +131,26 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Studio Workspace"
   end
 
-  test "search page on pages omits title in search" do
+  test "search page on pages includes title and description" do
     get recording_studio_publishable.search_recording_publishable_path(recording_id: @page_recording.id)
 
     assert_response :success
-    assert_includes response.body, "Search listing"
+    assert_includes response.body, "noindex"
     assert_includes response.body, "publishable[canonical_url]"
+    assert_includes response.body, "Canonical URL"
+    assert_includes response.body, "Advanced"
+    assert_includes response.body, "The preferred URL for this page."
+    labels = Nokogiri::HTML(response.body).css("form label").map { |node| node.text.gsub(/\s+/, " ").strip }
+    assert_includes labels, "Title"
+    assert_includes labels, "Description"
+    assert_includes labels, "noindex"
+    assert_includes labels, "Canonical URL"
     refute_includes response.body, "Title in search"
-    refute_includes response.body, "Description in search"
+    refute_includes response.body, "Search listing"
+    refute_includes response.body, "Hide from search"
+    refute_includes response.body, "Original URL"
+    refute_includes response.body, "Keep this out of search engines"
+    assert_includes response.body, "publishable[seo_description]"
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "Sign out"
   end

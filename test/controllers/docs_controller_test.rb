@@ -188,18 +188,18 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "currently_published"
   end
 
-  test "headers resolved values show seo disabled and only social tags for page" do
-    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Headers SEO False Workspace"))
-    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Headers SEO False Page"),
+  test "headers resolved values show seo tags for page" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Headers SEO Page Workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Headers SEO Page"),
                                                           parent_recording: root)
 
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: parent_recording,
       attributes: {
-        slug: "headers-seo-false-page",
+        slug: "headers-seo-page",
         status: "published",
-        seo_title: "SEO title should be ignored",
-        seo_description: "SEO description should be ignored"
+        seo_title: "Page search title",
+        seo_description: "Page search description"
       }
     )
 
@@ -207,12 +207,11 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "seo_enabled"
-    assert_includes response.body, "false"
+    assert_includes response.body, "true"
     assert_includes response.body, "meta[name=robots]"
-    assert_includes response.body, "meta[property=og:title]"
-    assert_includes response.body, "meta[name=twitter:title]"
-    refute_includes response.body, "meta[name=description]"
-    refute_includes response.body, "link[rel=canonical]"
+    assert_includes response.body, "Page search description"
+    assert_includes response.body, "meta[name=description]"
+    assert_includes response.body, "link[rel=canonical]"
     refute_includes response.body, "font-medium\">title</td>"
   end
 
