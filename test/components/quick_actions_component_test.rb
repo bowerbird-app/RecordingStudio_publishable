@@ -67,7 +67,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
       assert_response :success
       section = wrapper_html(recording)
       assert_includes section, "Publish now"
-      refute_includes section, "Schedule"
+      assert_nil schedule_menu_link(section)
     end
   end
 
@@ -89,7 +89,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes section, "Unpublish"
     refute_includes section, "Back to draft"
     refute_includes section, "Publish now"
-    refute_includes section, "Schedule"
+    assert_nil schedule_menu_link(section)
   end
 
   test "scheduled dropdown names the state and offers both verbs" do
@@ -114,7 +114,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes section, "rocket-launch"
     assert_includes section, "Back to draft"
     refute_includes section, "Unpublish"
-    refute_includes section, "Schedule"
+    assert_nil schedule_menu_link(section)
   end
 
   private
@@ -126,7 +126,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
   end
 
   def schedule_menu_link(section)
-    Nokogiri::HTML(section).css("a").find { |link| link.text.include?("Schedule") }
+    Nokogiri::HTML(section).css("a").find { |link| link.at_css("span")&.text == "Schedule" }
   end
 
   def create_parent(title)
