@@ -7,8 +7,4 @@
     page_nav_anchor_label: "Close"
   ) %>
 <% end %>
-<% if respond_to?(:recording_studio_page_nav_right) %>
-  <% recording_studio_page_nav_right do %>
-    <span class="hidden" aria-hidden="true">&nbsp;</span>
-  <% end %>
-<% end %>
+<%= render "recording_studio_publishable/publishables/clear_page_nav_right" %>

@@ -75,7 +75,8 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_select "html[data-theme=rounded]"
     assert_select "body[data-recording-studio-default-layout='true']"
     assert_select ".flat-pack-page-nav", 1
-    assert_match "Sign out", response.body
+    refute_match "Sign out", response.body
+    refute_match "Studio Workspace", response.body
     assert_match "Publish", response.body
     assert_match "Preview", response.body
     assert_match "See it before it goes live.", response.body

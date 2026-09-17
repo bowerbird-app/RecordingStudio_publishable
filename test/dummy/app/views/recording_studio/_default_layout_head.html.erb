@@ -1,7 +1,5 @@
 <%= publishable_head_tags %>
-<% publishable_job_screen = controller.is_a?(RecordingStudioPublishable::PublishablesController) &&
-     %w[schedule search social].include?(controller.action_name) %>
-<% if user_signed_in? && !publishable_hides_host_chrome? && !publishable_job_screen && !content_for?(:page_nav_right) %>
+<% if user_signed_in? && !publishable_hides_page_nav_right? && !content_for?(:page_nav_right) %>
   <% recording_studio_page_nav_right do %>
     <%= recording_studio_root_switch_dropdown(style: :ghost, size: :md) %>
     <%= render FlatPack::Button::Component.new(

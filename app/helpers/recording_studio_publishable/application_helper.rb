@@ -98,6 +98,13 @@ module RecordingStudioPublishable
       publishable_preview?
     end
 
+    def publishable_hides_page_nav_right?
+      return true if publishable_hides_host_chrome?
+      return false unless defined?(controller)
+
+      controller.is_a?(RecordingStudioPublishable::PublishablesController)
+    end
+
     def publishable_preview_badge
       return unless publishable_preview?
 
