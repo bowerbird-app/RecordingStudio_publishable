@@ -54,6 +54,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     refute_includes schedule_link["href"], "schedule="
     assert_nil schedule_link["data-turbo-method"]
 
+    assert_page_link(section, recording, text: "Preview", icon: "eye", public: false)
     assert_footer_job_links(section, recording)
   end
 
@@ -95,6 +96,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     refute_includes section, "Back to draft"
     refute_includes section, "Publish now"
     assert schedule_menu_link(section)
+    assert_page_link(section, recording, text: "View", icon: "arrow-top-right-on-square", public: true)
     assert_footer_job_links(section, recording)
   end
 
@@ -130,6 +132,8 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
       refute_includes section, "Back to draft"
       assert_nil schedule_menu_link(section)
       assert schedule_menu_link(section, text: "Change schedule")
+      assert_page_link(section, recording, text: "Preview", icon: "eye", public: false)
+      refute_includes section, ">View<"
       assert_footer_job_links(section, recording)
     end
   end
@@ -148,6 +152,23 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
   def menu_link(section, text)
     Nokogiri::HTML(section).css("a").find { |link| link.at_css("span")&.text == text }
+  end
+
+  def assert_page_link(section, recording, text:, icon:, public:)
+    link = menu_link(section, text)
+    assert link
+    assert_includes section, icon
+    assert_equal "_blank", link["target"]
+    assert_includes link["rel"].to_s, "noopener"
+    assert_equal "false", link["data-turbo"]
+
+    if public
+      assert_includes link["href"], recording.publishable_public_path
+    else
+      assert_includes link["href"],
+                      recording_studio_publishable.preview_recording_publishable_path(recording_id: recording.id)
+      refute_includes link["href"], "preview="
+    end
   end
 
   def assert_footer_job_links(section, recording)

@@ -11,6 +11,7 @@
   ) %>
 
   <div class="flex flex-wrap gap-2">
+    <%= publishable_preview_badge %>
     <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
     <%= render FlatPack::Badge::Component.new(
       text: (@page.respond_to?(:indexable?) && @page.indexable?) ? "In search" : "Hidden from search",

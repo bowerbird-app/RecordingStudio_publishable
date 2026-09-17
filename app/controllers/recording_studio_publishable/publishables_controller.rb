@@ -4,11 +4,14 @@ require "recording_studio_publishable/publish_jobs"
 
 module RecordingStudioPublishable
   class PublishablesController < ApplicationController
+    include RendersPublicPage
+
     layout :publishable_layout
 
+    skip_before_action :authenticate_user!, only: :preview, raise: false
     before_action :load_parent_recording
-    before_action -> { authorize_publishable_management!(@parent_recording) }
-    before_action :ensure_publishable_child
+    before_action -> { authorize_publishable_management!(@parent_recording) }, except: :preview
+    before_action :ensure_publishable_child, except: :preview
 
     def edit
       assign_publishable_hub_state
@@ -26,6 +29,15 @@ module RecordingStudioPublishable
 
     def social
       assign_publishable_form_state
+    end
+
+    def preview
+      return head :not_found unless preview_authorized?
+
+      publishable_recording = @parent_recording.publishable_child_recording
+      return head :not_found if publishable_recording.blank?
+
+      render_public_publishable_page(publishable_recording, preview: true)
     end
 
     def success
@@ -200,6 +212,14 @@ module RecordingStudioPublishable
 
     def seo_enabled_for_recordable?
       RecordingStudioPublishable.configuration.seo_enabled_for(@parent_recording.recordable_type)
+    end
+
+    def preview_authorized?
+      RecordingStudioPublishable.configuration.authorize_management?(
+        recording: @parent_recording,
+        actor: current_publishable_actor,
+        controller: self
+      )
     end
 
     def management_close_url

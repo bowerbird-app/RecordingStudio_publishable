@@ -19,6 +19,16 @@
         data: action_data(action)
       ) %>
     <% end %>
+    <% if page_link %>
+      <% dropdown.menu_item(
+        text: page_link[:text],
+        icon: page_link[:icon],
+        href: page_link[:href],
+        target: "_blank",
+        rel: "noopener noreferrer",
+        data: { turbo: false }
+      ) %>
+    <% end %>
     <% dropdown.menu_divider %>
     <% dropdown.menu_item(
       text: "SEO",

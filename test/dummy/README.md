@@ -12,7 +12,7 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 - Flatpack's built-in `rounded` theme on `<html data-theme="rounded">` (not custom CSS) on every dummy layout, including Devise and public pages
 - Flatpack CSS and JS loaded the way the [live kit](https://flatpack.bowerbird.io/) does: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then host Tailwind; stylesheets in `manifest.js`; Flatpack controllers lazy-loaded from `importmap.rb`
 - Publish settings is a hub. Schedule, SEO, and Social are their own screens
-- a host **publish dropdown** on the Pages table (`QuickActions`) so a page can go live or unpublish without opening that screen. Schedule, SEO, and Social in the dropdown open those screens
+- a host **publish dropdown** on the Pages table (`QuickActions`) so a page can go live or unpublish without opening that screen. Schedule, SEO, and Social in the dropdown open those screens. Draft and scheduled menus include Preview. Live menus include View
 - the default public route at `/published/:uuid/:slug`
 - seeded published indexable, published hidden-from-search, scheduled, and draft pages so head tags, `indexable?`, and the three dropdown states can be checked
 
@@ -28,7 +28,7 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 | Winter preview | Page | scheduled | Not live |
 | Spring Release Notes | Article | published | In search |
 
-Home (`/`) lists all five. Public routes only exist for the published rows.
+Home (`/`) lists all five. Public routes only exist for the published rows. Preview is a signed-in editor route for Coming soon and Winter preview. It is not the public URL.
 
 To re-seed without resetting the database:
 
@@ -67,6 +67,7 @@ Authenticated pages include `RecordingStudio::UsesDefaultLayout` and `RecordingS
 - `/recordings/:recording_id/publishable/schedule` - schedule screen
 - `/recordings/:recording_id/publishable/search` - SEO screen
 - `/recordings/:recording_id/publishable/social` - social preview screen
+- `/recordings/:recording_id/publishable/preview` - signed-in preview of a draft or scheduled page
 - `/published/:uuid/:slug` - default public route
 - `/recording_studio` - mounted RecordingStudio engine
 - `/docs/headers` - preview generated canonical, Open Graph, and Twitter header values

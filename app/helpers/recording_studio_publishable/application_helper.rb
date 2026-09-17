@@ -15,7 +15,11 @@ module RecordingStudioPublishable
       parent_recordable ||= instance_variable_defined?(:@parent_recordable) ? @parent_recordable : nil
       parent_recordable ||= publishable_recording&.parent_recording&.recordable
 
-      return "".html_safe if publishable.blank? || publishable_recording.blank? || !publishable.currently_published?
+      return "".html_safe if publishable.blank? || publishable_recording.blank?
+
+      return tag.meta(name: "robots", content: "noindex,nofollow") if publishable_preview?
+
+      return "".html_safe unless publishable.currently_published?
 
       public_url ||= publishable_public_url(
         publishable_recording: publishable_recording,
@@ -67,7 +71,8 @@ module RecordingStudioPublishable
       parent_recordable ||= instance_variable_defined?(:@parent_recordable) ? @parent_recordable : nil
       parent_recordable ||= publishable_recording&.parent_recording&.recordable
 
-      return if publishable.blank? || publishable_recording.blank? || !publishable.currently_published?
+      return if publishable.blank? || publishable_recording.blank?
+      return unless publishable.currently_published? || publishable_preview?
 
       title.presence || document_title_for(publishable: publishable, parent_recordable: parent_recordable)
     end
@@ -78,6 +83,25 @@ module RecordingStudioPublishable
 
     def render_publishable_quick_actions(recording)
       render RecordingStudioPublishable::QuickActions::Component.new(recording: recording)
+    end
+
+    def publishable_preview?
+      return true if instance_variable_defined?(:@publishable_preview) && @publishable_preview
+      return false unless defined?(controller) && controller.respond_to?(:action_name)
+
+      controller.is_a?(RecordingStudioPublishable::PublishablesController) && controller.action_name == "preview"
+    end
+
+    def publishable_hides_host_chrome?
+      return true if defined?(controller) && controller.is_a?(RecordingStudioPublishable::PublishedController)
+
+      publishable_preview?
+    end
+
+    def publishable_preview_badge
+      return unless publishable_preview?
+
+      render FlatPack::Badge::Component.new(text: "Preview", style: :warning, size: :sm)
     end
 
     private

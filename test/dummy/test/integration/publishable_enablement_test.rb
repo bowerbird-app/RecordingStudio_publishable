@@ -128,6 +128,26 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_flatpack_assets_loaded
   end
 
+  test "preview uses the public template without host chrome" do
+    sign_in @user
+    parent_recording = create_publishable_parent("Preview theme page")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "preview-theme-page", status: "draft" }
+    ).value!
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_select "html[data-theme=rounded]"
+    assert_select "body[data-recording-studio-default-layout='true']"
+    assert_match "Preview", response.body
+    assert_match "noindex,nofollow", response.body
+    refute_match "Sign out", response.body
+    assert_flatpack_assets_loaded
+  end
+
   test "dummy gemfile pins recording studio 4.2 and dummy-only root switchable" do
     gemfile = File.read(Rails.root.join("Gemfile"))
 

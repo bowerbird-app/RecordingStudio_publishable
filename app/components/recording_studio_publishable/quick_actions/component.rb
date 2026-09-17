@@ -54,11 +54,9 @@ module RecordingStudioPublishable
 
       def closed_state
         publishable = recording.current_publishable
-        return :draft if publishable.blank?
-        return :scheduled if publishable.scheduled_for_future?
-        return :published if publishable.published_state?
+        return :draft if publishable.blank? || !publishable.published_state?
 
-        :draft
+        publishable.scheduled_for_future? ? :scheduled : :published
       end
 
       def state_config
@@ -77,10 +75,7 @@ module RecordingStudioPublishable
       end
 
       def menu_actions
-        names = state_config[:actions]
-        return names if schedule_enabled?
-
-        names - [:schedule]
+        schedule_enabled? ? state_config[:actions] : state_config[:actions] - [:schedule]
       end
 
       def action_href(action)
@@ -115,7 +110,18 @@ module RecordingStudioPublishable
         )
       end
 
+      def page_link
+        return preview_link unless closed_state == :published
+
+        href = recording.publishable_public_path
+        { text: "View", icon: "arrow-top-right-on-square", href: href } if href.present?
+      end
+
       private
+
+      def preview_link
+        { text: "Preview", icon: "eye", href: job_url(:preview) }
+      end
 
       def scheduled_trigger_text
         publishable = recording.current_publishable

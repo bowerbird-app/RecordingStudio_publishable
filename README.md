@@ -132,7 +132,7 @@ page.published_url
 
 `indexable` is the list Support and Press kits should use for public search. A parent is indexable when it is currently published, not trashed (if `trashed_at` exists), not marked `noindex`, and has a canonical URL or public URL.
 
-`publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title.
+`publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title. On Preview it emits only `noindex,nofollow`.
 
 Canonical URL is an optional override. Leave it blank to use the public URL. The SEO screen and the Update service both accept it, including when SEO tags are turned off for that type.
 
@@ -154,7 +154,9 @@ Put `QuickActions` on a host page to show the current state and change it there.
 <%= render_publishable_quick_actions(page_recording) %>
 ```
 
-The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary, Scheduled is default, Published is success. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`), then SEO and Social.
+The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary, Scheduled is default, Published is success. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`), then Preview or View, then SEO and Social.
+
+Preview is for drafts and scheduled pages. It opens in a new tab and uses a signed-in edit route, not the public URL. People who are logged out or only allowed to look get 404. Live pages use View, which opens the public URL in a new tab. Preview sends `noindex,nofollow` and does not emit the live social or canonical tags. Host public templates can render `publishable_preview_badge`.
 
 Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen. SEO and Social in the dropdown open those screens.
 

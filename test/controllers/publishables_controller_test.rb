@@ -46,6 +46,87 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "/blogs/#{parent_recording.publishable_child_recording.id}/spring-release-notes"
   end
 
+  test "preview shows the public template to an editor with noindex" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Spring Release Notes"
+    assert_includes response.body, "Rendered through:"
+    assert_includes response.body, '<meta name="robots" content="noindex,nofollow">'
+    refute_includes response.body, 'property="og:title"'
+    refute_includes response.body, '<link rel="canonical"'
+    assert_includes response.body, "Preview"
+    refute_includes response.body, "Sign out"
+    refute_includes response.body, "?preview="
+  end
+
+  test "preview of a scheduled page is not the public url" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: {
+        slug: "spring-release-notes",
+        status: "published",
+        publish_at: 2.days.from_now,
+        time_zone: "UTC"
+      }
+    ).value!
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Spring Release Notes"
+    assert_includes response.body, '<meta name="robots" content="noindex,nofollow">'
+    refute parent_recording.reload.current_publishable.currently_published?
+  end
+
+  test "preview returns not found when logged out" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    sign_out @user
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :not_found
+  end
+
+  test "preview returns not found for a view-only person" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    viewer = User.find_or_create_by!(email: "publishables-viewer@example.com") do |user|
+      user.password = TEST_PASSWORD
+      user.password_confirmation = TEST_PASSWORD
+    end
+    RecordingStudioAccessible.grant_access(
+      recording: parent_recording.root_recording,
+      actor: viewer,
+      role: :view,
+      manager_actor: @user
+    )
+    sign_in viewer
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :not_found
+  end
+
+  test "preview does not create a publishable child" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Preview workspace"))
+    parent_recording = RecordingStudio::Recording.create!(
+      recordable: Article.create!(title: "No child yet"),
+      parent_recording: root
+    )
+    grant_edit_access!(root)
+
+    assert_nil parent_recording.publishable_child_recording
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :not_found
+    assert_nil parent_recording.reload.publishable_child_recording
+  end
+
   test "published to draft does not show the success page" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
     publish_parent_recording!(parent_recording)
@@ -132,6 +213,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes CGI.unescapeHTML(response.body), "Published"
     assert_includes response.body, "Unpublish"
     assert_includes response.body, "button-padding-y-md"
+    assert_includes response.body, "View"
     refute_includes CGI.unescapeHTML(response.body), "It's live."
     refute_includes response.body, "Published!"
     assert parent_recording.reload.current_publishable.currently_published?
@@ -168,6 +250,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Draft"
     assert_includes response.body, "Publish now"
     assert_includes response.body, "Schedule"
+    assert_includes response.body, "Preview"
     refute_includes response.body, "Back to a draft."
     refute_includes response.body, "Published!"
     assert parent_recording.reload.current_publishable.draft_state?
