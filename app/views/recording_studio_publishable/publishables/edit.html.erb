@@ -21,21 +21,23 @@
     <% end %>
   <% end %>
 
-  <%= render FlatPack::List::Component.new(divider: true) do %>
-    <%= render FlatPack::List::Item.new(
-      icon: @page_link.icon,
-      href: @page_link.href,
-      hover: true,
-      link_arguments: { target: "_blank", rel: "noopener noreferrer", data: { turbo: false } }
-    ) do %>
-      <p class="font-medium text-(--surface-content-color)"><%= @page_link.text %></p>
-      <p class="text-sm text-(--surface-muted-content-color)"><%= @page_link.subtitle %></p>
-    <% end %>
-    <% @publish_jobs.each do |job| %>
-      <%= render FlatPack::List::Item.new(icon: job.icon, href: publish_job_path(job), hover: true) do %>
-        <p class="font-medium text-(--surface-content-color)"><%= job.title %></p>
-        <p class="text-sm text-(--surface-muted-content-color)"><%= job.subtitle %></p>
+  <div class="w-full max-w-xl">
+    <%= render FlatPack::List::Component.new(divider: true) do %>
+      <%= render FlatPack::List::Item.new(
+        icon: @page_link.icon,
+        href: @page_link.href,
+        hover: true,
+        link_arguments: { target: "_blank", rel: "noopener noreferrer", data: { turbo: false } }
+      ) do %>
+        <p class="font-medium text-(--surface-content-color)"><%= @page_link.text %></p>
+        <p class="text-sm text-(--surface-muted-content-color)"><%= @page_link.subtitle %></p>
+      <% end %>
+      <% @publish_jobs.each do |job| %>
+        <%= render FlatPack::List::Item.new(icon: job.icon, href: publish_job_path(job), hover: true) do %>
+          <p class="font-medium text-(--surface-content-color)"><%= job.title %></p>
+          <p class="text-sm text-(--surface-muted-content-color)"><%= job.subtitle %></p>
+        <% end %>
       <% end %>
     <% end %>
-  <% end %>
+  </div>
 </div>

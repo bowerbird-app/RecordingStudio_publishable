@@ -326,6 +326,8 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Title in search"
     refute_includes response.body, "publishable[canonical_url]"
     refute_includes response.body, "publishable[social_title]"
+    assert_includes response.body, "w-full max-w-xl"
+    refute_includes response.body, "mx-auto flex w-full max-w-xl"
   end
 
   test "published hub lists View first at the live url" do

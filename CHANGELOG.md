@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The stuffed accordion publish form is gone. Job forms post back to the same update path with a `section` and return to that screen
 - Search fields are Title in search and Description in search. The job is labeled SEO. Canonical URL and Search listing stay on that screen even when SEO tags are off
 - Dummy Pages uses a plus icon with the label Page. The Pages table column for listing is SEO
-- Schedule, SEO, Social, and the Publish hub stay left-aligned. Those screens hide the workspace switcher and Sign out
+- Schedule, SEO, Social, and the Publish hub stay left-aligned. Job forms and the hub list use a narrower desktop width. Those screens hide the workspace switcher and Sign out
 - Scheduled dropdowns use `Change schedule` and show the date on the closed button. Draft and published menus still say `Schedule`
 - The Scheduled trigger uses Flatpack default style, not warning
 
