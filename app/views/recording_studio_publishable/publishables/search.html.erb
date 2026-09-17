@@ -17,7 +17,7 @@
         <%= render FlatPack::TextInput::Component.new(
           name: "publishable[seo_title]",
           id: "publishable-seo-title-input",
-          label: "Title in search",
+          label: "Title",
           value: @publishable.seo_title,
           maxlength: seo_title_max_characters,
           help_text: "Leave blank to use the page name.",
@@ -32,7 +32,7 @@
     <% if @seo_enabled != false %>
       <%= render FlatPack::TextArea::Component.new(
         name: "publishable[seo_description]",
-        label: "Description in search",
+        label: "Description",
         value: @publishable.seo_description,
         rows: 4,
         character_count: true,
@@ -42,15 +42,13 @@
       ) %>
     <% end %>
 
-    <%= render FlatPack::Select::Component.new(
+    <%= hidden_field_tag "publishable[meta_robots]", "index,follow", id: "publishable_meta_robots_show" %>
+    <%= render FlatPack::Checkbox::Component.new(
       name: "publishable[meta_robots]",
-      label: "Search listing",
-      options: [
-        ["Show this page in search", "index,follow"],
-        ["Keep this page out of search", "noindex,follow"]
-      ],
-      value: (@publishable.noindex? ? "noindex,follow" : "index,follow"),
-      help_text: "Search engines only see this while the page is live."
+      value: "noindex,follow",
+      checked: @publishable.noindex?,
+      label: "Hide from search",
+      help_text: "They only see this while the page is live."
     ) %>
 
     <%= render FlatPack::Collapse::Component.new(

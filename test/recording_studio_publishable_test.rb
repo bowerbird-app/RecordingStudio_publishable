@@ -39,29 +39,34 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes devise_layout, '<html data-theme="rounded">'
   end
 
-  def test_publish_search_screen_uses_search_listing_labels
+  def test_publish_search_screen_uses_plain_field_labels
     view_source = File.read(
       File.expand_path("../app/views/recording_studio_publishable/publishables/search.html.erb", __dir__)
     )
 
     refute_includes view_source, "FlatPack::Accordion::Component"
     refute_includes view_source, "title: \"Search engines\""
+    refute_includes view_source, "Title in search"
+    refute_includes view_source, "Description in search"
+    refute_includes view_source, "Search listing"
     assert_includes view_source, "FlatPack::Collapse::Component"
+    assert_includes view_source, "FlatPack::Checkbox::Component"
     assert_includes view_source, "title: \"Advanced\""
     assert_includes view_source, "label: \"Original URL\""
     assert_includes view_source, "Leave this blank unless this page is replacing an older address."
     assert_includes view_source, "Paste that old full https:// address so search still treats this as the same page."
-    assert_includes view_source, "label: \"Search listing\""
-    assert_includes view_source, "label: \"Title in search\""
-    assert_includes view_source, "label: \"Description in search\""
+    assert_includes view_source, "label: \"Hide from search\""
+    assert_includes view_source, "They only see this while the page is live."
+    assert_includes view_source, "label: \"Title\""
+    assert_includes view_source, "label: \"Description\""
     assert_includes view_source, "help_text: \"The line under the title in search results.\""
-    title_index = view_source.index("label: \"Title in search\"")
+    title_index = view_source.index("label: \"Title\"")
     slug_index = view_source.index("label: \"Slug\"")
-    description_index = view_source.index("label: \"Description in search\"")
-    listing_index = view_source.index("label: \"Search listing\"")
+    description_index = view_source.index("label: \"Description\"")
+    hide_index = view_source.index("label: \"Hide from search\"")
     assert title_index < slug_index
     assert slug_index < description_index
-    assert description_index < listing_index
+    assert description_index < hide_index
   end
 
   def test_publish_jobs_omits_schedule_when_scheduling_is_off

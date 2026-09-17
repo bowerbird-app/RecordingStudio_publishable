@@ -394,25 +394,31 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     collapse = Nokogiri::HTML(response.body).at_css('[data-controller="flat-pack--collapse"]')
     assert collapse
     assert_equal "false", collapse["data-flat-pack--collapse-open-value"]
-    assert_includes response.body, "Search listing"
-    assert_includes response.body, "Title in search"
-    assert_includes response.body, "Description in search"
+    refute_includes response.body, "Search listing"
+    refute_includes response.body, "Title in search"
+    refute_includes response.body, "Description in search"
+    assert_includes response.body, "Hide from search"
+    assert_includes response.body, "They only see this while the page is live."
     labels = Nokogiri::HTML(response.body).css("form label").map { |node| node.text.gsub(/\s+/, " ").strip }
-    title_index = labels.index { |text| text.include?("Title in search") }
+    title_index = labels.index { |text| text == "Title" }
     slug_index = labels.index { |text| text.include?("Slug") }
-    description_index = labels.index { |text| text.include?("Description in search") }
-    listing_index = labels.index { |text| text.include?("Search listing") }
+    description_index = labels.index { |text| text == "Description" }
+    hide_index = labels.index { |text| text.include?("Hide from search") }
     assert title_index
     assert slug_index
     assert description_index
-    assert listing_index
+    assert hide_index
     assert title_index < slug_index
     assert slug_index < description_index
-    assert description_index < listing_index
+    assert description_index < hide_index
+    checkbox = Nokogiri::HTML(response.body).at_css('input[type="checkbox"][name="publishable[meta_robots]"]')
+    assert checkbox
+    assert_equal "noindex,follow", checkbox["value"]
+    refute checkbox["checked"]
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "data-publishable-social-image-picker"
     refute_includes response.body, "Select social image"
-    refute_includes response.body, 'name="publishable[meta_robots]" type="hidden"'
+    refute_includes response.body, "Show this page in search"
   end
 
   test "search page opens advanced when original url is set" do
@@ -496,6 +502,9 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "SEO saved."
     refute_includes response.body, "Published!"
+    checkbox = Nokogiri::HTML(response.body).at_css('input[type="checkbox"][name="publishable[meta_robots]"]')
+    assert checkbox
+    assert checkbox["checked"]
   end
 
   test "search save ignores social fields" do

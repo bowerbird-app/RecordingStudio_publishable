@@ -30,7 +30,7 @@
         <% if @publishable.canonical_url.present? %>
           <p><strong>Original URL for search:</strong> <%= @publishable.canonical_url %></p>
         <% end %>
-        <p><strong>Search listing:</strong> <%= @publishable.noindex? ? "Hidden from search" : "In search" %></p>
+        <p><strong>Hide from search:</strong> <%= @publishable.noindex? ? "Yes" : "No" %></p>
       </div>
     <% end %>
   <% end %>
