@@ -118,7 +118,8 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Schedule"
     assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
     assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
-    assert_includes response.body, "max-w-xl"
+    assert_includes response.body, "flex w-full max-w-xl"
+    refute_includes response.body, "mx-auto flex w-full max-w-xl"
     refute_includes response.body, "Sign out"
     refute_includes response.body, "Studio Workspace"
   end

@@ -229,7 +229,8 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Pick when this goes live."
-    assert_includes response.body, "max-w-xl"
+    assert_includes response.body, "flex w-full max-w-xl"
+    refute_includes response.body, "mx-auto flex w-full max-w-xl"
     assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
     assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
     refute_includes response.body, "Title in search"

@@ -7,7 +7,7 @@ end %>
 <%= render "job_nav" %>
 
 <div
-  class="mx-auto flex w-full max-w-xl flex-col gap-6"
+  class="flex w-full max-w-xl flex-col gap-6"
   data-controller="recording-studio-attachable--attachment-image-picker"
   data-recording-studio-attachable--attachment-image-picker-picker-url-value="<%= recording_studio_attachable.recording_attachment_picker_path(@publishable_recording) %>"
   data-recording-studio-attachable--attachment-image-picker-upload-url-value="<%= recording_studio_attachable.recording_attachment_imports_path(@publishable_recording) %>"
