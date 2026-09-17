@@ -2,6 +2,7 @@
   <template>
     <%= render RecordingStudioPublishable::QuickActions::Component.new(
       recording: @parent_recording,
+      size: @quick_actions_size,
       alert: @transition_alert
     ) %>
   </template>

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inline transitions (`inline=1` or a Turbo Stream request) stay on the host page. Turbo Stream replaces the dropdown. HTML falls back to `redirect_back`
 - Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen
 - Inline publish and unpublish replace the dropdown only. They do not insert a success banner next to it
+- Inline Turbo replace keeps the host `size` so a small Pages dropdown does not jump to medium after publish
 
 ### Changed
 - Dummy home uses the dropdown in the Publish column. The dummy article page uses it for signed-in people. Dummy now loads Turbo so those PATCHes stay on the page

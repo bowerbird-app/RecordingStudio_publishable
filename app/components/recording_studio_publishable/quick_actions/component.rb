@@ -31,13 +31,20 @@ module RecordingStudioPublishable
         unpublish: { text: "Unpublish", icon: "pencil-square", transition: :draft }
       }.freeze
 
+      BUTTON_SIZES = %i[sm md lg].freeze
+
       def initialize(recording:, size: :md, alert: nil)
         @recording = recording
-        @size = size
+        @size = self.class.normalize_size(size)
         @alert = alert
       end
 
       attr_reader :recording, :size, :alert
+
+      def self.normalize_size(value)
+        size = value.to_s.to_sym
+        BUTTON_SIZES.include?(size) ? size : :md
+      end
 
       def self.wrapper_id(recording)
         "publishable_quick_actions_#{recording.id}"
@@ -91,7 +98,8 @@ module RecordingStudioPublishable
         helpers.recording_studio_publishable.transition_recording_publishable_path(
           recording_id: recording.id,
           transition: transition,
-          inline: 1
+          inline: 1,
+          button_size: size
         )
       end
 

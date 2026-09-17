@@ -158,7 +158,7 @@ The closed button names Draft, Scheduled, or Published. Draft is secondary, Sche
 
 Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen.
 
-A change from this control stays on the host page. With Turbo, the dropdown replaces itself. Inline publish and unpublish do not insert a success banner. Without Turbo, the request returns to the same page. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
+A change from this control stays on the host page. With Turbo, the dropdown replaces itself at the same size the host rendered. Inline publish and unpublish do not insert a success banner. Without Turbo, the request returns to the same page. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
 
 ## Dummy app
 

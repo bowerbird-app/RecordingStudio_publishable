@@ -131,8 +131,25 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)
     assert_includes CGI.unescapeHTML(response.body), "Published"
     assert_includes response.body, "Unpublish"
+    assert_includes response.body, "button-padding-y-md"
     refute_includes CGI.unescapeHTML(response.body), "It's live."
     refute_includes response.body, "Published!"
+    assert parent_recording.reload.current_publishable.currently_published?
+  end
+
+  test "turbo stream publish keeps a small host dropdown small" do
+    parent_recording = build_publishable_parent(title: "Stream Size Page")
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "publish",
+      inline: 1,
+      button_size: "sm"
+    ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert_includes response.body, "button-padding-y-sm"
+    refute_includes response.body, "button-padding-y-md"
     assert parent_recording.reload.current_publishable.currently_published?
   end
 

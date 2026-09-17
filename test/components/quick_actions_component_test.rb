@@ -43,6 +43,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes section, "Schedule"
     assert_includes section, "Publish settings"
     assert_includes section, "inline=1"
+    assert_includes section, "button_size=sm"
     assert_includes section, "data-turbo-method=\"patch\""
     refute_includes section, "Back to draft"
     refute_includes section, "Unpublish"
