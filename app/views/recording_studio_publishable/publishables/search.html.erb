@@ -42,27 +42,29 @@
       ) %>
     <% end %>
 
-    <%= hidden_field_tag "publishable[meta_robots]", "index,follow", id: "publishable_meta_robots_show" %>
-    <%= render FlatPack::Checkbox::Component.new(
-      name: "publishable[meta_robots]",
-      value: "noindex,follow",
-      checked: @publishable.noindex?,
-      label: "Hide from search",
-      help_text: "They only see this while the page is live."
-    ) %>
-
     <%= render FlatPack::Collapse::Component.new(
       id: "publishable-seo-advanced",
       title: "Advanced",
-      open: @publishable.canonical_url.present?
+      open: @publishable.canonical_url.present? || @publishable.noindex?
     ) do %>
-      <%= render FlatPack::TextInput::Component.new(
-        name: "publishable[canonical_url]",
-        label: "Original URL",
-        value: @publishable.canonical_url,
-        placeholder: "Leave blank to use this page's URL",
-        help_text: "Leave this blank unless this page is replacing an older address. Paste that old full https:// address so search still treats this as the same page."
-      ) %>
+      <div class="space-y-4">
+        <%= hidden_field_tag "publishable[meta_robots]", "index,follow", id: "publishable_meta_robots_show" %>
+        <%= render FlatPack::Checkbox::Component.new(
+          name: "publishable[meta_robots]",
+          value: "noindex,follow",
+          checked: @publishable.noindex?,
+          label: "Keep this out of search engines",
+          help_text: "The page stays live. Google and the rest just skip it."
+        ) %>
+
+        <%= render FlatPack::TextInput::Component.new(
+          name: "publishable[canonical_url]",
+          label: "Original URL",
+          value: @publishable.canonical_url,
+          placeholder: "Leave blank to use this page's URL",
+          help_text: "Leave this blank unless this page is replacing an older address. Paste that old full https:// address so search still treats this as the same page."
+        ) %>
+      </div>
     <% end %>
 
     <%= render FlatPack::Button::Component.new(text: "Save", style: :primary, size: :md, type: "submit") %>

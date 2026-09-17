@@ -49,24 +49,27 @@ class RecordingStudioPublishableTest < Minitest::Test
     refute_includes view_source, "Title in search"
     refute_includes view_source, "Description in search"
     refute_includes view_source, "Search listing"
+    refute_includes view_source, "Hide from search"
     assert_includes view_source, "FlatPack::Collapse::Component"
     assert_includes view_source, "FlatPack::Checkbox::Component"
     assert_includes view_source, "title: \"Advanced\""
     assert_includes view_source, "label: \"Original URL\""
     assert_includes view_source, "Leave this blank unless this page is replacing an older address."
     assert_includes view_source, "Paste that old full https:// address so search still treats this as the same page."
-    assert_includes view_source, "label: \"Hide from search\""
-    assert_includes view_source, "They only see this while the page is live."
+    assert_includes view_source, "label: \"Keep this out of search engines\""
+    assert_includes view_source, "The page stays live. Google and the rest just skip it."
     assert_includes view_source, "label: \"Title\""
     assert_includes view_source, "label: \"Description\""
     assert_includes view_source, "help_text: \"The line under the title in search results.\""
     title_index = view_source.index("label: \"Title\"")
     slug_index = view_source.index("label: \"Slug\"")
     description_index = view_source.index("label: \"Description\"")
-    hide_index = view_source.index("label: \"Hide from search\"")
+    skip_index = view_source.index("label: \"Keep this out of search engines\"")
+    original_index = view_source.index("label: \"Original URL\"")
     assert title_index < slug_index
     assert slug_index < description_index
-    assert description_index < hide_index
+    assert description_index < skip_index
+    assert skip_index < original_index
   end
 
   def test_publish_jobs_omits_schedule_when_scheduling_is_off

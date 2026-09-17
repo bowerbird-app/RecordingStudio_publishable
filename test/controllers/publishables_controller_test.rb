@@ -391,30 +391,37 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "flat-pack--collapse"
     assert_includes response.body, "Leave this blank unless this page is replacing an older address."
     assert_includes response.body, "Paste that old full https:// address so search still treats this as the same page."
-    collapse = Nokogiri::HTML(response.body).at_css('[data-controller="flat-pack--collapse"]')
-    assert collapse
-    assert_equal "false", collapse["data-flat-pack--collapse-open-value"]
     refute_includes response.body, "Search listing"
     refute_includes response.body, "Title in search"
     refute_includes response.body, "Description in search"
-    assert_includes response.body, "Hide from search"
-    assert_includes response.body, "They only see this while the page is live."
+    refute_includes response.body, "Hide from search"
+    assert_includes response.body, "Keep this out of search engines"
+    assert_includes response.body, "The page stays live. Google and the rest just skip it."
     labels = Nokogiri::HTML(response.body).css("form label").map { |node| node.text.gsub(/\s+/, " ").strip }
     title_index = labels.index { |text| text == "Title" }
     slug_index = labels.index { |text| text.include?("Slug") }
     description_index = labels.index { |text| text == "Description" }
-    hide_index = labels.index { |text| text.include?("Hide from search") }
+    skip_index = labels.index { |text| text.include?("Keep this out of search engines") }
+    original_index = labels.index { |text| text.include?("Original URL") }
     assert title_index
     assert slug_index
     assert description_index
-    assert hide_index
+    assert skip_index
+    assert original_index
     assert title_index < slug_index
     assert slug_index < description_index
-    assert description_index < hide_index
-    checkbox = Nokogiri::HTML(response.body).at_css('input[type="checkbox"][name="publishable[meta_robots]"]')
+    assert description_index < skip_index
+    assert skip_index < original_index
+    html = Nokogiri::HTML(response.body)
+    collapse = html.at_css('[data-controller="flat-pack--collapse"]')
+    assert collapse
+    assert_equal "false", collapse["data-flat-pack--collapse-open-value"]
+    content = collapse.at_css('[data-flat-pack--collapse-target="content"]')
+    checkbox = content.at_css('input[type="checkbox"][name="publishable[meta_robots]"]')
     assert checkbox
     assert_equal "noindex,follow", checkbox["value"]
     refute checkbox["checked"]
+    assert content.at_css('input[name="publishable[canonical_url]"]')
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "data-publishable-social-image-picker"
     refute_includes response.body, "Select social image"
@@ -436,6 +443,25 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     collapse = Nokogiri::HTML(response.body).at_css('[data-controller="flat-pack--collapse"]')
     assert collapse
     assert_equal "true", collapse["data-flat-pack--collapse-open-value"]
+  end
+
+  test "search page opens advanced when search engines are asked to skip" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "spring-release-notes", meta_robots: "noindex,follow" }
+    ).value!
+
+    get recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    collapse = Nokogiri::HTML(response.body).at_css('[data-controller="flat-pack--collapse"]')
+    assert collapse
+    assert_equal "true", collapse["data-flat-pack--collapse-open-value"]
+    checkbox = collapse.at_css('input[type="checkbox"][name="publishable[meta_robots]"]')
+    assert checkbox
+    assert checkbox["checked"]
   end
 
   test "social page has preview fields and not times" do
