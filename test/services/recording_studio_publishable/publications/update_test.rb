@@ -15,25 +15,29 @@ module RecordingStudioPublishable
                                                                  parent_recording: @root)
         end
 
-        test "stores canonical_url and meta_robots on types with seo disabled" do
-          page = Page.create!(title: "SEO off page")
+        test "stores canonical_url, meta_robots, and search description on pages" do
+          page = Page.create!(title: "SEO page")
           parent_recording = RecordingStudio::Recording.create!(recordable: page, parent_recording: @root)
 
           result = Update.call(
             parent_recording: parent_recording,
             attributes: {
-              slug: "seo-off-page",
+              slug: "seo-page",
               status: "published",
-              canonical_url: "https://example.test/seo-off",
-              meta_robots: "noindex,follow"
+              canonical_url: "https://example.test/seo-page",
+              meta_robots: "noindex,follow",
+              seo_title: "Search title",
+              seo_description: "Search description for this page."
             }
           )
 
           assert result.success?
           publishable = result.value.recordable
-          assert_equal "https://example.test/seo-off", publishable.canonical_url
+          assert_equal "https://example.test/seo-page", publishable.canonical_url
           assert_equal "noindex,follow", publishable.meta_robots
           assert publishable.noindex?
+          assert_equal "Search title", publishable.seo_title
+          assert_equal "Search description for this page.", publishable.seo_description
         end
 
         test "blank canonical_url clears the override" do

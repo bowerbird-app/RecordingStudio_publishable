@@ -41,6 +41,7 @@
           label: "Title in search",
           value: @publishable.seo_title,
           maxlength: seo_title_max_characters,
+          help_text: "Leave blank to use the page name.",
           data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
         ) %>
         <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
@@ -53,7 +54,8 @@
         rows: 4,
         character_count: true,
         max_characters: 160,
-        placeholder: "A short line for search results"
+        placeholder: "A short line for search results",
+        help_text: "The line under the title in search results."
       ) %>
     <% end %>
 

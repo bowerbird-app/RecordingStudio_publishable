@@ -130,14 +130,15 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Studio Workspace"
   end
 
-  test "search page on pages omits title in search" do
+  test "search page on pages includes title and description in search" do
     get recording_studio_publishable.search_recording_publishable_path(recording_id: @page_recording.id)
 
     assert_response :success
     assert_includes response.body, "Search listing"
     assert_includes response.body, "publishable[canonical_url]"
-    refute_includes response.body, "Title in search"
-    refute_includes response.body, "Description in search"
+    assert_includes response.body, "Title in search"
+    assert_includes response.body, "Description in search"
+    assert_includes response.body, "publishable[seo_description]"
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "Sign out"
   end

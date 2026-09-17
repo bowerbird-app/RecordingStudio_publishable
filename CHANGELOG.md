@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-17
+
+### Changed
+- Dummy Pages turn SEO title and description on. The SEO screen for a page now has Title in search and Description in search, not only slug, canonical URL, and Search listing
+
+### Upgrade Notes
+- Bump to `recording_studio_publishable` `0.3.1`
+- Dummy Pages now use `seo: true` (the default). Hosts that still want those search tags off keep `seo: false` on the type
+
 ## [0.3.0] - 2026-09-16
 
 ### Added
@@ -127,7 +136,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.3.1
 [0.3.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.3.0
 [0.2.1]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.2.1
 [0.2.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.2.0

@@ -21,8 +21,8 @@
             include RecordingStudio::Capabilities::Publishable.to(
               public_controller: "pages",
               public_action: :show,
-              schedule: false,
-              seo: false
+              schedule: true,
+              seo: true
             )
           end
 

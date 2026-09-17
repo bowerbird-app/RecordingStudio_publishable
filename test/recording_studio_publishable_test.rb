@@ -50,6 +50,7 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes view_source, "label: \"Search listing\""
     assert_includes view_source, "label: \"Title in search\""
     assert_includes view_source, "label: \"Description in search\""
+    assert_includes view_source, "help_text: \"The line under the title in search results.\""
   end
 
   def test_publish_jobs_omits_schedule_when_scheduling_is_off

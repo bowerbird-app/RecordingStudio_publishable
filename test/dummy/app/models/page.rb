@@ -5,6 +5,6 @@ class Page < ApplicationRecord
     public_controller: "pages",
     public_action: :show,
     schedule: true,
-    seo: false
+    seo: true
   )
 end
