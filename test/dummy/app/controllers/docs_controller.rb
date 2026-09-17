@@ -57,6 +57,7 @@ class DocsController < ApplicationController
     @component_demo_recording = component_demo_recording
     @component_demo_status_badges = component_demo_status_badges
     @component_demo_edit_button_recordings = component_demo_edit_button_recordings
+    @component_demo_quick_action_recordings = component_demo_quick_action_recordings
     @component_sections = component_sections
   end
 
@@ -251,7 +252,7 @@ class DocsController < ApplicationController
       },
       {
         title: "RecordingStudioPublishable::QuickActions::Component",
-        subtitle: "Renders the primary publishable management actions for a parent recording.",
+        subtitle: "Status on the button. Verbs in the menu. Stays on this page after a change.",
         entrypoint: "app/components/recording_studio_publishable/quick_actions/component.rb",
         params: [
           {
@@ -259,11 +260,17 @@ class DocsController < ApplicationController
             type: "RecordingStudio::Recording",
             required: true,
             description: "The parent recording that owns the publishable child and transition routes."
+          },
+          {
+            name: "size:",
+            type: "Symbol",
+            required: false,
+            description: "Flatpack dropdown size. Default :md."
           }
         ],
         preview: :quick_actions,
         code: <<~ERB
-          <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @component_demo_recording) %>
+          <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: recording) %>
         ERB
       },
     ]
@@ -399,6 +406,20 @@ class DocsController < ApplicationController
 
   def component_demo_recording
     RecordingStudio::Recording.where(recordable_type: "Page").includes(:recordable).order(:created_at, :id).first
+  end
+
+  def component_demo_quick_action_recordings
+    recordings = RecordingStudio::Recording.where(recordable_type: "Page").includes(:recordable).order(:created_at, :id)
+    grouped = recordings.group_by do |recording|
+      publishable = recording.current_publishable
+      next :draft if publishable.blank?
+      next :scheduled if publishable.scheduled_for_future?
+      next :published if publishable.published_state?
+
+      :draft
+    end
+
+    %i[draft scheduled published].filter_map { |state| grouped[state]&.first }
   end
 
   def component_demo_edit_button_recordings

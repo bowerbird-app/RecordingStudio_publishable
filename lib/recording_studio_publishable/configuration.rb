@@ -125,6 +125,19 @@ module RecordingStudioPublishable
       )
     end
 
+    def authorize_preview?(recording:, actor:, controller: nil)
+      actor ||= actor_for(controller: controller)
+      return false unless actor.present? && recording.present?
+
+      if defined?(RecordingStudioAccessible) && RecordingStudioAccessible.respond_to?(:authorized?)
+        return RecordingStudioAccessible.authorized?(actor: actor, recording: recording, role: :view)
+      end
+
+      authorize_management?(recording: recording, actor: actor, controller: controller)
+    rescue StandardError
+      false
+    end
+
     def actor_for(controller: nil)
       resolve_callable(current_actor_resolver, controller: controller)
     end

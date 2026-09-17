@@ -1,0 +1,126 @@
+<%= render "job_nav" %>
+
+<div class="flex w-full max-w-xl flex-col gap-6">
+  <%= render FlatPack::PageTitle::Component.new(
+    title: @job.title,
+    subtitle: @job.subtitle,
+    variant: :h1
+  ) %>
+
+  <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, class: "space-y-4", html: { novalidate: true } do |_form| %>
+    <%= hidden_field_tag :section, @job.key %>
+
+    <% if @schedule_enabled != false %>
+      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
+      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
+    <% end %>
+
+    <%= render FlatPack::Select::Component.new(
+      name: "publishable[time_zone]",
+      options: @time_zone_options,
+      label: "Time zone",
+      placeholder: "Select a time zone",
+      value: @publishable.time_zone.presence
+    ) %>
+
+    <%= render FlatPack::Button::Component.new(text: "Save", style: :primary, size: :md, type: "submit") %>
+  <% end %>
+</div>
+
+<script>
+  function initializePublishableTimeZoneDefault() {
+    var select = document.querySelector('[name="publishable[time_zone]"]');
+    if (!select || select.value) {
+      return;
+    }
+
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!tz) {
+      return;
+    }
+
+    var found = false;
+    for (var i = 0; i < select.options.length; i++) {
+      if (select.options[i].value === tz) {
+        select.selectedIndex = i;
+        found = true;
+        break;
+      }
+    }
+
+    if (found) {
+      select.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  }
+
+  function initializeUnpublishNeverDisplay() {
+    document.querySelectorAll('[name="publishable[unpublish_at]"]').forEach(function(input) {
+      if (!(input instanceof HTMLInputElement)) {
+        return;
+      }
+
+      if (input.dataset.publishableUnpublishNeverInitialized === "true") {
+        if (typeof input._publishableUnpublishNeverSync === "function") {
+          input._publishableUnpublishNeverSync();
+        }
+        return;
+      }
+
+      input.dataset.publishableUnpublishNeverInitialized = "true";
+      input.dataset.publishableUnpublishOriginalType = input.type || "datetime-local";
+      input.dataset.publishableUnpublishOriginalPlaceholder = input.getAttribute("placeholder") || "";
+
+      function ensureDateTimeMode() {
+        var originalType = input.dataset.publishableUnpublishOriginalType || "datetime-local";
+        if (input.type !== originalType) {
+          input.type = originalType;
+        }
+        input.setAttribute("placeholder", input.dataset.publishableUnpublishOriginalPlaceholder || "");
+      }
+
+      function syncNeverDisplay() {
+        if (input.value) {
+          ensureDateTimeMode();
+          return;
+        }
+
+        if (document.activeElement === input) {
+          ensureDateTimeMode();
+          return;
+        }
+
+        if (input.type !== "text") {
+          input.type = "text";
+        }
+
+        input.value = "";
+        input.setAttribute("placeholder", "Never");
+      }
+
+      input._publishableUnpublishNeverSync = syncNeverDisplay;
+      input.addEventListener("focus", function() {
+        ensureDateTimeMode();
+        if (typeof input.showPicker === "function") {
+          try {
+            input.showPicker();
+          } catch (_error) {
+          }
+        }
+      });
+      input.addEventListener("blur", syncNeverDisplay);
+      input.addEventListener("change", syncNeverDisplay);
+      input.addEventListener("input", syncNeverDisplay);
+      syncNeverDisplay();
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    initializePublishableTimeZoneDefault();
+    initializeUnpublishNeverDisplay();
+  });
+
+  document.addEventListener("turbo:load", function() {
+    initializePublishableTimeZoneDefault();
+    initializeUnpublishNeverDisplay();
+  });
+</script>

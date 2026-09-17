@@ -75,13 +75,16 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_select "html[data-theme=rounded]"
     assert_select "body[data-recording-studio-default-layout='true']"
     assert_select ".flat-pack-page-nav", 1
-    assert_match "Sign out", response.body
+    refute_match "Sign out", response.body
+    refute_match "Studio Workspace", response.body
     assert_match "Publish", response.body
-    assert_match "Search engines", response.body
-    assert_match "Canonical URL", response.body
-    assert_match "Search listing", response.body
-    refute_match ">Search</span>", response.body
-    assert_match 'class="w-5 h-5 transition-transform duration-200"', response.body
+    assert_match "Preview", response.body
+    assert_match "See it before it goes live.", response.body
+    assert_match "Schedule", response.body
+    assert_match "SEO", response.body
+    assert_match "Social", response.body
+    refute_match "datetime-local", response.body
+    refute_match "Search engines", response.body
     refute_match "flat-pack-sidebar-layout", response.body
     refute_match "recording_studio-publishable-layout", response.body
     assert_flatpack_assets_loaded
@@ -125,6 +128,26 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "html[data-theme=rounded]"
     assert_select "body[data-recording-studio-default-layout='true']"
+    assert_flatpack_assets_loaded
+  end
+
+  test "preview uses the public template without host chrome" do
+    sign_in @user
+    parent_recording = create_publishable_parent("Preview theme page")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "preview-theme-page", status: "draft" }
+    ).value!
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_select "html[data-theme=rounded]"
+    assert_select "body[data-recording-studio-default-layout='true']"
+    assert_match "Preview", response.body
+    assert_match "noindex,nofollow", response.body
+    refute_match "Sign out", response.body
     assert_flatpack_assets_loaded
   end
 

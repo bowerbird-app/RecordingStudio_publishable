@@ -214,4 +214,30 @@ class PublishableHeadTagsHelperTest < Minitest::Test
     assert_includes html, '<meta name="robots" content="noindex,follow">'
     refute_includes html, '<link rel="canonical" href="https://example.test/published/123/launch-checklist">'
   end
+
+  def test_publishable_head_tags_emits_only_noindex_in_preview
+    parent_recordable = Struct.new(:title).new("Launch Checklist")
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
+    publishable = Publishable.new("SEO headline", "Search-friendly description", nil, "Social headline",
+                                  "Social description", "launch-checklist")
+    publishable.define_singleton_method(:currently_published?) { false }
+    publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
+    view = ViewContext.new(Struct.new(:base_url).new("https://example.test"))
+    view.define_singleton_method(:publishable_preview?) { true }
+
+    html = view.publishable_head_tags(
+      publishable_recording: publishable_recording,
+      publishable: publishable,
+      parent_recordable: parent_recordable
+    )
+
+    assert_equal '<meta name="robots" content="noindex,nofollow">', html
+    refute_includes html, 'property="og:title"'
+    refute_includes html, '<link rel="canonical"'
+    assert_equal "SEO headline", view.publishable_document_title(
+      publishable_recording: publishable_recording,
+      publishable: publishable,
+      parent_recordable: parent_recordable
+    )
+  end
 end

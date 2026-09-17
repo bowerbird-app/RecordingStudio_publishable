@@ -2,6 +2,12 @@
 
 RecordingStudioPublishable::Engine.routes.draw do
   get "/recordings/:recording_id/publishable/edit", to: "publishables#edit", as: :edit_recording_publishable
+  get "/recordings/:recording_id/publishable/schedule",
+      to: "publishables#schedule",
+      as: :schedule_recording_publishable
+  get "/recordings/:recording_id/publishable/search", to: "publishables#search", as: :search_recording_publishable
+  get "/recordings/:recording_id/publishable/social", to: "publishables#social", as: :social_recording_publishable
+  get "/recordings/:recording_id/publishable/preview", to: "publishables#preview", as: :preview_recording_publishable
   get "/recordings/:recording_id/publishable/success", to: "publishables#success", as: :publishable_success
   patch "/recordings/:recording_id/publishable", to: "publishables#update", as: :publishable
   patch "/recordings/:recording_id/publishable/:transition", to: "publishables#transition",

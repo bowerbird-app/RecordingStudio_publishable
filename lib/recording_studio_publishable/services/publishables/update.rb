@@ -101,10 +101,6 @@ module RecordingStudioPublishable
 
           apply_publish_state_side_effects(validated)
 
-          Rails.logger.warn(
-            "[PublishableDebug] validated attributes parent_recording_id=#{parent_recording.id} raw_status=#{attributes[:status].inspect} normalized_status=#{validated[:status].inspect} publish_at=#{validated[:publish_at].inspect} unpublish_at=#{validated[:unpublish_at].inspect} time_zone=#{validated[:time_zone].inspect}"
-          )
-
           success(validated)
         end
 
@@ -148,15 +144,12 @@ module RecordingStudioPublishable
 
         def apply_publish_state_side_effects(validated)
           status = status_from(validated)
-          Rails.logger.warn(
-            "[PublishableDebug] side effects input status=#{validated[:status].inspect} resolved_status=#{status.inspect} publish_at=#{validated[:publish_at].inspect} unpublish_at=#{validated[:unpublish_at].inspect}"
-          )
           return if status.blank?
 
           validated[:status] = status
 
           if status == "published"
-            validated[:unpublish_at] = nil
+            validated[:unpublish_at] = nil unless attributes.key?(:unpublish_at)
             publish_at_submitted = attributes.key?(:publish_at)
             publish_at_cleared = publish_at_submitted && attributes[:publish_at].to_s.strip.empty?
 
@@ -172,10 +165,6 @@ module RecordingStudioPublishable
 
           validated[:publish_at] = nil
           validated[:unpublish_at] = nil
-
-          Rails.logger.warn(
-            "[PublishableDebug] side effects output status=#{validated[:status].inspect} publish_at=#{validated[:publish_at].inspect} unpublish_at=#{validated[:unpublish_at].inspect}"
-          )
         end
 
         # Normalize UI/API status input to the two persisted enum values.

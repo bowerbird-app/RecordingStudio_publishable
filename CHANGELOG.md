@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-16
+
+### Added
+- `QuickActions` is a Flatpack status dropdown for host pages. The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. The menu holds `Publish now` (`rocket-launch`), `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`, Preview or View, then SEO and Social. Draft uses `pencil-square`
+- Draft and scheduled menus open Preview in a new tab at `/recordings/:recording_id/publishable/preview`. That route is for people who can see the page, renders the public template, and sends `noindex,nofollow`. Logged-out visitors get 404. Live menus open View at the public URL
+- Inline transitions (`inline=1` or a Turbo Stream request) stay on the host page. Turbo Stream replaces the dropdown. HTML falls back to `redirect_back`
+- Publish settings is a hub. Preview or View sits at the top of that list, then Schedule, SEO, and Social. Schedule in the dropdown opens the schedule screen. SEO and Social in the dropdown open those screens
+- Inline publish and unpublish replace the dropdown only. They do not insert a success banner next to it
+- Inline Turbo replace keeps the host `size` so a small Pages dropdown does not jump to medium after publish
+
+### Changed
+- Dummy home uses the dropdown in the Publish column. The dummy article page uses it for signed-in people. Dummy now loads Turbo so those PATCHes stay on the page
+- Published uses Flatpack success style and the `check-circle` icon. Dummy Pages puts Page in the page title slot so there is space above the table
+- Dummy seeds a scheduled Winter preview page so the three closed states can be shown
+- The stuffed accordion publish form is gone. Job forms post back to the same update path with a `section` and return to that screen
+- Search fields are Title in search and Description in search. The job is labeled SEO. Canonical URL and Search listing stay on that screen even when SEO tags are off
+- Dummy Pages uses a plus icon with the label Page. The Pages table column for listing is SEO
+- Schedule, SEO, Social, and the Publish hub stay left-aligned. Job forms and the hub list use a narrower desktop width. Those screens hide the workspace switcher and Sign out
+- Scheduled dropdowns use `Change schedule` and show the date on the closed button. Draft and published menus still say `Schedule`
+- The Scheduled trigger uses Flatpack default style, not warning
+
+### Upgrade Notes
+- Render `RecordingStudioPublishable::QuickActions::Component` (or `render_publishable_quick_actions`) on host pages where people should see and change publish state
+- The component always sends `inline=1`. Those requests no longer open the gem Publish or success screens
+- Publish settings opens the hub. That list starts with Preview or View, then Schedule, SEO, and Social. Those jobs open `/recordings/:recording_id/publishable/schedule`, `/search`, and `/social`
+- Preview is not a query param on the public URL. People who can see the page can open Preview. Live menus use View. Public templates can render `publishable_preview_badge`
+- PATCH without `inline=1` still redirects to the gem screens, as before
+- Hosts that overrode `edit.html.erb` as one form should switch to the hub and the job screens
+- The Search job is now labeled SEO. The path is still `/publishable/search`
+- Bump to `recording_studio_publishable` `0.3.0`
+
 ## [0.2.1] - 2026-09-02
 
 Cloud Agent install no longer fails a warm environment rebuild. Skills still
@@ -96,7 +127,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.3.0
 [0.2.1]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.2.1
 [0.2.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.2.0
 [0.1.2]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.1.2

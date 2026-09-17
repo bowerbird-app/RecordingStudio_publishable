@@ -1,8 +1,44 @@
-<div class="flex flex-wrap gap-2">
-    <%= button_to helpers.recording_studio_publishable.transition_recording_publishable_path(recording_id: recording.id, transition: :publish), method: :patch, class: "inline-flex" do %>
-    <%= render FlatPack::Button::Component.new(text: "Publish now", style: :primary, size: :sm) %>
+<div id="<%= wrapper_id %>" class="relative overflow-visible">
+  <% if alert.present? %>
+    <%= render FlatPack::Alert::Component.new(description: alert, style: :danger, class: "mb-2") %>
+  <% end %>
+
+  <%= render FlatPack::Button::Dropdown::Component.new(
+    text: trigger_text,
+    style: state_config[:style],
+    size: size,
+    icon: state_config[:icon],
+    placement: (size.to_sym == :sm ? :bottom_left : :bottom_right)
+  ) do |dropdown| %>
+    <% menu_actions.each do |action_name| %>
+      <% action = action_config(action_name) %>
+      <% dropdown.menu_item(
+        text: action[:text],
+        icon: action[:icon],
+        href: action_href(action),
+        data: action_data(action)
+      ) %>
     <% end %>
-    <%= button_to helpers.recording_studio_publishable.transition_recording_publishable_path(recording_id: recording.id, transition: :draft), method: :patch, class: "inline-flex" do %>
-    <%= render FlatPack::Button::Component.new(text: "Back to draft", style: :ghost, size: :sm) %>
+    <% if page_link %>
+      <% dropdown.menu_item(
+        text: page_link[:text],
+        icon: page_link[:icon],
+        href: page_link[:href],
+        target: "_blank",
+        rel: "noopener noreferrer",
+        data: { turbo: false }
+      ) %>
     <% end %>
+    <% dropdown.menu_divider %>
+    <% dropdown.menu_item(
+      text: "SEO",
+      icon: "magnifying-glass",
+      href: job_url(:search)
+    ) %>
+    <% dropdown.menu_item(
+      text: "Social",
+      icon: "share",
+      href: job_url(:social)
+    ) %>
+  <% end %>
 </div>

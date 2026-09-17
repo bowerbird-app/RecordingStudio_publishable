@@ -132,9 +132,9 @@ page.published_url
 
 `indexable` is the list Support and Press kits should use for public search. A parent is indexable when it is currently published, not trashed (if `trashed_at` exists), not marked `noindex`, and has a canonical URL or public URL.
 
-`publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title.
+`publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title. On Preview it emits only `noindex,nofollow`.
 
-Canonical URL is an optional override. Leave it blank to use the public URL. The management screen's Search engines accordion and the Update service both accept it, including when SEO tags are turned off for that type.
+Canonical URL is an optional override. Leave it blank to use the public URL. The SEO screen and the Update service both accept it, including when SEO tags are turned off for that type.
 
 Recording instance helpers work on the parent recording after the capability is enabled:
 
@@ -145,13 +145,30 @@ page_recording.currently_published?
 page_recording.publishable_public_path
 ```
 
+## Host publish control
+
+Put `QuickActions` on a host page to show the current state and change it there.
+
+```erb
+<%= render RecordingStudioPublishable::QuickActions::Component.new(recording: page_recording) %>
+<%= render_publishable_quick_actions(page_recording) %>
+```
+
+The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary, Scheduled is default, Published is success. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`), then Preview or View, then SEO and Social.
+
+Preview is for drafts and scheduled pages. It opens in a new tab for people who can see the page. Logged-out visitors get 404. It is not the public URL. Live pages use View, which opens the public URL in a new tab. Preview sends `noindex,nofollow` and does not emit the live social or canonical tags. Host public templates can render `publishable_preview_badge`.
+
+Publish settings is a hub. The list starts with Preview or View, then Schedule, SEO, and Social. Schedule in the dropdown opens the schedule screen. SEO and Social in the dropdown open those screens.
+
+A change from this control stays on the host page. With Turbo, the dropdown replaces itself at the same size the host rendered. Inline publish and unpublish do not insert a success banner. Without Turbo, the request returns to the same page. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
+
 ## Dummy app
 
 The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.0`.
 
-Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close, the workspace switcher, and Sign out. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins Flatpack controllers with `preload: false` and lazy-loads them the same way gem_template v0.2.0 does. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table; publish edit uses Flatpack Accordion. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
+Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish hub, Schedule, SEO, and Social keep back and close and hide the switcher and Sign out. The hub list and those job forms use a narrower desktop width and stay left-aligned. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that starts with Preview or View, then Schedule, SEO, and Social. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
 
-Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates a published page and an unpublished draft so screenshots are not empty lists.
+Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates published, scheduled, and draft pages so screenshots are not empty lists.
 
 ## Cloud Agent boot
 

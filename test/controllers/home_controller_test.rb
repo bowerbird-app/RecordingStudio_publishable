@@ -42,16 +42,27 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, '<html data-theme="rounded">'
     assert_includes response.body, "Pages"
-    assert_includes response.body, "Add page"
+    assert_includes response.body, ">Page<"
+    assert_includes response.body, "icon-name-value=\"plus\""
+    refute_includes response.body, "Add page"
+    assert_includes response.body, "page-title-actions"
     assert_includes response.body, "Sign out"
     assert_includes response.body, "Home page"
     assert_includes response.body, "Second page"
     assert_includes response.body, "<thead"
     assert_includes response.body, "<td"
+    assert_includes response.body, "Published"
+    assert_includes response.body, "Unpublish"
+    refute_includes response.body, "Publish settings"
+    assert_includes response.body, "SEO"
+    assert_includes response.body, "Social"
+    assert_includes response.body, "@hotwired/turbo-rails"
     refute_includes response.body, "Dummy publishables"
     refute_includes response.body, "You are already signed in"
     assert_includes response.body,
-                    recording_studio_publishable.edit_recording_publishable_path(recording_id: @page_recording.id)
+                    recording_studio_publishable.search_recording_publishable_path(recording_id: @page_recording.id)
+    assert_includes response.body,
+                    recording_studio_publishable.social_recording_publishable_path(recording_id: @page_recording.id)
   end
 
   test "add page page renders and creates a new page recording" do
@@ -93,11 +104,52 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Publish"
+    refute_includes response.body, "Sign out"
+    refute_includes response.body, "Home workspace"
+    assert_includes response.body, "View"
+    assert_includes response.body, "See it live."
+    assert_includes response.body, "Schedule"
+    assert_includes response.body, "SEO"
+    assert_includes response.body, "Social"
+    refute_includes response.body, "datetime-local"
+    refute_includes response.body, "Title in search"
+    refute_includes response.body, "Description in search"
+    refute_includes response.body, "Select social image"
+  end
+
+  test "schedule page renders datetime fields" do
+    get recording_studio_publishable.schedule_recording_publishable_path(recording_id: @page_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Schedule"
     assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
     assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
-    refute_includes response.body, "SEO title"
-    refute_includes response.body, "SEO description"
+    assert_includes response.body, "flex w-full max-w-xl"
+    refute_includes response.body, "mx-auto flex w-full max-w-xl"
+    refute_includes response.body, "Sign out"
+    refute_includes response.body, "Studio Workspace"
+  end
+
+  test "search page on pages omits title in search" do
+    get recording_studio_publishable.search_recording_publishable_path(recording_id: @page_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Search listing"
+    assert_includes response.body, "publishable[canonical_url]"
+    refute_includes response.body, "Title in search"
+    refute_includes response.body, "Description in search"
+    refute_includes response.body, "datetime-local"
+    refute_includes response.body, "Sign out"
+  end
+
+  test "social page renders preview fields" do
+    get recording_studio_publishable.social_recording_publishable_path(recording_id: @page_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Social title"
     assert_includes response.body, "Select social image"
+    refute_includes response.body, "datetime-local"
+    refute_includes response.body, "Sign out"
   end
 
   test "edit page accepts a publishable child recording id without nesting another publishable" do
@@ -112,6 +164,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Publish"
-    assert_includes response.body, recording_studio_publishable.publishable_path(recording_id: @page_recording.id)
+    assert_includes response.body,
+                    recording_studio_publishable.schedule_recording_publishable_path(recording_id: @page_recording.id)
   end
 end

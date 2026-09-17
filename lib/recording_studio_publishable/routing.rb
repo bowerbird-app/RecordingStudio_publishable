@@ -4,7 +4,7 @@ module RecordingStudioPublishable
   module Routing
     class << self
       def url_for(publishable_recording:, publishable: nil, parent_recordable_type: nil, host: nil, protocol: nil)
-        path = resolved_path_for(
+        path = path_for(
           publishable_recording: publishable_recording,
           publishable: publishable,
           parent_recordable_type: parent_recordable_type
@@ -16,6 +16,16 @@ module RecordingStudioPublishable
 
         protocol ||= default_url_protocol
         "#{protocol}://#{host}#{path}"
+      end
+
+      def path_for(publishable_recording:, publishable: nil, parent_recordable_type: nil)
+        return if publishable_recording.blank?
+
+        resolved_path_for(
+          publishable_recording: publishable_recording,
+          publishable: publishable,
+          parent_recordable_type: parent_recordable_type
+        )
       end
 
       private

@@ -3,14 +3,17 @@
 <%= render FlatPack::PageTitle::Component.new(
   title: "Pages",
   variant: :h1
-) %>
-
-<%= render FlatPack::Button::Component.new(
-  text: "Add page",
-  style: :primary,
-  size: :md,
-  href: new_dummy_page_path
-) %>
+) do |page_title| %>
+  <% page_title.slot do %>
+    <%= render FlatPack::Button::Component.new(
+      text: "Page",
+      icon: "plus",
+      style: :primary,
+      size: :md,
+      href: new_dummy_page_path
+    ) %>
+  <% end %>
+<% end %>
 
 <% if @publishable_parent_recordings.any? %>
   <%= render FlatPack::Table::Component.new(data: @publishable_parent_recordings) do |table| %>
@@ -24,7 +27,7 @@
         "Not live yet"
       end
     }) %>
-    <% table.column(title: "Search", html: ->(recording) {
+    <% table.column(title: "SEO", html: ->(recording) {
       recordable = recording.recordable
       public_path = recording.publishable_public_path
       if recordable.respond_to?(:indexable?) && recordable.indexable?
@@ -35,13 +38,8 @@
         render FlatPack::Badge::Component.new(text: "Not live", style: :default, size: :sm)
       end
     }) %>
-    <% table.column(title: "Edit", html: ->(recording) {
-      render FlatPack::Button::Component.new(
-        text: "Edit",
-        style: :secondary,
-        size: :sm,
-        href: recording_studio_publishable.edit_recording_publishable_path(recording_id: recording.id)
-      )
+    <% table.column(title: "Publish", html: ->(recording) {
+      render RecordingStudioPublishable::QuickActions::Component.new(recording: recording, size: :sm)
     }) %>
   <% end %>
 <% else %>

@@ -143,4 +143,37 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, '<meta name="robots" content="noindex,follow">'
     refute page.reload.indexable?
   end
+
+  test "draft public pages are not found" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Draft page"),
+                                                          parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: { slug: "draft-page", status: "draft" }
+    ).value
+
+    get "/published/#{publishable_recording.id}/draft-page"
+
+    assert_response :not_found
+  end
+
+  test "scheduled public pages are not found" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Scheduled page"),
+                                                          parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: {
+        slug: "scheduled-page",
+        status: "published",
+        publish_at: 2.days.from_now,
+        time_zone: "UTC"
+      }
+    ).value
+
+    get "/published/#{publishable_recording.id}/scheduled-page"
+
+    assert_response :not_found
+  end
 end

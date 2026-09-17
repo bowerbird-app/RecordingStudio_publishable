@@ -95,6 +95,7 @@ Metrics/ClassLength:
     - 'lib/recording_studio_publishable/hooks.rb'
     - 'app/controllers/recording_studio_publishable/publishables_controller.rb'
     - 'app/controllers/recording_studio_publishable/published_controller.rb'
+    - 'app/controllers/recording_studio_publishable/renders_public_page.rb'
     - 'lib/recording_studio_publishable/services/publishables/update.rb'
 
 # Offense count: 5
@@ -119,6 +120,7 @@ Metrics/MethodLength:
     - 'lib/recording_studio/capabilities/publishable.rb'
     - 'app/controllers/recording_studio_publishable/publishables_controller.rb'
     - 'app/controllers/recording_studio_publishable/published_controller.rb'
+    - 'app/controllers/recording_studio_publishable/renders_public_page.rb'
     - 'app/helpers/recording_studio_publishable/application_helper.rb'
 
 # Offense count: 1
@@ -126,6 +128,7 @@ Metrics/MethodLength:
 Metrics/ModuleLength:
   Exclude:
     - 'lib/recording_studio_publishable/parent_recordable.rb'
+    - 'app/controllers/recording_studio_publishable/renders_public_page.rb'
 
 # Offense count: 2
 # Configuration parameters: Max, CountKeywordArgs, MaxOptionalParameters.

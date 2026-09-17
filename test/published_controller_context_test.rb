@@ -7,6 +7,7 @@ require "action_controller/railtie"
 require_relative "test_helper"
 require_relative "../app/helpers/recording_studio_publishable/application_helper"
 require_relative "../app/controllers/recording_studio_publishable/application_controller"
+require_relative "../app/controllers/recording_studio_publishable/renders_public_page"
 require_relative "../app/controllers/recording_studio_publishable/published_controller"
 
 class PublishedControllerContextTest < Minitest::Test

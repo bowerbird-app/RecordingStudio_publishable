@@ -21,6 +21,10 @@ module RecordingStudioPublishable
       app.config.importmap.paths << importmap_path unless app.config.importmap.paths.include?(importmap_path)
     end
 
+    initializer "recording_studio_publishable.turbo_stream_mime" do
+      Mime::Type.register "text/vnd.turbo-stream.html", :turbo_stream unless Mime[:turbo_stream]
+    end
+
     initializer "recording_studio_publishable.before_initialize",
                 before: "recording_studio_publishable.load_config" do |_app|
       RecordingStudioPublishable::Hooks.run(:before_initialize, self)
