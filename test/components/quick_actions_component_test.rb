@@ -101,31 +101,39 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert schedule_menu_link(section)
   end
 
-  test "scheduled dropdown names the state and offers both verbs" do
+  test "scheduled dropdown shows the date and offers change schedule" do
     recording = create_parent("Scheduled dropdown page")
-    RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: recording,
-      actor: @user,
-      attributes: {
-        slug: "scheduled-dropdown",
-        status: "published",
-        publish_at: 2.days.from_now
-      }
-    ).value!
+    publish_at = Time.utc(2026, 1, 22, 15, 0, 0)
 
-    get "/"
+    travel_to Time.utc(2026, 1, 10, 12, 0, 0) do
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: recording,
+        actor: @user,
+        attributes: {
+          slug: "scheduled-dropdown",
+          status: "published",
+          publish_at: publish_at,
+          time_zone: "UTC"
+        }
+      ).value!
 
-    assert_response :success
-    section = wrapper_html(recording)
+      get "/"
 
-    assert_includes section, "Scheduled"
-    assert_includes section, "button-default-background-color"
-    refute_includes section, "button-warning-background-color"
-    assert_includes section, "Publish now"
-    assert_includes section, "rocket-launch"
-    assert_includes section, "Back to draft"
-    refute_includes section, "Unpublish"
-    assert schedule_menu_link(section)
+      assert_response :success
+      section = wrapper_html(recording)
+      trigger_labels = Nokogiri::HTML(section).css("button span").map { |span| span.text.strip }
+
+      assert_includes trigger_labels, "Jan 22"
+      refute_includes trigger_labels, "Scheduled"
+      assert_includes section, "button-default-background-color"
+      refute_includes section, "button-warning-background-color"
+      assert_includes section, "Publish now"
+      assert_includes section, "rocket-launch"
+      assert_includes section, "Unpublish"
+      refute_includes section, "Back to draft"
+      assert_nil schedule_menu_link(section)
+      assert schedule_menu_link(section, text: "Change schedule")
+    end
   end
 
   private
@@ -136,8 +144,8 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     node&.to_html.to_s
   end
 
-  def schedule_menu_link(section)
-    Nokogiri::HTML(section).css("a").find { |link| link.at_css("span")&.text == "Schedule" }
+  def schedule_menu_link(section, text: "Schedule")
+    Nokogiri::HTML(section).css("a").find { |link| link.at_css("span")&.text == text }
   end
 
   def settings_menu_link(section)

@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2026-09-16
 
 ### Added
-- `QuickActions` is a Flatpack status dropdown for host pages. The closed button names Draft, Scheduled, or Published. The menu holds `Publish now` (`rocket-launch`), `Schedule` on drafts, `Unpublish` on live pages, `Back to draft` on scheduled pages, and Publish settings. Draft uses `pencil-square`
+- `QuickActions` is a Flatpack status dropdown for host pages. The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. The menu holds `Publish now` (`rocket-launch`), `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`, and Publish settings. Draft uses `pencil-square`
 - Inline transitions (`inline=1` or a Turbo Stream request) stay on the host page. Turbo Stream replaces the dropdown. HTML falls back to `redirect_back`
 - Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen
 - Inline publish and unpublish replace the dropdown only. They do not insert a success banner next to it
@@ -23,8 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The stuffed accordion publish form is gone. Job forms post back to the same update path with a `section` and return to that screen
 - Search fields are Title in search and Description in search. The job is labeled SEO. Canonical URL and Search listing stay on that screen even when SEO tags are off
 - Dummy Pages uses a plus icon with the label Page. The Pages table column for listing is SEO
-- Schedule, SEO, and Social forms use a narrower desktop width. Those screens hide the workspace switcher and Sign out
-- Scheduled and published dropdowns include Schedule alongside the other verbs
+- Schedule, SEO, and Social forms use a narrower desktop width and stay left-aligned. Those screens hide the workspace switcher and Sign out
+- Scheduled dropdowns use `Change schedule` and show the date on the closed button. Draft and published menus still say `Schedule`
 - The Scheduled trigger uses Flatpack default style, not warning
 
 ### Upgrade Notes

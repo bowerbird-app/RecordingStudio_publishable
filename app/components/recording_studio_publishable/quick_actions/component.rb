@@ -14,7 +14,7 @@ module RecordingStudioPublishable
           trigger: "Scheduled",
           style: :default,
           icon: "clock",
-          actions: %i[publish schedule draft]
+          actions: %i[publish schedule unpublish]
         },
         published: {
           trigger: "Published",
@@ -27,7 +27,6 @@ module RecordingStudioPublishable
       ACTIONS = {
         publish: { text: "Publish now", icon: "rocket-launch", transition: :publish },
         schedule: { text: "Schedule", icon: "clock" },
-        draft: { text: "Back to draft", icon: "pencil-square", transition: :draft },
         unpublish: { text: "Unpublish", icon: "pencil-square", transition: :draft }
       }.freeze
 
@@ -67,8 +66,17 @@ module RecordingStudioPublishable
         CLOSED_STATES.fetch(closed_state)
       end
 
+      def trigger_text
+        return scheduled_trigger_text if closed_state == :scheduled
+
+        state_config[:trigger]
+      end
+
       def action_config(action_name)
-        ACTIONS.fetch(action_name)
+        config = ACTIONS.fetch(action_name)
+        return config unless action_name == :schedule && closed_state == :scheduled
+
+        config.merge(text: "Change schedule")
       end
 
       def menu_actions
@@ -113,6 +121,17 @@ module RecordingStudioPublishable
         helpers.recording_studio_publishable.edit_recording_publishable_path(
           recording_id: recording.id
         )
+      end
+
+      private
+
+      def scheduled_trigger_text
+        publishable = recording.current_publishable
+        publish_at = publishable&.publish_at
+        return "Scheduled" if publish_at.blank?
+
+        time = publish_at.in_time_zone(publishable.effective_time_zone)
+        "#{time.strftime('%b')} #{time.day}"
       end
     end
   end
