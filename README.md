@@ -134,7 +134,7 @@ page.published_url
 
 `publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title. On Preview it emits only `noindex,nofollow`.
 
-Canonical URL is an optional override. Leave it blank to use the public URL. The SEO screen and the Update service both accept it, including when SEO tags are turned off for that type.
+Canonical URL is an optional override on the SEO screen, under Advanced. Leave it blank to use the public URL. Fill it only when this page is replacing an older address. The SEO screen and the Update service both accept it, including when SEO tags are turned off for that type.
 
 Recording instance helpers work on the parent recording after the capability is enabled:
 

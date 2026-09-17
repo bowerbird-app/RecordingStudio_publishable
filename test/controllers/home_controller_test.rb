@@ -136,6 +136,9 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Search listing"
     assert_includes response.body, "publishable[canonical_url]"
+    assert_includes response.body, "Original URL"
+    assert_includes response.body, "Advanced"
+    assert_includes response.body, "Leave this blank unless this page is replacing an older address."
     assert_includes response.body, "Title in search"
     assert_includes response.body, "Description in search"
     assert_includes response.body, "publishable[seo_description]"

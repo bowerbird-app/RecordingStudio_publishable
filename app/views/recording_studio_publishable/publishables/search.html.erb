@@ -14,14 +14,6 @@
 
     <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
 
-    <%= render FlatPack::TextInput::Component.new(
-      name: "publishable[canonical_url]",
-      label: "Canonical URL",
-      value: @publishable.canonical_url,
-      placeholder: "Leave blank to use the public URL",
-      help_text: "Leave this blank unless search should treat another address as the original."
-    ) %>
-
     <%= render FlatPack::Select::Component.new(
       name: "publishable[meta_robots]",
       label: "Search listing",
@@ -56,6 +48,20 @@
         max_characters: 160,
         placeholder: "A short line for search results",
         help_text: "The line under the title in search results."
+      ) %>
+    <% end %>
+
+    <%= render FlatPack::Collapse::Component.new(
+      id: "publishable-seo-advanced",
+      title: "Advanced",
+      open: @publishable.canonical_url.present?
+    ) do %>
+      <%= render FlatPack::TextInput::Component.new(
+        name: "publishable[canonical_url]",
+        label: "Original URL",
+        value: @publishable.canonical_url,
+        placeholder: "Leave blank to use this page's URL",
+        help_text: "Leave this blank unless this page is replacing an older address. Paste that old full https:// address so search still treats this as the same page."
       ) %>
     <% end %>
 

@@ -386,7 +386,14 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "publishable[slug]"
     assert_includes response.body, "publishable[canonical_url]"
     assert_includes response.body, "publishable[meta_robots]"
-    assert_includes response.body, "Canonical URL"
+    assert_includes response.body, "Original URL"
+    assert_includes response.body, "Advanced"
+    assert_includes response.body, "flat-pack--collapse"
+    assert_includes response.body, "Leave this blank unless this page is replacing an older address."
+    assert_includes response.body, "Paste that old full https:// address so search still treats this as the same page."
+    collapse = Nokogiri::HTML(response.body).at_css('[data-controller="flat-pack--collapse"]')
+    assert collapse
+    assert_equal "false", collapse["data-flat-pack--collapse-open-value"]
     assert_includes response.body, "Search listing"
     assert_includes response.body, "Title in search"
     assert_includes response.body, "Description in search"
@@ -394,6 +401,23 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "data-publishable-social-image-picker"
     refute_includes response.body, "Select social image"
     refute_includes response.body, 'name="publishable[meta_robots]" type="hidden"'
+  end
+
+  test "search page opens advanced when original url is set" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "spring-release-notes", canonical_url: "https://example.test/old-launch" }
+    ).value!
+
+    get recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "https://example.test/old-launch"
+    collapse = Nokogiri::HTML(response.body).at_css('[data-controller="flat-pack--collapse"]')
+    assert collapse
+    assert_equal "true", collapse["data-flat-pack--collapse-open-value"]
   end
 
   test "social page has preview fields and not times" do

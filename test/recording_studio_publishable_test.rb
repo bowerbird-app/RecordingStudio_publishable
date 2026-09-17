@@ -46,7 +46,11 @@ class RecordingStudioPublishableTest < Minitest::Test
 
     refute_includes view_source, "FlatPack::Accordion::Component"
     refute_includes view_source, "title: \"Search engines\""
-    assert_includes view_source, "label: \"Canonical URL\""
+    assert_includes view_source, "FlatPack::Collapse::Component"
+    assert_includes view_source, "title: \"Advanced\""
+    assert_includes view_source, "label: \"Original URL\""
+    assert_includes view_source, "Leave this blank unless this page is replacing an older address."
+    assert_includes view_source, "Paste that old full https:// address so search still treats this as the same page."
     assert_includes view_source, "label: \"Search listing\""
     assert_includes view_source, "label: \"Title in search\""
     assert_includes view_source, "label: \"Description in search\""
