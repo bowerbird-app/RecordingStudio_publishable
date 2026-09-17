@@ -41,7 +41,6 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes section, "Publish now"
     assert_includes section, "rocket-launch"
     assert_includes section, "Schedule"
-    assert_includes section, "Publish settings"
     assert_includes section, "inline=1"
     assert_includes section, "button_size=sm"
     assert_includes section, "data-turbo-method=\"patch\""
@@ -55,11 +54,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     refute_includes schedule_link["href"], "schedule="
     assert_nil schedule_link["data-turbo-method"]
 
-    settings_link = settings_menu_link(section)
-    assert settings_link
-    assert_includes settings_link["href"],
-                    recording_studio_publishable.edit_recording_publishable_path(recording_id: recording.id)
-    refute_includes settings_link["href"], "schedule="
+    assert_footer_job_links(section, recording)
   end
 
   test "draft dropdown omits schedule when scheduling is off" do
@@ -77,6 +72,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
       section = wrapper_html(recording)
       assert_includes section, "Publish now"
       assert_nil schedule_menu_link(section)
+      assert_footer_job_links(section, recording)
     end
   end
 
@@ -99,6 +95,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     refute_includes section, "Back to draft"
     refute_includes section, "Publish now"
     assert schedule_menu_link(section)
+    assert_footer_job_links(section, recording)
   end
 
   test "scheduled dropdown shows the date and offers change schedule" do
@@ -133,6 +130,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
       refute_includes section, "Back to draft"
       assert_nil schedule_menu_link(section)
       assert schedule_menu_link(section, text: "Change schedule")
+      assert_footer_job_links(section, recording)
     end
   end
 
@@ -145,11 +143,27 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
   end
 
   def schedule_menu_link(section, text: "Schedule")
+    menu_link(section, text)
+  end
+
+  def menu_link(section, text)
     Nokogiri::HTML(section).css("a").find { |link| link.at_css("span")&.text == text }
   end
 
-  def settings_menu_link(section)
-    Nokogiri::HTML(section).css("a").find { |link| link.at_css("span")&.text == "Publish settings" }
+  def assert_footer_job_links(section, recording)
+    refute_includes section, "Publish settings"
+    assert Nokogiri::HTML(section).at_css('[role="separator"]')
+
+    seo = menu_link(section, "SEO")
+    social = menu_link(section, "Social")
+    assert seo
+    assert social
+    assert_includes seo["href"],
+                    recording_studio_publishable.search_recording_publishable_path(recording_id: recording.id)
+    assert_includes social["href"],
+                    recording_studio_publishable.social_recording_publishable_path(recording_id: recording.id)
+    assert_nil seo["data-turbo-method"]
+    assert_nil social["data-turbo-method"]
   end
 
   def create_parent(title)

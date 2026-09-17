@@ -53,13 +53,16 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "<td"
     assert_includes response.body, "Published"
     assert_includes response.body, "Unpublish"
-    assert_includes response.body, "Publish settings"
+    refute_includes response.body, "Publish settings"
     assert_includes response.body, "SEO"
+    assert_includes response.body, "Social"
     assert_includes response.body, "@hotwired/turbo-rails"
     refute_includes response.body, "Dummy publishables"
     refute_includes response.body, "You are already signed in"
     assert_includes response.body,
-                    recording_studio_publishable.edit_recording_publishable_path(recording_id: @page_recording.id)
+                    recording_studio_publishable.search_recording_publishable_path(recording_id: @page_recording.id)
+    assert_includes response.body,
+                    recording_studio_publishable.social_recording_publishable_path(recording_id: @page_recording.id)
   end
 
   test "add page page renders and creates a new page recording" do

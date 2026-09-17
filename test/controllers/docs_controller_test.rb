@@ -163,7 +163,9 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Publish now"
     assert_includes response.body, "Schedule"
     assert_includes response.body, "Unpublish"
-    assert_includes response.body, "Publish settings"
+    assert_includes response.body, "SEO"
+    assert_includes response.body, "Social"
+    refute_includes response.body, "Publish settings"
   end
 
   test "headers page renders platform-style social previews for draft publishables" do

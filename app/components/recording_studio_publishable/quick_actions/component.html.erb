@@ -21,9 +21,14 @@
     <% end %>
     <% dropdown.menu_divider %>
     <% dropdown.menu_item(
-      text: "Publish settings",
-      icon: "cog-6-tooth",
-      href: edit_url
+      text: "SEO",
+      icon: "magnifying-glass",
+      href: job_url(:search)
+    ) %>
+    <% dropdown.menu_item(
+      text: "Social",
+      icon: "share",
+      href: job_url(:social)
     ) %>
   <% end %>
 </div>

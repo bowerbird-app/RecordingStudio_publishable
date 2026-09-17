@@ -154,9 +154,9 @@ Put `QuickActions` on a host page to show the current state and change it there.
 <%= render_publishable_quick_actions(page_recording) %>
 ```
 
-The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary, Scheduled is default, Published is success. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`) plus Publish settings.
+The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary, Scheduled is default, Published is success. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`), then SEO and Social.
 
-Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen.
+Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen. SEO and Social in the dropdown open those screens.
 
 A change from this control stays on the host page. With Turbo, the dropdown replaces itself at the same size the host rendered. Inline publish and unpublish do not insert a success banner. Without Turbo, the request returns to the same page. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
 
