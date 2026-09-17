@@ -24,7 +24,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     grant_edit_access!(@root)
   end
 
-  test "draft dropdown names the state and offers publish now" do
+  test "draft dropdown names the state and offers publish now and schedule" do
     recording = create_parent("Draft dropdown page")
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
@@ -37,14 +37,41 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_response :success
     section = wrapper_html(recording)
     assert_includes section, "Draft"
+    assert_includes section, "pencil-square"
     assert_includes section, "Publish now"
+    assert_includes section, "rocket-launch"
+    assert_includes section, "Schedule"
     assert_includes section, "Publish settings"
     assert_includes section, "inline=1"
     assert_includes section, "data-turbo-method=\"patch\""
     refute_includes section, "Back to draft"
+    refute_includes section, "Unpublish"
+
+    schedule_link = schedule_menu_link(section)
+    assert schedule_link
+    assert_includes schedule_link["href"], "schedule=1"
+    assert_nil schedule_link["data-turbo-method"]
   end
 
-  test "published dropdown names the state and offers back to draft" do
+  test "draft dropdown omits schedule when scheduling is off" do
+    recording = create_parent("Draft no schedule page")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: recording,
+      actor: @user,
+      attributes: { slug: "draft-no-schedule", status: "draft" }
+    ).value!
+
+    RecordingStudioPublishable.configuration.stub :schedule_enabled_for, false do
+      get "/"
+
+      assert_response :success
+      section = wrapper_html(recording)
+      assert_includes section, "Publish now"
+      refute_includes section, "Schedule"
+    end
+  end
+
+  test "published dropdown names the state and offers unpublish" do
     recording = create_parent("Published dropdown page")
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: recording,
@@ -59,8 +86,10 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes section, "Published"
     assert_includes section, "check-circle"
     assert_includes section, "button-success-background-color"
-    assert_includes section, "Back to draft"
+    assert_includes section, "Unpublish"
+    refute_includes section, "Back to draft"
     refute_includes section, "Publish now"
+    refute_includes section, "Schedule"
   end
 
   test "scheduled dropdown names the state and offers both verbs" do
@@ -82,7 +111,10 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert_includes section, "Scheduled"
     assert_includes section, "Publish now"
+    assert_includes section, "rocket-launch"
     assert_includes section, "Back to draft"
+    refute_includes section, "Unpublish"
+    refute_includes section, "Schedule"
   end
 
   private
@@ -91,6 +123,10 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     wrapper = RecordingStudioPublishable::QuickActions::Component.wrapper_id(recording)
     node = Nokogiri::HTML(response.body).at_css("##{wrapper}")
     node&.to_html.to_s
+  end
+
+  def schedule_menu_link(section)
+    Nokogiri::HTML(section).css("a").find { |link| link.text.include?("Schedule") }
   end
 
   def create_parent(title)

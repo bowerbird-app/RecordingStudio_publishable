@@ -50,7 +50,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "<thead"
     assert_includes response.body, "<td"
     assert_includes response.body, "Published"
-    assert_includes response.body, "Back to draft"
+    assert_includes response.body, "Unpublish"
     assert_includes response.body, "Publish settings"
     assert_includes response.body, "@hotwired/turbo-rails"
     refute_includes response.body, "Dummy publishables"
@@ -103,6 +103,16 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "SEO title"
     refute_includes response.body, "SEO description"
     assert_includes response.body, "Select social image"
+  end
+
+  test "edit page opens the schedule section when requested from the dropdown" do
+    get recording_studio_publishable.edit_recording_publishable_path(
+      recording_id: @page_recording.id,
+      schedule: 1
+    )
+
+    assert_response :success
+    assert_select '[aria-controls="publishable-schedule-window-content"][aria-expanded="true"]'
   end
 
   test "edit page accepts a publishable child recording id without nesting another publishable" do

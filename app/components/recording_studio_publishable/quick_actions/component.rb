@@ -7,8 +7,8 @@ module RecordingStudioPublishable
         draft: {
           trigger: "Draft",
           style: :secondary,
-          icon: "document-text",
-          actions: %i[publish]
+          icon: "pencil-square",
+          actions: %i[publish schedule]
         },
         scheduled: {
           trigger: "Scheduled",
@@ -20,13 +20,15 @@ module RecordingStudioPublishable
           trigger: "Published",
           style: :success,
           icon: "check-circle",
-          actions: %i[draft]
+          actions: %i[unpublish]
         }
       }.freeze
 
       ACTIONS = {
-        publish: { text: "Publish now", icon: "globe-alt", transition: :publish },
-        draft: { text: "Back to draft", icon: "pencil-square", transition: :draft }
+        publish: { text: "Publish now", icon: "rocket-launch", transition: :publish },
+        schedule: { text: "Schedule", icon: "clock" },
+        draft: { text: "Back to draft", icon: "pencil-square", transition: :draft },
+        unpublish: { text: "Unpublish", icon: "pencil-square", transition: :draft }
       }.freeze
 
       def initialize(recording:, size: :md, notice: nil, alert: nil)
@@ -63,6 +65,29 @@ module RecordingStudioPublishable
         ACTIONS.fetch(action_name)
       end
 
+      def menu_actions
+        names = state_config[:actions]
+        return names if schedule_enabled?
+
+        names - [:schedule]
+      end
+
+      def action_href(action)
+        return transition_url(action[:transition]) if action[:transition]
+
+        edit_url(schedule: 1)
+      end
+
+      def action_data(action)
+        return { turbo_method: :patch, turbo_stream: true } if action[:transition]
+
+        {}
+      end
+
+      def schedule_enabled?
+        RecordingStudioPublishable.configuration.schedule_enabled_for(recording.recordable_type)
+      end
+
       def transition_url(transition)
         helpers.recording_studio_publishable.transition_recording_publishable_path(
           recording_id: recording.id,
@@ -71,8 +96,11 @@ module RecordingStudioPublishable
         )
       end
 
-      def edit_url
-        helpers.recording_studio_publishable.edit_recording_publishable_path(recording_id: recording.id)
+      def edit_url(**query)
+        helpers.recording_studio_publishable.edit_recording_publishable_path(
+          recording_id: recording.id,
+          **query
+        )
       end
     end
   end

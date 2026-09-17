@@ -154,7 +154,7 @@ Put `QuickActions` on a host page to show the current state and change it there.
 <%= render_publishable_quick_actions(page_recording) %>
 ```
 
-The closed button names Draft, Scheduled, or Published. The menu holds the other verbs (`Publish now`, `Back to draft`) plus Publish settings, which opens the gem Publish screen.
+The closed button names Draft, Scheduled, or Published. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Unpublish` on live pages, `Back to draft` on scheduled pages) plus Publish settings, which opens the gem Publish screen. Schedule opens that screen with the date fields already open.
 
 A change from this control stays on the host page. With Turbo, the dropdown replaces itself. Without Turbo, the request returns to the same page with a flash. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
 

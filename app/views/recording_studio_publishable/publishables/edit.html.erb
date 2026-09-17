@@ -98,7 +98,7 @@
     </div>
 
     <%= render FlatPack::Accordion::Component.new do |accordion| %>
-      <% accordion.item(id: "publishable-schedule-window", title: schedule_title, open: false) do %>
+      <% accordion.item(id: "publishable-schedule-window", title: schedule_title, open: params[:schedule].present?) do %>
         <div class="space-y-4">
           <% if schedule_enabled %>
               <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>

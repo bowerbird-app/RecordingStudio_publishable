@@ -132,7 +132,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)
     assert_includes CGI.unescapeHTML(response.body), "It's live."
     assert_includes response.body, "Published"
-    assert_includes response.body, "Back to draft"
+    assert_includes response.body, "Unpublish"
     refute_includes response.body, "Published!"
     assert parent_recording.reload.current_publishable.currently_published?
   end
@@ -152,6 +152,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Back to a draft."
     assert_includes response.body, "Draft"
     assert_includes response.body, "Publish now"
+    assert_includes response.body, "Schedule"
     refute_includes response.body, "Published!"
     assert parent_recording.reload.current_publishable.draft_state?
   end

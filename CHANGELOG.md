@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2026-09-16
 
 ### Added
-- `QuickActions` is a Flatpack status dropdown for host pages. The closed button names Draft, Scheduled, or Published. The menu holds `Publish now`, `Back to draft`, and Publish settings
+- `QuickActions` is a Flatpack status dropdown for host pages. The closed button names Draft, Scheduled, or Published. The menu holds `Publish now` (`rocket-launch`), `Schedule` on drafts (opens Publish settings with the date fields open), `Unpublish` on live pages, `Back to draft` on scheduled pages, and Publish settings. Draft uses `pencil-square`
 - Inline transitions (`inline=1` or a Turbo Stream request) stay on the host page. Turbo Stream replaces the dropdown. HTML falls back to `redirect_back`
 
 ### Changed

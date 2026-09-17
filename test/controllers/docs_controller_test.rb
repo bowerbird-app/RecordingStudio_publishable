@@ -158,6 +158,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "RecordingStudioPublishable::QuickActions::Component.new(recording: recording)"
     assert_includes response.body, "Status on the button. Verbs in the menu."
     assert_includes response.body, "Publish now"
+    assert_includes response.body, "Schedule"
+    assert_includes response.body, "Unpublish"
     assert_includes response.body, "Publish settings"
   end
 

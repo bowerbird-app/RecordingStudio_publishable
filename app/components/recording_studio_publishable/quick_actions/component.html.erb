@@ -13,13 +13,13 @@
     icon: state_config[:icon],
     placement: :bottom_right
   ) do |dropdown| %>
-    <% state_config[:actions].each do |action_name| %>
+    <% menu_actions.each do |action_name| %>
       <% action = action_config(action_name) %>
       <% dropdown.menu_item(
         text: action[:text],
         icon: action[:icon],
-        href: transition_url(action[:transition]),
-        data: { turbo_method: :patch, turbo_stream: true }
+        href: action_href(action),
+        data: action_data(action)
       ) %>
     <% end %>
     <% dropdown.menu_divider %>
