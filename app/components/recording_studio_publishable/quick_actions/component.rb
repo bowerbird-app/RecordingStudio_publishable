@@ -12,7 +12,7 @@ module RecordingStudioPublishable
         },
         scheduled: {
           trigger: "Scheduled",
-          style: :warning,
+          style: :default,
           icon: "clock",
           actions: %i[publish schedule draft]
         },

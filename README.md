@@ -154,7 +154,7 @@ Put `QuickActions` on a host page to show the current state and change it there.
 <%= render_publishable_quick_actions(page_recording) %>
 ```
 
-The closed button names Draft, Scheduled, or Published. The menu holds the other verbs (`Publish now`, `Schedule`, `Unpublish` on live pages, `Back to draft` on scheduled pages) plus Publish settings.
+The closed button names Draft, Scheduled, or Published. Draft is secondary, Scheduled is default, Published is success. The menu holds the other verbs (`Publish now`, `Schedule`, `Unpublish` on live pages, `Back to draft` on scheduled pages) plus Publish settings.
 
 Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen.
 

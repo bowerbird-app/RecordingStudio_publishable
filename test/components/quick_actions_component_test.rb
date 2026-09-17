@@ -118,6 +118,8 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     section = wrapper_html(recording)
 
     assert_includes section, "Scheduled"
+    assert_includes section, "button-default-background-color"
+    refute_includes section, "button-warning-background-color"
     assert_includes section, "Publish now"
     assert_includes section, "rocket-launch"
     assert_includes section, "Back to draft"

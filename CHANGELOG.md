@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy Pages uses a plus icon with the label Page. The Pages table column for listing is SEO
 - Schedule, SEO, and Social forms use a narrower desktop width. Those screens hide the workspace switcher and Sign out
 - Scheduled and published dropdowns include Schedule alongside the other verbs
+- The Scheduled trigger uses Flatpack default style, not warning
 
 ### Upgrade Notes
 - Render `RecordingStudioPublishable::QuickActions::Component` (or `render_publishable_quick_actions`) on host pages where people should see and change publish state
