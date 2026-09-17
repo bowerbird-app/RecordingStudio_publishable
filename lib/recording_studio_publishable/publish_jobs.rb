@@ -16,12 +16,12 @@ module RecordingStudioPublishable
       ),
       search: Job.new(
         key: :search,
-        title: "Search",
+        title: "SEO",
         subtitle: "How this shows up in search.",
         icon: "magnifying-glass",
         attributes: %i[slug canonical_url meta_robots seo_title seo_description].freeze,
         capability: nil,
-        notice: "Search listing saved."
+        notice: "SEO saved."
       ),
       social: Job.new(
         key: :social,

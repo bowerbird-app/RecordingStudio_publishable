@@ -78,7 +78,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_match "Sign out", response.body
     assert_match "Publish", response.body
     assert_match "Schedule", response.body
-    assert_match "Search", response.body
+    assert_match "SEO", response.body
     assert_match "Social", response.body
     refute_match "datetime-local", response.body
     refute_match "Search engines", response.body

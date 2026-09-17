@@ -4,18 +4,10 @@
   main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
 end %>
 
-<% if respond_to?(:recording_studio_page_nav) %>
-  <% recording_studio_page_nav(
-    title: @job.title,
-    page_nav_back_url: edit_recording_publishable_path(recording_id: @parent_recording.id),
-    page_nav_back_label: "Publish",
-    page_nav_anchor_url: @management_close_url,
-    page_nav_anchor_label: "Close"
-  ) %>
-<% end %>
+<%= render "job_nav" %>
 
 <div
-  class="mx-auto flex w-full max-w-6xl flex-col gap-6"
+  class="mx-auto flex w-full max-w-xl flex-col gap-6"
   data-controller="recording-studio-attachable--attachment-image-picker"
   data-recording-studio-attachable--attachment-image-picker-picker-url-value="<%= recording_studio_attachable.recording_attachment_picker_path(@publishable_recording) %>"
   data-recording-studio-attachable--attachment-image-picker-upload-url-value="<%= recording_studio_attachable.recording_attachment_imports_path(@publishable_recording) %>"

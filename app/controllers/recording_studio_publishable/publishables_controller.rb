@@ -45,17 +45,6 @@ module RecordingStudioPublishable
 
       return redirect_to_edit if job.key == :schedule && !schedule_enabled_for_recordable?
 
-      incoming = params.fetch(:publishable, {}).to_unsafe_h.slice(
-        "status",
-        "publish_at",
-        "unpublish_at",
-        "time_zone",
-        "slug"
-      )
-      Rails.logger.warn(
-        "[PublishableDebug] update request recording_id=#{@parent_recording.id} format=#{request.format.symbol} incoming=#{incoming.inspect}"
-      )
-
       result = RecordingStudioPublishable::Services::Publishables::Update.call(
         parent_recording: @parent_recording,
         attributes: publishable_params,
@@ -64,11 +53,6 @@ module RecordingStudioPublishable
 
       if result.success?
         return render_json_update if request.format.json?
-
-        publishable = @parent_recording.reload.publishable_child_recording&.recordable
-        Rails.logger.warn(
-          "[PublishableDebug] update success(html) recording_id=#{@parent_recording.id} status=#{publishable&.status.inspect} publish_at=#{publishable&.publish_at.inspect} unpublish_at=#{publishable&.unpublish_at.inspect} tz=#{publishable&.time_zone.inspect}"
-        )
 
         return redirect_to_job(job, notice: job.notice)
       end
@@ -94,9 +78,6 @@ module RecordingStudioPublishable
         return render json: { error: "Publishable not found" }, status: :unprocessable_entity if publishable.blank?
 
         scheduled = publishable.scheduled_for_future?
-        Rails.logger.warn("[DEBUG] scheduled_for_future: #{scheduled}")
-        Rails.logger.warn("[DEBUG] publish_at: #{publishable.publish_at}")
-        Rails.logger.warn("[DEBUG] now: #{Time.current}")
 
         return render json: {
           status: publishable.published_state? ? "published" : "draft",
@@ -255,22 +236,17 @@ module RecordingStudioPublishable
         return render_inline_transition(alert: message, status: :unprocessable_entity)
       end
 
-      live = publishable.published_state? && !publishable.scheduled_for_future?
-      notice = live ? "It's live." : "Back to a draft."
-
-      render_inline_transition(notice: notice)
+      render_inline_transition
     end
 
-    def render_inline_transition(notice: nil, alert: nil, status: :ok)
+    def render_inline_transition(alert: nil, status: :ok)
       if turbo_stream_request?
-        @transition_notice = notice
         @transition_alert = alert
         return render :transition, formats: [:turbo_stream], status: status
       end
 
       redirect_back(
         fallback_location: inline_fallback_location,
-        notice: notice,
         alert: alert,
         status: :see_other,
         allow_other_host: false
@@ -321,10 +297,6 @@ module RecordingStudioPublishable
     def render_json_update
       publishable = @parent_recording.reload.publishable_child_recording&.recordable
       return render json: { error: "Publishable not found" }, status: :unprocessable_entity if publishable.blank?
-
-      Rails.logger.warn(
-        "[PublishableDebug] update success(json) recording_id=#{@parent_recording.id} status=#{publishable.status.inspect} publish_at=#{publishable.publish_at.inspect} unpublish_at=#{publishable.unpublish_at.inspect} tz=#{publishable.time_zone.inspect}"
-      )
 
       render json: {
         status: publishable.published_state? ? "published" : "draft",

@@ -12,14 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `QuickActions` is a Flatpack status dropdown for host pages. The closed button names Draft, Scheduled, or Published. The menu holds `Publish now` (`rocket-launch`), `Schedule` on drafts, `Unpublish` on live pages, `Back to draft` on scheduled pages, and Publish settings. Draft uses `pencil-square`
 - Inline transitions (`inline=1` or a Turbo Stream request) stay on the host page. Turbo Stream replaces the dropdown. HTML falls back to `redirect_back`
-- Publish settings is a hub. Schedule, Search, and Social are their own screens. Schedule in the dropdown opens the schedule screen
+- Publish settings is a hub. Schedule, SEO, and Social are their own screens. Schedule in the dropdown opens the schedule screen
+- Inline publish and unpublish replace the dropdown only. They do not insert a success banner next to it
 
 ### Changed
 - Dummy home uses the dropdown in the Publish column. The dummy article page uses it for signed-in people. Dummy now loads Turbo so those PATCHes stay on the page
-- Published uses Flatpack success style and the `check-circle` icon. Dummy Pages puts Add page in the page title slot so there is space above the table
+- Published uses Flatpack success style and the `check-circle` icon. Dummy Pages puts Page in the page title slot so there is space above the table
 - Dummy seeds a scheduled Winter preview page so the three closed states can be shown
 - The stuffed accordion publish form is gone. Job forms post back to the same update path with a `section` and return to that screen
-- Search fields are Title in search and Description in search. Canonical URL and Search listing stay on that screen even when SEO tags are off
+- Search fields are Title in search and Description in search. The job is labeled SEO. Canonical URL and Search listing stay on that screen even when SEO tags are off
+- Dummy Pages uses a plus icon with the label Page. The Pages table column for listing is SEO
+- Schedule, SEO, and Social forms use a narrower desktop width. Those screens hide the workspace switcher and Sign out
+- Scheduled and published dropdowns include Schedule alongside the other verbs
 
 ### Upgrade Notes
 - Render `RecordingStudioPublishable::QuickActions::Component` (or `render_publishable_quick_actions`) on host pages where people should see and change publish state
@@ -27,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Publish settings opens the hub. Schedule opens `/recordings/:recording_id/publishable/schedule`
 - PATCH without `inline=1` still redirects to the gem screens, as before
 - Hosts that overrode `edit.html.erb` as one form should switch to the hub and the job screens
+- The Search job is now labeled SEO. The path is still `/publishable/search`
 - Bump to `recording_studio_publishable` `0.3.0`
 
 ## [0.2.1] - 2026-09-02

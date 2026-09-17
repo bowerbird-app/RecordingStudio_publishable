@@ -14,13 +14,13 @@ module RecordingStudioPublishable
           trigger: "Scheduled",
           style: :warning,
           icon: "clock",
-          actions: %i[publish draft]
+          actions: %i[publish schedule draft]
         },
         published: {
           trigger: "Published",
           style: :success,
           icon: "check-circle",
-          actions: %i[unpublish]
+          actions: %i[unpublish schedule]
         }
       }.freeze
 
@@ -31,14 +31,13 @@ module RecordingStudioPublishable
         unpublish: { text: "Unpublish", icon: "pencil-square", transition: :draft }
       }.freeze
 
-      def initialize(recording:, size: :md, notice: nil, alert: nil)
+      def initialize(recording:, size: :md, alert: nil)
         @recording = recording
         @size = size
-        @notice = notice
         @alert = alert
       end
 
-      attr_reader :recording, :size, :notice, :alert
+      attr_reader :recording, :size, :alert
 
       def self.wrapper_id(recording)
         "publishable_quick_actions_#{recording.id}"

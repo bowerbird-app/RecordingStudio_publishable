@@ -1,7 +1,4 @@
-<div id="<%= wrapper_id %>">
-  <% if notice.present? %>
-    <%= render FlatPack::Alert::Component.new(description: notice, style: :success, class: "mb-2") %>
-  <% end %>
+<div id="<%= wrapper_id %>" class="relative overflow-visible">
   <% if alert.present? %>
     <%= render FlatPack::Alert::Component.new(description: alert, style: :danger, class: "mb-2") %>
   <% end %>
@@ -11,7 +8,7 @@
     style: state_config[:style],
     size: size,
     icon: state_config[:icon],
-    placement: :bottom_right
+    placement: (size.to_sym == :sm ? :bottom_left : :bottom_right)
   ) do |dropdown| %>
     <% menu_actions.each do |action_name| %>
       <% action = action_config(action_name) %>

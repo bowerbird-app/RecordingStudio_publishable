@@ -129,9 +129,9 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "text/vnd.turbo-stream.html", response.media_type
     assert_includes response.body, "turbo-stream"
     assert_includes response.body, RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)
-    assert_includes CGI.unescapeHTML(response.body), "It's live."
-    assert_includes response.body, "Published"
+    assert_includes CGI.unescapeHTML(response.body), "Published"
     assert_includes response.body, "Unpublish"
+    refute_includes CGI.unescapeHTML(response.body), "It's live."
     refute_includes response.body, "Published!"
     assert parent_recording.reload.current_publishable.currently_published?
   end
@@ -148,10 +148,10 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "text/vnd.turbo-stream.html", response.media_type
-    assert_includes response.body, "Back to a draft."
     assert_includes response.body, "Draft"
     assert_includes response.body, "Publish now"
     assert_includes response.body, "Schedule"
+    refute_includes response.body, "Back to a draft."
     refute_includes response.body, "Published!"
     assert parent_recording.reload.current_publishable.draft_state?
   end
@@ -189,7 +189,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Schedule"
-    assert_includes response.body, "Search"
+    assert_includes response.body, "SEO"
     assert_includes response.body, "Social"
     assert_includes response.body, "Pick when this goes live."
     assert_includes response.body, "How this shows up in search."
@@ -212,6 +212,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Pick when this goes live."
+    assert_includes response.body, "max-w-xl"
     assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
     assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
     refute_includes response.body, "Title in search"
@@ -225,6 +226,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     get recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
 
     assert_response :success
+    assert_includes response.body, "SEO"
     assert_includes response.body, "publishable[slug]"
     assert_includes response.body, "publishable[canonical_url]"
     assert_includes response.body, "publishable[meta_robots]"
@@ -300,7 +302,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     follow_redirect!
 
     assert_response :success
-    assert_includes response.body, "Search listing saved."
+    assert_includes response.body, "SEO saved."
     refute_includes response.body, "Published!"
   end
 

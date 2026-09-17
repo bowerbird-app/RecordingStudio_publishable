@@ -42,7 +42,9 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, '<html data-theme="rounded">'
     assert_includes response.body, "Pages"
-    assert_includes response.body, "Add page"
+    assert_includes response.body, ">Page<"
+    assert_includes response.body, "icon-name-value=\"plus\""
+    refute_includes response.body, "Add page"
     assert_includes response.body, "page-title-actions"
     assert_includes response.body, "Sign out"
     assert_includes response.body, "Home page"
@@ -52,6 +54,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Published"
     assert_includes response.body, "Unpublish"
     assert_includes response.body, "Publish settings"
+    assert_includes response.body, "SEO"
     assert_includes response.body, "@hotwired/turbo-rails"
     refute_includes response.body, "Dummy publishables"
     refute_includes response.body, "You are already signed in"
@@ -100,7 +103,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Publish"
     assert_includes response.body, "Sign out"
     assert_includes response.body, "Schedule"
-    assert_includes response.body, "Search"
+    assert_includes response.body, "SEO"
     assert_includes response.body, "Social"
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "Title in search"
@@ -115,6 +118,9 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Schedule"
     assert_includes response.body, 'type="datetime-local" name="publishable[publish_at]"'
     assert_includes response.body, 'type="datetime-local" name="publishable[unpublish_at]"'
+    assert_includes response.body, "max-w-xl"
+    refute_includes response.body, "Sign out"
+    refute_includes response.body, "Studio Workspace"
   end
 
   test "search page on pages omits title in search" do
@@ -126,6 +132,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Title in search"
     refute_includes response.body, "Description in search"
     refute_includes response.body, "datetime-local"
+    refute_includes response.body, "Sign out"
   end
 
   test "social page renders preview fields" do
@@ -135,6 +142,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Social title"
     assert_includes response.body, "Select social image"
     refute_includes response.body, "datetime-local"
+    refute_includes response.body, "Sign out"
   end
 
   test "edit page accepts a publishable child recording id without nesting another publishable" do

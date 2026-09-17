@@ -97,7 +97,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes section, "Unpublish"
     refute_includes section, "Back to draft"
     refute_includes section, "Publish now"
-    assert_nil schedule_menu_link(section)
+    assert schedule_menu_link(section)
   end
 
   test "scheduled dropdown names the state and offers both verbs" do
@@ -122,7 +122,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes section, "rocket-launch"
     assert_includes section, "Back to draft"
     refute_includes section, "Unpublish"
-    assert_nil schedule_menu_link(section)
+    assert schedule_menu_link(section)
   end
 
   private

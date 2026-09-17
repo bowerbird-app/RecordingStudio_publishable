@@ -6,7 +6,8 @@
 ) do |page_title| %>
   <% page_title.slot do %>
     <%= render FlatPack::Button::Component.new(
-      text: "Add page",
+      text: "Page",
+      icon: "plus",
       style: :primary,
       size: :md,
       href: new_dummy_page_path
@@ -26,7 +27,7 @@
         "Not live yet"
       end
     }) %>
-    <% table.column(title: "Search", html: ->(recording) {
+    <% table.column(title: "SEO", html: ->(recording) {
       recordable = recording.recordable
       public_path = recording.publishable_public_path
       if recordable.respond_to?(:indexable?) && recordable.indexable?

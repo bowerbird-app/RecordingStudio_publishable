@@ -1,16 +1,8 @@
 <% seo_title_max_characters = 60 %>
 
-<% if respond_to?(:recording_studio_page_nav) %>
-  <% recording_studio_page_nav(
-    title: @job.title,
-    page_nav_back_url: edit_recording_publishable_path(recording_id: @parent_recording.id),
-    page_nav_back_label: "Publish",
-    page_nav_anchor_url: @management_close_url,
-    page_nav_anchor_label: "Close"
-  ) %>
-<% end %>
+<%= render "job_nav" %>
 
-<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+<div class="mx-auto flex w-full max-w-xl flex-col gap-6">
   <%= render FlatPack::PageTitle::Component.new(
     title: @job.title,
     subtitle: @job.subtitle,
