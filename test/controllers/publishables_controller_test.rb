@@ -48,6 +48,11 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
   test "preview shows the public template to an editor with noindex" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "spring-release-notes", status: "draft" }
+    ).value!
 
     get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
 
@@ -55,8 +60,9 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Spring Release Notes"
     assert_includes response.body, "Rendered through:"
     assert_includes response.body, '<meta name="robots" content="noindex,nofollow">'
-    refute_includes response.body, 'property="og:title"'
     refute_includes response.body, '<link rel="canonical"'
+    refute_includes response.body, 'name="twitter:title"'
+    refute_includes response.body, 'property="og:type" content="article"'
     assert_includes response.body, "Preview"
     refute_includes response.body, "Sign out"
     refute_includes response.body, "?preview="
@@ -85,6 +91,11 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
   test "preview returns not found when logged out" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "spring-release-notes", status: "draft" }
+    ).value!
     sign_out @user
 
     get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
@@ -94,6 +105,11 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
   test "preview returns not found for a view-only person" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "spring-release-notes", status: "draft" }
+    ).value!
     viewer = User.find_or_create_by!(email: "publishables-viewer@example.com") do |user|
       user.password = TEST_PASSWORD
       user.password_confirmation = TEST_PASSWORD
