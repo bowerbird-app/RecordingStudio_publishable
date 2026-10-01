@@ -2,15 +2,20 @@
 
 return unless defined?(RecordingStudio) && RecordingStudio.respond_to?(:configure)
 
+recordable_types = [
+  "Workspace",
+  "Folder",
+  "Page",
+  "Article",
+  "RecordingStudioPublishable::Publishable",
+  "RecordingStudioAttachable::Attachment"
+]
+if defined?(RecordingStudioApi::Engine)
+  recordable_types << RecordingStudioApi::Engine::ADMIN_API_RECORDABLE_TYPE_NAME
+end
+
 RecordingStudio.configure do |config|
-  config.recordable_types = [
-    "Workspace",
-    "Folder",
-    "Page",
-    "Article",
-    "RecordingStudioPublishable::Publishable",
-    "RecordingStudioAttachable::Attachment"
-  ]
+  config.recordable_types = recordable_types
   config.require_recordable_declarations = true
   config.app_name = "Publishable Demo" if config.respond_to?(:app_name=)
   config.actor = -> { Current.actor }
