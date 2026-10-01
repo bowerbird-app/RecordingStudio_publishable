@@ -40,6 +40,17 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
                     "RecordingStudioPublishable::Publishable"
   end
 
+  test "admin api recordable is registered without an admin root" do
+    skip unless defined?(RecordingStudioApi)
+
+    admin_api = "RecordingStudioApi::AdminApi".constantize
+    registered = Array(RecordingStudio.configuration.recordable_types).map(&:to_s)
+
+    assert_includes registered, admin_api.name
+    refute_includes registered, "AdminRoot"
+    assert_empty RecordingStudio::RecordableDeclarations.declarations.fetch(admin_api.name).allowed_parent_types
+  end
+
   test "dummy uses core default layout rather than a custom sidebar shell" do
     assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
     assert_includes ApplicationController.ancestors, RecordingStudio::RootSwitchable::ControllerSupport
@@ -160,7 +171,9 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     gemfile = File.read(Rails.root.join("Gemfile"))
 
     assert_includes gemfile, 'tag: "v4.2.0"'
-    assert_includes gemfile, 'tag: "v0.6.1"'
+    assert_includes gemfile, 'tag: "v0.9.1"'
+    assert_includes gemfile, 'tag: "v0.5.6"'
+    assert_includes gemfile, 'tag: "v2.0.2"'
     assert_includes gemfile, "recording_studio_root_switchable"
     refute_includes gemfile, "recording_studio_trashable"
   end

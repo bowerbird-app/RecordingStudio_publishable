@@ -162,9 +162,57 @@ Publish settings is a hub. The list starts with Preview or View, then Schedule, 
 
 A change from this control stays on the host page. With Turbo, the dropdown replaces itself at the same size the host rendered. Inline publish and unpublish do not insert a success banner. Without Turbo, the request returns to the same page. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
 
+## Recording Studio API
+
+`recording_studio_api` is optional. This gem does not depend on it.
+
+Publishable registers capability actions only when `RecordingStudioApi` is available. The actions are `publish`, `unpublish`, and `update_publishable`. Loading this gem does not enable them on a parent type. You opt in with `capability_actions`.
+
+```ruby
+RecordingStudioApi.register_recordable_type_api(
+  "PressKit",
+  capability_actions: %i[publish unpublish update_publishable]
+)
+```
+
+`publish` and `unpublish` are POST. Send an empty JSON object.
+
+```http
+POST /recording_studio_api/api/v1/press_kits/:id/actions/publish
+```
+
+`unpublish` uses that same path, with `unpublish` in place of `publish`.
+
+`update_publishable` is PATCH.
+
+```http
+PATCH /recording_studio_api/api/v1/press_kits/:id/actions/update_publishable
+```
+
+Named APIs use the other mount shape. The prefix is `/recording_studio_api/apis/:api_key/:api_version`. The resource path after that prefix matches the public API.
+
+The social image id must be an image attachment recording that is a direct child of the publishable child. Create that image through Attachable. Then send its recording id as `social_image_attachment_recording_id`.
+
+`update_publishable` accepts these fields:
+
+- `status`
+- `slug`
+- `publish_at`
+- `unpublish_at`
+- `time_zone`
+- `seo_title`
+- `seo_description`
+- `canonical_url`
+- `meta_robots`
+- `social_title`
+- `social_description`
+- `social_image_attachment_recording_id`
+
+`status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
+
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.6.1`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.0`.
+The dummy host at `test/dummy` pins Recording Studio `v4.2.0`, Accessible `v0.9.1`, API `v0.5.6`, Admin `v2.0.2`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.0`. API and Admin are dummy-only so the integration test can mount Recording Studio API. The publishable gemspec does not depend on them.
 
 Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish hub, Schedule, SEO, and Social keep back and close and hide the switcher and Sign out. The hub list and those job forms use a narrower desktop width and stay left-aligned. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that starts with Preview or View, then Schedule, SEO, and Social. Dummy Pages and Articles both collect Title and Description. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
 

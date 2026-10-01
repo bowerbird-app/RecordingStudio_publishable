@@ -55,6 +55,11 @@ module RecordingStudioPublishable
       RecordingStudioPublishable::Hooks.run(:after_initialize, self)
     end
 
+    initializer "recording_studio_publishable.register_recording_studio_api_action",
+                before: "recording_studio_api.after_initialize" do
+      RecordingStudioPublishable::Api.register_capability_action!
+    end
+
     initializer "recording_studio_publishable.extensions" do
       engine = self
 
