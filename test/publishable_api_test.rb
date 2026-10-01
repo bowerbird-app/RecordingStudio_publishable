@@ -182,6 +182,15 @@ class PublishableApiTest < Minitest::Test
     assert_equal "API access does not have the edit role.", openapi.dig(:responses, "403", :description)
     assert_equal "Publishable input is invalid.", openapi.dig(:responses, "422", :description)
     refute schema.key?(:$ref)
+    %i[
+      id type parent_id root_id created_at updated_at
+      publishable_recording_id status slug seo_title social_title publish_at
+    ].each do |key|
+      assert properties.key?(key), "OpenAPI 200 schema is missing #{key}"
+    end
+    assert_equal "string", properties.dig(:id, :type)
+    assert_equal "date-time", properties.dig(:created_at, :format)
+    assert_equal true, properties.dig(:parent_id, :nullable)
     assert_equal({ type: "string" }, properties.fetch(:publishable_recording_id))
     assert_equal %w[draft published scheduled], properties.dig(:status, :enum)
     assert_equal(
