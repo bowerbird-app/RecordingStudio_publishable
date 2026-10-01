@@ -10,6 +10,14 @@ module RecordingStudioPublishable
       TIME_SCHEMA = { type: "string", format: "date-time", nullable: true }.freeze
       TEXT = { contract: TEXT_CONTRACT, schema: TEXT_SCHEMA }.freeze
       OUTPUT_ONLY = { publishable_recording_id: { type: "string" }.freeze }.freeze
+      RECORDING_PROPERTIES = {
+        id: { type: "string" }.freeze,
+        type: { type: "string" }.freeze,
+        parent_id: { type: "string", nullable: true }.freeze,
+        root_id: { type: "string" }.freeze,
+        created_at: { type: "string", format: "date-time" }.freeze,
+        updated_at: { type: "string", format: "date-time" }.freeze
+      }.freeze
 
       def self.entry(contract:, schema:, description: nil, time: false, identifier: false)
         field = { contract: contract.freeze, schema: schema.freeze }
@@ -55,7 +63,7 @@ module RecordingStudioPublishable
       end
 
       def self.schema_properties
-        OUTPUT_ONLY.transform_values(&:dup).merge(field_schema_properties)
+        RECORDING_PROPERTIES.merge(OUTPUT_ONLY).merge(field_schema_properties)
       end
 
       def self.api_status(publishable)
