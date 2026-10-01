@@ -126,6 +126,21 @@ module RecordingStudioPublishable
     end
 
     module Contracts
+      module RouteKeyFilter
+        def call(raw_params)
+          super(except_route_keys(raw_params))
+        end
+
+        private
+
+        def except_route_keys(raw_params)
+          params = raw_params.respond_to?(:to_h) ? raw_params.to_h : raw_params
+          return params unless params.respond_to?(:except)
+
+          params.except(*ROUTE_KEYS)
+        end
+      end
+
       class << self
         def build
           { empty: empty_contract, update: update_contract }
@@ -175,13 +190,7 @@ module RecordingStudioPublishable
         end
 
         def contract_class
-          Class.new(RecordingStudioApi::ActionInputContract) do
-            define_method(:call) do |raw_params|
-              params = raw_params.respond_to?(:to_h) ? raw_params.to_h : raw_params
-              params = params.except(*RecordingStudioPublishable::Api::ROUTE_KEYS) if params.respond_to?(:except)
-              super(params)
-            end
-          end
+          Class.new(RecordingStudioApi::ActionInputContract) { include RouteKeyFilter }
         end
       end
     end
