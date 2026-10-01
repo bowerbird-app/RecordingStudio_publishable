@@ -16,6 +16,7 @@ require "recording_studio_publishable/services/publishables/ensure_child"
 require "recording_studio_publishable/services/publishables/update"
 require "recording_studio_publishable/services/publishables/transition"
 require "recording_studio_publishable/services/publishables/resolve"
+require "recording_studio_publishable/api"
 require "recording_studio_publishable/engine"
 require "recording_studio/capabilities/publishable"
 
