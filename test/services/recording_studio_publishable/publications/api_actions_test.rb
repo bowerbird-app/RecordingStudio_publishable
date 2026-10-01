@@ -58,11 +58,15 @@ module RecordingStudioPublishable
       test "update_publishable rejects an invalid social image id" do
         perform(:update_publishable, params: { slug: "launch" })
 
-        error = assert_raises(StandardError) do
+        error_class = if defined?(RecordingStudioApi::InvalidActionInputError)
+                        RecordingStudioApi::InvalidActionInputError
+                      else
+                        StandardError
+                      end
+        error = assert_raises(error_class) do
           perform(:update_publishable, params: { social_image_attachment_recording_id: SecureRandom.uuid })
         end
 
-        assert_instance_of StandardError, error
         assert_equal "Social image is invalid", error.message
         assert_nil @parent_recording.reload.current_publishable.social_image_attachment_recording_id
       end
@@ -120,33 +124,8 @@ module RecordingStudioPublishable
       end
 
       def snapshot_id_and_status(outcome)
-        with_recording_serializer do
-          body = PublishableSnapshot.call(outcome)
-          [body.fetch(:id), body.fetch(:status)]
-        end
-      end
-
-      def with_recording_serializer
-        serializer = Class.new do
-          def self.call(recording)
-            {
-              id: recording.id.to_s,
-              type: recording.recordable_type.to_s,
-              parent_id: recording.parent_recording_id&.to_s,
-              root_id: recording.root_recording_id&.to_s,
-              created_at: recording.created_at&.iso8601,
-              updated_at: recording.updated_at&.iso8601
-            }
-          end
-        end
-        api = Module.new
-        serializers = Module.new
-        serializers.const_set(:RecordingSerializer, serializer)
-        api.const_set(:Serializers, serializers)
-        Object.const_set(:RecordingStudioApi, api)
-        yield
-      ensure
-        Object.send(:remove_const, :RecordingStudioApi) if Object.const_defined?(:RecordingStudioApi, false)
+        body = PublishableSnapshot.call(outcome)
+        [body.fetch(:id), body.fetch(:status)]
       end
 
       def with_transition_capture

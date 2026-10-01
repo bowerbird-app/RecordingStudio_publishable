@@ -6,7 +6,10 @@ require "recording_studio_publishable/api/publishable_snapshot"
 module RecordingStudioPublishable
   module Api
     ACTION_VERSION = "1.0.0"
-    ROUTE_KEYS = [:api_key, :api_version, "api_key", "api_version"].freeze
+    NON_INPUT_KEYS = [
+      :api_key, :api_version, "api_key", "api_version",
+      :member_action, "member_action"
+    ].freeze
     ACTIONS = {
       publish: {
         http_verb: :post, summary: "Publish", description: "Publish the parent recording now.",
@@ -126,18 +129,18 @@ module RecordingStudioPublishable
     end
 
     module Contracts
-      module RouteKeyFilter
+      module NonInputFilter
         def call(raw_params)
-          super(except_route_keys(raw_params))
+          super(except_non_input_keys(raw_params))
         end
 
         private
 
-        def except_route_keys(raw_params)
+        def except_non_input_keys(raw_params)
           params = raw_params.respond_to?(:to_h) ? raw_params.to_h : raw_params
           return params unless params.respond_to?(:except)
 
-          params.except(*ROUTE_KEYS)
+          params.except(*NON_INPUT_KEYS)
         end
       end
 
@@ -190,7 +193,7 @@ module RecordingStudioPublishable
         end
 
         def contract_class
-          Class.new(RecordingStudioApi::ActionInputContract) { include RouteKeyFilter }
+          Class.new(RecordingStudioApi::ActionInputContract) { include NonInputFilter }
         end
       end
     end

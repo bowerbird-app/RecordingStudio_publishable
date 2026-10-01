@@ -96,7 +96,12 @@ class PublishableApiTest < Minitest::Test
     with_fake_recording_studio_api do |api|
       RecordingStudioPublishable::Api.register_capability_action!
       contract = registration(api, :update_publishable).fetch(:input_contract)
-      stripped = contract.call("slug" => "launch", "api_key" => "public", api_version: "v1")
+      stripped = contract.call(
+        "slug" => "launch",
+        "api_key" => "public",
+        api_version: "v1",
+        member_action: { "slug" => "launch" }
+      )
       unknown = contract.call(slug: "launch", api_key: "public", "api_version" => "v1", extra: true)
 
       assert_operator contract.class, :<, RecordingStudioApi::ActionInputContract
