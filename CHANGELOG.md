@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-01
+
+### Added
+- Optional Recording Studio API member actions on the parent recording: `publish`, `unpublish`, and `update_publishable`. The addon registers them only when `recording_studio_api` is installed. Hosts opt in by listing those names in `capability_actions`. State changes still go through the existing publishable services. The response is the parent recording plus its publishable fields.
+
+### Upgrade Notes
+- Bump to `recording_studio_publishable` `0.4.0`
+- No schema change. Apps that do not install `recording_studio_api` keep the same behavior
+- Hosts that want the actions pass `capability_actions: %i[publish unpublish update_publishable]` when they register the recordable with Recording Studio API
+
 ## [0.3.1] - 2026-09-17
 
 ### Changed
@@ -139,7 +149,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.4.0
 [0.3.1]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.3.1
 [0.3.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.3.0
 [0.2.1]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.2.1
