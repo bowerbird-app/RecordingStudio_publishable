@@ -91,7 +91,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     section = wrapper_html(recording)
     assert_includes section, "Published"
     assert_includes section, "check-circle"
-    assert_includes section, "button-success-background-color"
+    assert_includes section, 'data-fp-style="success"'
     assert_includes section, "Unpublish"
     refute_includes section, "Back to draft"
     refute_includes section, "Publish now"
@@ -124,8 +124,8 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
       assert_includes trigger_labels, "Jan 22"
       refute_includes trigger_labels, "Scheduled"
-      assert_includes section, "button-default-background-color"
-      refute_includes section, "button-warning-background-color"
+      assert_includes section, 'data-fp-style="default"'
+      refute_includes section, 'data-fp-style="warning"'
       assert_includes section, "Publish now"
       assert_includes section, "rocket-launch"
       assert_includes section, "Unpublish"
