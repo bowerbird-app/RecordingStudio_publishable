@@ -214,6 +214,8 @@ The social image id must be an image attachment recording that is a direct child
 
 The dummy host at `test/dummy` pins Recording Studio `v4.2.2`, Accessible `v0.11.1`, API `v0.5.6`, Admin `v2.0.4`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.3`. API and Admin are dummy-only so the integration test can mount Recording Studio API. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.11 migrations (depends-on recording, invitations, role as string). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable stays on `0.4.0` until Flatpack can move past `v0.1.133`.
 
+Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
+
 Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish hub, Schedule, SEO, and Social keep back and close and hide the switcher and Sign out. The hub list and those job forms use a narrower desktop width and stay left-aligned. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that starts with Preview or View, then Schedule, SEO, and Social. Dummy Pages and Articles both collect Title and Description. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
 
 Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates published, scheduled, and draft pages so screenshots are not empty lists.
@@ -223,8 +225,10 @@ Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates publish
 Cloud Agent Builds run `.cursor/install.sh`, then `.cursor/fetch-skills.sh`.
 The install hook provisions a cold image. On a warm snapshot it skips apt,
 ruby-build, db:prepare, and tailwind when Ruby, bundle, and Postgres are
-already usable. Fetch-skills always runs last. `.cursor/start.sh` starts
-PostgreSQL on each boot. Rebuild with Draft off to load a new pack. See
+already usable. If `RAILS_MASTER_KEY` is set, `install.sh` writes gitignored
+`test/dummy/config/master.key` so dummy credentials decrypt. Fetch-skills
+always runs last. `.cursor/start.sh` starts PostgreSQL on each boot. Rebuild
+with Draft off to load a new pack. See
 [Cursor skills in Cloud Agents](docs/cursor-skills.md).
 
 ## Documentation
