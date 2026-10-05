@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dummy and development pins Recording Studio `v4.2.2`
 - Dummy and development pins Accessible `v0.11.1` and Root Switchable `v0.5.3`. Dummy also pins Admin `v2.0.4`. Attachable stays on `0.4.0` because `v0.7.1` needs Flatpack `>= 0.1.135`. API stays at `v0.5.6`
 - Dummy Accessible schema now includes access invitations and stores access roles as strings (`view`, `edit`, `admin`)
+- Dummy API initializer exposes `RecordingStudio::Access.roles` from Accessible's ranked names so API `v0.5.6` can still authorize member actions
 
 
 ## [0.4.0] - 2026-10-01
