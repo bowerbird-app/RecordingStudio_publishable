@@ -212,7 +212,7 @@ The social image id must be an image attachment recording that is a direct child
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v4.2.2`, Accessible `v0.11.1`, API `v0.5.6`, Admin `v2.0.4`, Attachable `0.4.0`, Flatpack `v0.1.133`, and dummy-only Root Switchable `v0.5.3`. API and Admin are dummy-only so the integration test can mount Recording Studio API. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.11 migrations (depends-on recording, invitations, role as string). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable stays on `0.4.0` until Flatpack can move past `v0.1.133`.
+The dummy host at `test/dummy` pins Recording Studio `v4.2.2`, Accessible `v0.11.1`, API `v0.5.6`, Admin `v2.0.4`, Attachable `0.4.0`, Flatpack `v0.1.198`, and dummy-only Root Switchable `v0.5.3`. API and Admin are dummy-only so the integration test can mount Recording Studio API. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.11 migrations (depends-on recording, invitations, role as string). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable stays on `0.4.0`.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 
