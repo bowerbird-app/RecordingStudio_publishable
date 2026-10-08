@@ -29,7 +29,10 @@ module RecordingStudioPublishable
 
     validates :slug, presence: true
     validates :slug,
-              format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/, message: "must use URL-safe lowercase slug segments" }
+              format: {
+                with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/,
+                message: ->(*) { Copy.t("errors.slug_format") }
+              }
     validates :seo_description, length: { maximum: 160 }, allow_blank: true
     validates :social_description, length: { maximum: 200 }, allow_blank: true
     validate :publish_window_is_valid
@@ -119,7 +122,7 @@ module RecordingStudioPublishable
       return unless published_state?
       return if publish_at.blank? || unpublish_at.blank? || publish_at < unpublish_at
 
-      errors.add(:unpublish_at, "must be later than publish at")
+      errors.add(:unpublish_at, Copy.t("errors.unpublish_after_publish"))
     end
   end
 end

@@ -2,35 +2,38 @@
 
 module RecordingStudioPublishable
   class PublishJobs
-    Job = Data.define(:key, :title, :subtitle, :icon, :attributes, :capability, :notice)
+    Job = Data.define(:key, :icon, :attributes, :capability) do
+      def title
+        Copy.t("jobs.#{key}.title")
+      end
+
+      def subtitle
+        Copy.t("jobs.#{key}.subtitle")
+      end
+
+      def notice
+        Copy.t("jobs.#{key}.notice")
+      end
+    end
 
     TABLE = {
       schedule: Job.new(
         key: :schedule,
-        title: "Schedule",
-        subtitle: "Pick when this goes live.",
         icon: "clock",
         attributes: %i[publish_at unpublish_at time_zone].freeze,
-        capability: :schedule,
-        notice: "Times saved."
+        capability: :schedule
       ),
       search: Job.new(
         key: :search,
-        title: "SEO",
-        subtitle: "How this shows up in search.",
         icon: "magnifying-glass",
         attributes: %i[slug canonical_url meta_robots seo_title seo_description].freeze,
-        capability: nil,
-        notice: "SEO saved."
+        capability: nil
       ),
       social: Job.new(
         key: :social,
-        title: "Social",
-        subtitle: "How this looks when someone shares it.",
         icon: "share",
         attributes: %i[social_title social_description social_image_attachment_recording_id].freeze,
-        capability: nil,
-        notice: "Social preview saved."
+        capability: nil
       )
     }.freeze
 

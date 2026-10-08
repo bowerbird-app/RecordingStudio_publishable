@@ -38,8 +38,8 @@ module RecordingStudioPublishable
 
     def view_link(href)
       Link.new(
-        text: "View",
-        subtitle: "See it live.",
+        text: Copy.t("page_link.view"),
+        subtitle: Copy.t("page_link.view_subtitle"),
         icon: "arrow-top-right-on-square",
         href: href
       )
@@ -47,8 +47,8 @@ module RecordingStudioPublishable
 
     def preview_link
       Link.new(
-        text: "Preview",
-        subtitle: "See it before it goes live.",
+        text: Copy.t("page_link.preview"),
+        subtitle: Copy.t("page_link.preview_subtitle"),
         icon: "eye",
         href: @preview_href
       )

@@ -73,7 +73,7 @@ module RecordingStudioPublishable
       return render json: { error: result.error }, status: :unprocessable_entity if request.format.json?
 
       Rails.logger.warn("[PublishablesController#update] failure: #{result.error.inspect}")
-      redirect_to_job(job, alert: result.error.presence || "Could not save that.")
+      redirect_to_job(job, alert: result.error.presence || Copy.t("flashes.save_failed"))
     end
 
     def transition
@@ -88,7 +88,7 @@ module RecordingStudioPublishable
         return render json: { error: result.error }, status: :unprocessable_entity if result.failure?
 
         publishable = @parent_recording.reload.publishable_child_recording&.recordable
-        return render json: { error: "Publishable not found" }, status: :unprocessable_entity if publishable.blank?
+        return render json: { error: Copy.t("flashes.not_found") }, status: :unprocessable_entity if publishable.blank?
 
         scheduled = publishable.scheduled_for_future?
 
@@ -105,7 +105,7 @@ module RecordingStudioPublishable
       publishable = @parent_recording.reload.publishable_child_recording&.recordable
       return respond_inline_transition(result, publishable) if inline_transition?
 
-      return redirect_to_edit(alert: "Publishable not found") if publishable.blank?
+      return redirect_to_edit(alert: Copy.t("flashes.not_found")) if publishable.blank?
 
       return redirect_to_publish_success if publish_success_transition?(previous_publishable, publishable)
 
@@ -257,7 +257,7 @@ module RecordingStudioPublishable
 
     def respond_inline_transition(result, publishable)
       if result.failure? || publishable.blank?
-        message = result.error.presence || "Could not update this page."
+        message = result.error.presence || Copy.t("flashes.update_failed")
         return render_inline_transition(alert: message, status: :unprocessable_entity)
       end
 
@@ -322,7 +322,7 @@ module RecordingStudioPublishable
 
     def render_json_update
       publishable = @parent_recording.reload.publishable_child_recording&.recordable
-      return render json: { error: "Publishable not found" }, status: :unprocessable_entity if publishable.blank?
+      return render json: { error: Copy.t("flashes.not_found") }, status: :unprocessable_entity if publishable.blank?
 
       render json: {
         status: publishable.published_state? ? "published" : "draft",
@@ -335,7 +335,7 @@ module RecordingStudioPublishable
     end
 
     def transition_notice(result)
-      result.success? ? "Publishable status updated" : nil
+      result.success? ? Copy.t("flashes.status_updated") : nil
     end
 
     def transition_alert(result)
@@ -346,12 +346,15 @@ module RecordingStudioPublishable
       return nil unless publishable.published_state?
 
       publish_at_time = publishable.publish_at&.in_time_zone(publishable.effective_time_zone)
-      return "Published just now" if publish_at_time.blank?
+      return Copy.t("flashes.published_just_now") if publish_at_time.blank?
 
       if publish_at_time > Time.current
-        "Scheduled to publish in #{helpers.distance_of_time_in_words(Time.current, publish_at_time)}"
+        Copy.t(
+          "flashes.scheduled_in",
+          distance: helpers.distance_of_time_in_words(Time.current, publish_at_time)
+        )
       else
-        "Published #{helpers.time_ago_in_words(publish_at_time)} ago"
+        Copy.t("flashes.published_ago", distance: helpers.time_ago_in_words(publish_at_time))
       end
     end
 

@@ -1,6 +1,6 @@
 <%= render "job_nav" %>
 
-<div class="flex w-full max-w-xl flex-col gap-6">
+<div class="flex w-full max-w-xl flex-col gap-6" data-publishable-never-label="<%= publishable_t("form.never") %>">
   <%= render FlatPack::PageTitle::Component.new(
     title: @job.title,
     subtitle: @job.subtitle,
@@ -11,19 +11,19 @@
     <%= hidden_field_tag :section, @job.key %>
 
     <% if @schedule_enabled != false %>
-      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: "Publish at", value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
-      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: "Unpublish at", value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
+      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[publish_at]", label: publishable_t("form.publish_at"), value: @publishable.publish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-13T09:00") %>
+      <%= render FlatPack::DateTimeInput::Component.new(name: "publishable[unpublish_at]", label: publishable_t("form.unpublish_at"), value: @publishable.unpublish_at&.in_time_zone(@publishable.effective_time_zone), placeholder: "2026-05-20T09:00") %>
     <% end %>
 
     <%= render FlatPack::Select::Component.new(
       name: "publishable[time_zone]",
       options: @time_zone_options,
-      label: "Time zone",
-      placeholder: "Select a time zone",
+      label: publishable_t("form.time_zone"),
+      placeholder: publishable_t("form.time_zone_placeholder"),
       value: @publishable.time_zone.presence
     ) %>
 
-    <%= render FlatPack::Button::Component.new(text: "Save", style: :primary, size: :md, type: "submit") %>
+    <%= render FlatPack::Button::Component.new(text: publishable_t("form.save"), style: :primary, size: :md, type: "submit") %>
   <% end %>
 </div>
 
@@ -94,7 +94,9 @@
         }
 
         input.value = "";
-        input.setAttribute("placeholder", "Never");
+        var neverHost = input.closest("[data-publishable-never-label]");
+        var neverLabel = (neverHost && neverHost.dataset.publishableNeverLabel) || "Never";
+        input.setAttribute("placeholder", neverLabel);
       }
 
       input._publishableUnpublishNeverSync = syncNeverDisplay;

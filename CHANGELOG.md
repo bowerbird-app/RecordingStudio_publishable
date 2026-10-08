@@ -7,12 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- Dummy and development pins Recording Studio `v4.2.2`
-- Dummy and development pins Accessible `v0.11.1` and Root Switchable `v0.5.3`. Dummy also pins Admin `v2.0.4`. Attachable stays on `0.4.0` because `v0.7.1` needs Flatpack `>= 0.1.135`. API stays at `v0.5.6`
-- Dummy Accessible schema now includes access invitations and stores access roles as strings (`view`, `edit`, `admin`)
-- Dummy API initializer exposes `RecordingStudio::Access.roles` from Accessible's ranked names so API `v0.5.6` can still authorize member actions
+## [0.5.0] - 2026-10-08
 
+### Added
+- Customer publish-flow copy uses Rails I18n under `recording_studio.publishable.*`. The gem ships English only in `config/locales/en.yml`.
+
+### Changed
+- Dummy pins FlatPack `v0.1.209` and adds Recording Studio Internationalization (dummy only) with a French locale file covering every engine key.
+
+### Upgrade Notes
+- Install Publishable `0.5.0`. No migration.
+- Copy `recording_studio.publishable.*` into host locale files for other languages.
+- Arguments and config that override copy still win over locale defaults. Stored titles, slugs, SEO, and social fields stay data.
+- Do not add `RecordingStudio_Internationalization` as a gemspec dependency. Add it on the host if you want a language selector.
 
 ## [0.4.0] - 2026-10-01
 
@@ -156,7 +163,12 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.5.0
+[0.4.4]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.4.4
+[0.4.3]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.4.3
+[0.4.2]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.4.2
+[0.4.1]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.4.1
 [0.4.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.4.0
 [0.3.1]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.3.1
 [0.3.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.3.0

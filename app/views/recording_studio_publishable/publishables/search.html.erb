@@ -2,7 +2,7 @@
 
 <%= render "job_nav" %>
 
-<div class="flex w-full max-w-xl flex-col gap-6">
+<div class="flex w-full max-w-xl flex-col gap-6" data-publishable-character-count-template="<%= publishable_t("form.character_count", count: "__COUNT__", limit: "__LIMIT__") %>">
   <%= render FlatPack::PageTitle::Component.new(
     title: @job.title,
     subtitle: @job.subtitle,
@@ -17,34 +17,34 @@
         <%= render FlatPack::TextInput::Component.new(
           name: "publishable[seo_title]",
           id: "publishable-seo-title-input",
-          label: "Title",
+          label: publishable_t("form.title"),
           value: @publishable.seo_title,
           maxlength: seo_title_max_characters,
-          help_text: "Leave blank to use the page name.",
+          help_text: publishable_t("form.title_help"),
           data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
         ) %>
         <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
       </div>
     <% end %>
 
-    <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: "Slug", value: @publishable.slug, required: true) %>
+    <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: publishable_t("form.slug"), value: @publishable.slug, required: true) %>
 
     <% if @seo_enabled != false %>
       <%= render FlatPack::TextArea::Component.new(
         name: "publishable[seo_description]",
-        label: "Description",
+        label: publishable_t("form.description"),
         value: @publishable.seo_description,
         rows: 4,
         character_count: true,
         max_characters: 160,
-        placeholder: "A short line for search results",
-        help_text: "The line under the title in search results."
+        placeholder: publishable_t("form.description_placeholder"),
+        help_text: publishable_t("form.description_help")
       ) %>
     <% end %>
 
     <%= render FlatPack::Collapse::Component.new(
       id: "publishable-seo-advanced",
-      title: "Advanced",
+      title: publishable_t("form.advanced"),
       open: @publishable.canonical_url.present? || @publishable.noindex?
     ) do %>
       <div class="space-y-4">
@@ -53,21 +53,21 @@
           name: "publishable[meta_robots]",
           value: "noindex,follow",
           checked: @publishable.noindex?,
-          label: "noindex",
-          help_text: "Ask search engines not to index this page. It stays live."
+          label: publishable_t("form.noindex"),
+          help_text: publishable_t("form.noindex_help")
         ) %>
 
         <%= render FlatPack::TextInput::Component.new(
           name: "publishable[canonical_url]",
-          label: "Canonical URL",
+          label: publishable_t("form.canonical_url"),
           value: @publishable.canonical_url,
-          placeholder: "https://",
-          help_text: "The preferred URL for this page. Leave blank to use this page's URL."
+          placeholder: publishable_t("form.canonical_placeholder"),
+          help_text: publishable_t("form.canonical_help")
         ) %>
       </div>
     <% end %>
 
-    <%= render FlatPack::Button::Component.new(text: "Save", style: :primary, size: :md, type: "submit") %>
+    <%= render FlatPack::Button::Component.new(text: publishable_t("form.save"), style: :primary, size: :md, type: "submit") %>
   <% end %>
 </div>
 
@@ -92,7 +92,9 @@
       }
 
       function updateCounter() {
-        counter.textContent = String(input.value || "").length + " / " + limit + " characters";
+        var host = input.closest("[data-publishable-character-count-template]");
+        var template = (host && host.dataset.publishableCharacterCountTemplate) || "%{count} / %{limit} characters";
+        counter.textContent = template.replace("__COUNT__", String(input.value || "").length).replace("__LIMIT__", String(limit));
       }
 
       input.addEventListener("input", updateCounter);

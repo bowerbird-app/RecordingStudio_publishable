@@ -117,13 +117,14 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_includes manifest, "flat_pack/application.css"
     assert_includes File.read(Rails.root.join("app/assets/tailwind/application.css")),
                     "tmp/tailwind/flat_pack_components"
-    assert_includes layout, '<html data-theme="rounded">'
+    assert_includes layout, "dummy_document_attributes"
+    assert_includes layout, "dummy_language_selector"
     assert_includes layout, 'stylesheet_link_tag "flat_pack/variables"'
     assert_includes layout, 'stylesheet_link_tag "flat_pack/application"'
     assert_includes layout, 'stylesheet_link_tag "flat_pack/rich_text"'
     assert_includes layout, 'stylesheet_link_tag "tailwind"'
     assert_includes layout, "javascript_importmap_tags"
-    assert_includes devise_layout, '<html data-theme="rounded">'
+    assert_includes devise_layout, "dummy_document_attributes"
   end
 
   test "public publishable pages use default layout with Flatpack rounded theme" do

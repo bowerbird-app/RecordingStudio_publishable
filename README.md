@@ -210,13 +210,33 @@ The social image id must be an image attachment recording that is a direct child
 
 `status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
 
+## Internationalization
+
+The gem ships **English only** in `config/locales/en.yml`. Keys nest under `recording_studio.publishable.*`:
+
+```ruby
+t("recording_studio.publishable.hub.title")
+t("recording_studio.publishable.actions.publish_now")
+t("recording_studio.publishable.flashes.save_failed")
+```
+
+Hosts own other languages. Copy `recording_studio.publishable.*` into `config/locales/<locale>.yml` and list that locale in `config.i18n.available_locales`. Do not add `RecordingStudio_Internationalization` as a dependency of this gem — it is optional on the host (the dummy uses it to switch English/French).
+
+Arguments still win. `EditButtonComponent`'s `label:`, `publishable_head_tags` keyword arguments, and any other passed-in copy override the locale default.
+
+Stored publish state stays data: slugs, titles, descriptions, canonical URLs, and social card fields are not translated.
+
+Staff/admin screens, dummy docs pages, the engine public fallback template, generator CLI text, and developer-facing `ArgumentError`s stay English.
+
+Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector.
+
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v4.2.2`, Accessible `v0.11.1`, API `v0.5.6`, Admin `v2.0.4`, Attachable `0.4.0`, Flatpack `v0.1.198`, and dummy-only Root Switchable `v0.5.3`. API and Admin are dummy-only so the integration test can mount Recording Studio API. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.11 migrations (depends-on recording, invitations, role as string). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable stays on `0.4.0`.
+The dummy host at `test/dummy` pins Recording Studio `v4.3.0`, Accessible `v0.11.1`, API `v0.5.6`, Admin `v2.0.6`, Attachable `0.4.0`, Flatpack `v0.1.209`, dummy-only Root Switchable `v0.5.3`, and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, and Internationalization are dummy-only. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.11 migrations (depends-on recording, invitations, role as string). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable stays on `0.4.0`. Dummy offers English and French. The language selector sits in the top nav, to the left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 
-Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish hub, Schedule, SEO, and Social keep back and close and hide the switcher and Sign out. The hub list and those job forms use a narrower desktop width and stay left-aligned. Dummy layouts set Flatpack's built-in `<html data-theme="rounded">` (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that starts with Preview or View, then Schedule, SEO, and Social. Dummy Pages and Articles both collect Title and Description. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
+Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish hub, Schedule, SEO, and Social keep back and close and hide the switcher and Sign out. The language selector stays in that nav. The hub list and those job forms use a narrower desktop width and stay left-aligned. Dummy layouts set Flatpack's built-in rounded theme on `<html>` with `lang` and Flatpack copy data (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that starts with Preview or View, then Schedule, SEO, and Social. Dummy Pages and Articles both collect Title and Description. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
 
 Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates published, scheduled, and draft pages so screenshots are not empty lists.
 

@@ -28,15 +28,19 @@ class RecordingStudioPublishableTest < Minitest::Test
       File.expand_path("dummy/app/views/layouts/application.html.erb", __dir__)
     )
 
+    assert_includes File.read(
+      File.expand_path("dummy/app/views/layouts/flat_pack/_top_nav.html.erb", __dir__)
+    ), "dummy_language_selector"
     assert_includes view_source, "dummy_page_nav"
     assert_includes view_source, "FlatPack::Table::Component"
     assert_includes view_source, "text: \"Page\""
     assert_includes view_source, "icon: \"plus\""
     refute_includes view_source, "Add page"
     refute_includes view_source, "Dummy publishables"
-    assert_includes layout_source, '<html data-theme="rounded">'
+    assert_includes layout_source, "dummy_document_attributes"
+    assert_includes layout_source, "dummy_language_selector"
     assert_includes layout_source, 'stylesheet_link_tag "flat_pack/application"'
-    assert_includes devise_layout, '<html data-theme="rounded">'
+    assert_includes devise_layout, "dummy_document_attributes"
   end
 
   def test_publish_search_screen_uses_plain_field_labels
@@ -54,19 +58,19 @@ class RecordingStudioPublishableTest < Minitest::Test
     refute_includes view_source, "Keep this out of search engines"
     assert_includes view_source, "FlatPack::Collapse::Component"
     assert_includes view_source, "FlatPack::Checkbox::Component"
-    assert_includes view_source, "title: \"Advanced\""
-    assert_includes view_source, "label: \"Canonical URL\""
-    assert_includes view_source, "The preferred URL for this page. Leave blank to use this page's URL."
-    assert_includes view_source, "label: \"noindex\""
-    assert_includes view_source, "Ask search engines not to index this page. It stays live."
-    assert_includes view_source, "label: \"Title\""
-    assert_includes view_source, "label: \"Description\""
-    assert_includes view_source, "help_text: \"The line under the title in search results.\""
-    title_index = view_source.index("label: \"Title\"")
-    slug_index = view_source.index("label: \"Slug\"")
-    description_index = view_source.index("label: \"Description\"")
-    noindex_index = view_source.index("label: \"noindex\"")
-    canonical_index = view_source.index("label: \"Canonical URL\"")
+    assert_includes view_source, 'publishable_t("form.advanced")'
+    assert_includes view_source, 'publishable_t("form.canonical_url")'
+    assert_includes view_source, 'publishable_t("form.canonical_help")'
+    assert_includes view_source, 'publishable_t("form.noindex")'
+    assert_includes view_source, 'publishable_t("form.noindex_help")'
+    assert_includes view_source, 'publishable_t("form.title")'
+    assert_includes view_source, 'publishable_t("form.description")'
+    assert_includes view_source, 'publishable_t("form.description_help")'
+    title_index = view_source.index('publishable_t("form.title")')
+    slug_index = view_source.index('publishable_t("form.slug")')
+    description_index = view_source.index('publishable_t("form.description")')
+    noindex_index = view_source.index('publishable_t("form.noindex")')
+    canonical_index = view_source.index('publishable_t("form.canonical_url")')
     assert title_index < slug_index
     assert slug_index < description_index
     assert description_index < noindex_index

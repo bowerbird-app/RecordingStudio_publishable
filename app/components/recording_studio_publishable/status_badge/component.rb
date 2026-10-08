@@ -21,11 +21,11 @@ module RecordingStudioPublishable
 
       def badge_text
         if publishable.scheduled_for_future?
-          "Scheduled"
+          Copy.t("status.scheduled")
         elsif publishable.published_state?
-          "Published"
+          Copy.t("status.published")
         else
-          "Draft"
+          Copy.t("status.draft")
         end
       end
     end

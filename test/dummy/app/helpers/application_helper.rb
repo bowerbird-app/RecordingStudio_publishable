@@ -1,4 +1,5 @@
 module ApplicationHelper
+  include DummyLayoutHelper
   include RecordingStudioPublishable::ApplicationHelper
 
   def dummy_page_nav(title:, back_url: nil, back_label: "Home", close_url: nil, close_label: "Close")
