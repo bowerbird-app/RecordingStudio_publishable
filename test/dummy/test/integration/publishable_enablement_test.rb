@@ -174,7 +174,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_includes gemfile, 'tag: "v4.3.0"'
     assert_includes gemfile, 'tag: "v0.11.1"'
     assert_includes gemfile, 'tag: "v0.5.6"'
-    assert_includes gemfile, 'tag: "v2.0.6"'
+    assert_includes gemfile, 'tag: "v2.0.7"'
     assert_includes gemfile, "recording_studio_root_switchable"
     refute_includes gemfile, "recording_studio_trashable"
   end
