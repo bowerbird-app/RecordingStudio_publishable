@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Customer publish-flow copy uses Rails I18n under `recording_studio.publishable.*`. The gem ships English only in `config/locales/en.yml`.
 
 ### Changed
-- Dummy pins FlatPack `v0.1.209` and adds Recording Studio Internationalization (dummy only) with a French locale file covering every engine key.
+- Dummy pins FlatPack `v0.1.209` and Admin `v2.0.7`, and adds Recording Studio Internationalization (dummy only) with a French locale file covering every engine key.
 
 ### Upgrade Notes
 - Install Publishable `0.5.0`. No migration.
