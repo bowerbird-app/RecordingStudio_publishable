@@ -41,7 +41,8 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     get "/"
 
     assert_response :success
-    assert_includes response.body, '<html data-theme="rounded">'
+    assert_select "html[data-theme=rounded]"
+    assert_select "html[lang='en']"
     assert_includes response.body, "Pages"
     assert_includes response.body, ">Page<"
     assert_includes response.body, "icon-name-value=\"plus\""

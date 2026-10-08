@@ -2,6 +2,8 @@
 
 module RecordingStudioPublishable
   module ApplicationHelper # rubocop:disable Metrics/ModuleLength
+    include CopyHelper
+
     DEFAULT_SOCIAL_IMAGE_WIDTH = 1200
     DEFAULT_SOCIAL_IMAGE_HEIGHT = 630
     DEFAULT_SOCIAL_IMAGE_VARIANT = :social_share
@@ -35,7 +37,8 @@ module RecordingStudioPublishable
         canonical_url ||= canonical_url_for(publishable: publishable, public_url: public_url)
       end
 
-      social_title ||= publishable.social_title.presence || parent_recordable&.try(:title).presence || "Published page"
+      social_title ||= publishable.social_title.presence || parent_recordable&.try(:title).presence ||
+                       Copy.t("fallbacks.published_page")
       social_description ||= publishable.social_description.presence
       social_image_url ||= resolved_social_image_url(publishable: publishable)
 
@@ -108,7 +111,7 @@ module RecordingStudioPublishable
     def publishable_preview_badge
       return unless publishable_preview?
 
-      render FlatPack::Badge::Component.new(text: "Preview", style: :warning, size: :sm)
+      render FlatPack::Badge::Component.new(text: Copy.t("preview.badge"), style: :warning, size: :sm)
     end
 
     private
@@ -171,7 +174,7 @@ module RecordingStudioPublishable
 
     def document_title_for(publishable:, parent_recordable:)
       publishable.try(:seo_title).presence || parent_recordable&.try(:title).presence ||
-        publishable.try(:social_title).presence || "Published page"
+        publishable.try(:social_title).presence || Copy.t("fallbacks.published_page")
     end
 
     def canonical_url_for(publishable:, public_url:)

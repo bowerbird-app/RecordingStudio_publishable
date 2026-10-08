@@ -23,7 +23,7 @@ module RecordingStudioPublishable
 
         def perform
           attributes = TRANSITIONS[transition]
-          return failure("Unknown publishable transition") unless attributes
+          return failure(Copy.t("errors.unknown_transition")) unless attributes
 
           attributes = attributes.dup
           attributes[:publish_at] = Time.current if transition == "publish"

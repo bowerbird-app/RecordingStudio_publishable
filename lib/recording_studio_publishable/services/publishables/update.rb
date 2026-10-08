@@ -84,7 +84,7 @@ module RecordingStudioPublishable
             next unless attributes.key?(attribute)
 
             normalized = normalized_value(attribute, attributes[attribute])
-            return failure("#{attribute.to_s.humanize} is invalid") if normalized == :invalid
+            return failure(Copy.attribute_invalid(attribute)) if normalized == :invalid
 
             validated[attribute] = normalized
           end
@@ -94,7 +94,7 @@ module RecordingStudioPublishable
               validated[:social_image_attachment_recording_id],
               publishable_recording
             )
-            return failure("Social image is invalid") if social_image_recording == :invalid
+            return failure(Copy.t("errors.social_image_invalid")) if social_image_recording == :invalid
 
             validated[:social_image_attachment_recording_id] = social_image_recording&.id
           end

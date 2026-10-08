@@ -5,7 +5,6 @@ module RecordingStudioPublishable
     class Component < ViewComponent::Base
       CLOSED_STATES = {
         draft: {
-          trigger: "Draft",
           style: :secondary,
           icon: "pencil-square",
           actions: %i[publish schedule]
@@ -16,7 +15,6 @@ module RecordingStudioPublishable
           actions: %i[publish schedule unpublish]
         },
         published: {
-          trigger: "Published",
           style: :success,
           icon: "check-circle",
           actions: %i[unpublish schedule]
@@ -24,9 +22,9 @@ module RecordingStudioPublishable
       }.freeze
 
       ACTIONS = {
-        publish: { text: "Publish now", icon: "rocket-launch", transition: :publish },
-        schedule: { text: "Schedule", icon: "clock" },
-        unpublish: { text: "Unpublish", icon: "pencil-square", transition: :draft }
+        publish: { icon: "rocket-launch", transition: :publish, text_key: "actions.publish_now" },
+        schedule: { icon: "clock", text_key: "actions.schedule" },
+        unpublish: { icon: "pencil-square", transition: :draft, text_key: "actions.unpublish" }
       }.freeze
 
       BUTTON_SIZES = %i[sm md lg].freeze
@@ -62,14 +60,13 @@ module RecordingStudioPublishable
       end
 
       def trigger_text
-        closed_state == :scheduled ? scheduled_trigger_text : state_config[:trigger]
+        closed_state == :scheduled ? scheduled_trigger_text : Copy.t("status.#{closed_state}")
       end
 
       def action_config(action_name)
         config = ACTIONS.fetch(action_name)
-        return config.merge(text: "Change schedule") if action_name == :schedule && closed_state == :scheduled
-
-        config
+        key = change_schedule?(action_name) ? "actions.change_schedule" : config[:text_key]
+        config.merge(text: Copy.t(key))
       end
 
       def menu_actions
@@ -115,14 +112,22 @@ module RecordingStudioPublishable
         ).to_h
       end
 
+      def job_action_text(key)
+        Copy.t("actions.#{key}")
+      end
+
       private
+
+      def change_schedule?(action_name)
+        action_name == :schedule && closed_state == :scheduled
+      end
 
       def scheduled_trigger_text
         publishable = recording.current_publishable
-        return "Scheduled" if publishable&.publish_at.blank?
+        return Copy.t("status.scheduled") if publishable&.publish_at.blank?
 
         time = publishable.publish_at.in_time_zone(publishable.effective_time_zone)
-        "#{time.strftime('%b')} #{time.day}"
+        "#{Copy.l(time, format: '%b')} #{time.day}"
       end
     end
   end

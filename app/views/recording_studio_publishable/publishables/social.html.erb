@@ -8,6 +8,9 @@ end %>
 
 <div
   class="flex w-full max-w-xl flex-col gap-6"
+  data-publishable-character-count-template="<%= publishable_t("form.character_count", count: "__COUNT__", limit: "__LIMIT__") %>"
+  data-publishable-selected-image-label="<%= publishable_t("form.selected_image") %>"
+  data-publishable-replace-image-label="<%= publishable_t("form.replace_image") %>"
   data-controller="recording-studio-attachable--attachment-image-picker"
   data-recording-studio-attachable--attachment-image-picker-picker-url-value="<%= recording_studio_attachable.recording_attachment_picker_path(@publishable_recording) %>"
   data-recording-studio-attachable--attachment-image-picker-upload-url-value="<%= recording_studio_attachable.recording_attachment_imports_path(@publishable_recording) %>"
@@ -33,7 +36,7 @@ end %>
       <%= render FlatPack::TextInput::Component.new(
         name: "publishable[social_title]",
         id: "publishable-social-title-input",
-        label: "Social title",
+        label: publishable_t("form.social_title"),
         value: @publishable.social_title,
         maxlength: social_title_max_characters,
         data: { publishable_title_counter_input: true, publishable_title_counter_target: "social-title", publishable_title_counter_limit: social_title_max_characters }
@@ -43,19 +46,19 @@ end %>
 
     <%= render FlatPack::TextArea::Component.new(
       name: "publishable[social_description]",
-      label: "Social description",
+      label: publishable_t("form.social_description"),
       value: @publishable.social_description,
       rows: 4,
       character_count: true,
       max_characters: 200,
-      placeholder: "Description shown in social previews"
+      placeholder: publishable_t("form.social_description_placeholder")
     ) %>
 
     <div id="publishable-social-image-preview-wrapper" data-publishable-social-image-picker style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
       <%= form.hidden_field :social_image_attachment_recording_id, id: "publishable-social-image-input", data: { publishable_social_image_input: true } %>
       <img
         src="<%= current_social_image_preview_path || "" %>"
-        alt="Social image"
+        alt="<%= publishable_t("form.social_image_alt") %>"
         style="width: 192px; height: 192px; object-fit: cover; border-radius: 0.5rem; cursor: pointer; border: 1px solid var(--surface-border-color);"
         class="<%= @publishable.social_image_attached? ? "" : "hidden" %>"
         data-publishable-social-image-preview-image
@@ -65,20 +68,20 @@ end %>
           style="width: 192px; height: 192px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; border-radius: 0.5rem; border: 1px dashed var(--surface-border-color); background: var(--surface-raised-background-color); cursor: pointer;"
           data-publishable-social-image-empty
           data-action="click->recording-studio-attachable--attachment-image-picker#openSinglePicker">
-          <span style="font-size: 0.875rem; color: var(--surface-muted-content-color);">Upload Photo</span>
+          <span style="font-size: 0.875rem; color: var(--surface-muted-content-color);"><%= publishable_t("form.upload_photo") %></span>
         </div>
       <% end %>
     </div>
 
-    <%= render FlatPack::Button::Component.new(text: "Save", style: :primary, size: :md, type: "submit") %>
+    <%= render FlatPack::Button::Component.new(text: publishable_t("form.save"), style: :primary, size: :md, type: "submit") %>
   <% end %>
 
   <%= render "recording_studio_attachable/attachment_image_pickers/modal",
     modal_id: social_image_modal_id,
-    modal_title: "Select social image",
+    modal_title: publishable_t("form.select_social_image"),
     recording: @publishable_recording,
-    search_aria_label: "Search social images",
-    empty_state_text: "No images here yet." %>
+    search_aria_label: publishable_t("form.search_social_images"),
+    empty_state_text: publishable_t("form.no_images") %>
 </div>
 
 <style>
@@ -112,7 +115,9 @@ end %>
       }
 
       function updateCounter() {
-        counter.textContent = String(input.value || "").length + " / " + limit + " characters";
+        var host = input.closest("[data-publishable-character-count-template]");
+        var template = (host && host.dataset.publishableCharacterCountTemplate) || "%{count} / %{limit} characters";
+        counter.textContent = template.replace("__COUNT__", String(input.value || "").length).replace("__LIMIT__", String(limit));
       }
 
       input.addEventListener("input", updateCounter);
@@ -165,12 +170,12 @@ end %>
 
     var name = host.querySelector("[data-publishable-social-image-preview-name]");
     if (name) {
-      name.textContent = attachment.name || "Selected image";
+      name.textContent = attachment.name || host.dataset.publishableSelectedImageLabel || "Selected image";
     }
 
     var copy = host.querySelector("[data-publishable-social-image-preview-copy]");
     if (copy) {
-      copy.textContent = "Click to replace image.";
+      copy.textContent = host.dataset.publishableReplaceImageLabel || "Click to replace image.";
     }
   });
 </script>

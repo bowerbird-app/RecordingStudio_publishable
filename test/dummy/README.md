@@ -1,6 +1,6 @@
 # Dummy App
 
-This Rails app validates `recording_studio_publishable` inside a host application on Recording Studio 4.2.
+This Rails app validates `recording_studio_publishable` inside a host application on Recording Studio 4.3.
 
 ## What it demonstrates
 
@@ -8,8 +8,8 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 - `Current.actor` wiring for Recording Studio events
 - opt-in `include RecordingStudio::Capabilities::Publishable.to(...)` on Page and Article. Both collect Title and Description
 - a parent `Page` recording with one publishable child recording
-- Recording Studio's default layout (`RecordingStudio::UsesDefaultLayout`) with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish screens hide those right slots
-- Flatpack's built-in `rounded` theme on `<html data-theme="rounded">` (not custom CSS) on every dummy layout, including Devise and public pages
+- Recording Studio's default layout (`RecordingStudio::UsesDefaultLayout`) with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish screens hide those right slots. A language selector stays in the nav, to the left of the workspace switcher, and switches English/French
+- Flatpack's built-in `rounded` theme on `<html>` with `lang` (not custom CSS) on every dummy layout, including Devise and public pages. Dummy pins FlatPack `v0.1.209` so kit copy follows the locale
 - Flatpack CSS and JS loaded the way the [live kit](https://flatpack.bowerbird.io/) does: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then host Tailwind; stylesheets in `manifest.js`; Flatpack controllers lazy-loaded from `importmap.rb`
 - Publish settings is a hub. The list starts with Preview or View, then Schedule, SEO, and Social. On desktop the list stays left-aligned at a narrower width; the title and dropdown keep the full layout width
 - a host **publish dropdown** on the Pages table (`QuickActions`) so a page can go live or unpublish without opening that screen. Schedule, SEO, and Social in the dropdown open those screens. Draft and scheduled menus include Preview. Live menus include View
@@ -58,7 +58,7 @@ Or test unauthorized edit behavior with:
 
 The admin account has edit/admin access through RecordingStudio Accessible. The viewer account has view-only access and cannot change publish settings, but can open Preview.
 
-Authenticated pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. Publishable `config.layout` is `recording_studio/default_layout`. Dummy overrides that layout only so `<html data-theme="rounded">` is set — Flatpack's built-in rounded theme, the same one the live kit uses. Devise `application` layout sets the same attribute. Stylesheets load like the kit (`flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind). Dummy `config/importmap.rb` pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`; `app/javascript/application.js` imports Turbo; `app/javascript/controllers/index.js` lazy-loads Stimulus controllers. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home is the Flatpack Table of Pages. Publish settings is a hub that starts with Preview or View, then Schedule, SEO, and Social. The SEO screen for a page includes Title and Description. noindex and Canonical URL sit under Advanced. The hub list and job forms use a narrower desktop width and stay left-aligned. The hub, Schedule, SEO, and Social hide the workspace switcher and Sign out. There is no custom sidebar and no custom CSS to shrink chevrons or unstack rows.
+Authenticated pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. Publishable `config.layout` is `recording_studio/default_layout`. Dummy overrides that layout so `<html>` gets Flatpack's built-in rounded theme, `lang`, and Flatpack copy data — the same theme the live kit uses. Devise `application` layout does the same. A language selector sits in the nav, to the left of the workspace switcher. Stylesheets load like the kit (`flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind). Dummy `config/importmap.rb` pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`; `app/javascript/application.js` imports Turbo; `app/javascript/controllers/index.js` lazy-loads Stimulus controllers. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home is the Flatpack Table of Pages. Publish settings is a hub that starts with Preview or View, then Schedule, SEO, and Social. The SEO screen for a page includes Title and Description. noindex and Canonical URL sit under Advanced. The hub list and job forms use a narrower desktop width and stay left-aligned. The hub, Schedule, SEO, and Social hide the workspace switcher and Sign out and keep the language selector. There is no custom sidebar and no custom CSS to shrink chevrons or unstack rows.
 
 ## Useful Routes
 

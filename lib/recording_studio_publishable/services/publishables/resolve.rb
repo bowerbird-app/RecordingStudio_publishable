@@ -20,11 +20,11 @@ module RecordingStudioPublishable
               recordable_type: RecordingStudioPublishable::Publishable.name
             )
           )
-          return failure("Publishable recording was not found") unless publishable_recording
+          return failure(Copy.t("errors.recording_not_found")) unless publishable_recording
 
           publishable = publishable_recording.recordable
-          return failure("Publishable recording is not currently public") unless publishable.currently_published?
-          return failure("Publishable slug is stale") if slug.present? && slug != publishable.slug
+          return failure(Copy.t("errors.not_public")) unless publishable.currently_published?
+          return failure(Copy.t("errors.slug_stale")) if slug.present? && slug != publishable.slug
 
           success(
             publishable_recording: publishable_recording,

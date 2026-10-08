@@ -1,0 +1,235 @@
+# Dummy-only host translations. The engine ships English defaults; other
+# languages belong to the host. This file covers every engine
+# recording_studio.publishable key plus dummy chrome and Flatpack kit copy.
+fr:
+  date:
+    formats:
+      default: "%d/%m/%Y"
+      long: "%d %B %Y"
+      short: "%d %b"
+    abbr_month_names:
+      - ~
+      - janv.
+      - févr.
+      - mars
+      - avr.
+      - mai
+      - juin
+      - juil.
+      - août
+      - sept.
+      - oct.
+      - nov.
+      - déc.
+    month_names:
+      - ~
+      - janvier
+      - février
+      - mars
+      - avril
+      - mai
+      - juin
+      - juillet
+      - août
+      - septembre
+      - octobre
+      - novembre
+      - décembre
+  recording_studio:
+    internationalization:
+      selector:
+        label: Langue
+        submit: Changer de langue
+    publishable:
+      layout:
+        title: "Recording Studio Publishable"
+      hub:
+        title: Publier
+        back: Accueil
+        close: Fermer
+      success:
+        title: En ligne !
+        copy_link: Copier le lien
+        copied: Copié
+        view: Voir
+        copy_prompt: Copier le lien
+      jobs:
+        schedule:
+          title: Horaires
+          subtitle: Choisissez quand ça passe en ligne.
+          notice: Horaires enregistrés.
+        search:
+          title: SEO
+          subtitle: Comment ça apparaît dans la recherche.
+          notice: SEO enregistré.
+        social:
+          title: Social
+          subtitle: L’aperçu quand quelqu’un le partage.
+          notice: Aperçu social enregistré.
+      nav:
+        back: Publier
+        close: Fermer
+      actions:
+        publish_now: Publier maintenant
+        schedule: Planifier
+        change_schedule: Changer l’horaire
+        unpublish: Dépublier
+        seo: SEO
+        social: Social
+      status:
+        draft: Brouillon
+        scheduled: Planifié
+        published: Publié
+      page_link:
+        view: Voir
+        view_subtitle: Voir la page en ligne.
+        preview: Aperçu
+        preview_subtitle: Voir avant la mise en ligne.
+      preview:
+        badge: Aperçu
+      fallbacks:
+        published_page: Page publiée
+      edit_button:
+        label: Modifier
+      form:
+        save: Enregistrer
+        publish_at: Publier le
+        unpublish_at: Dépublier le
+        time_zone: Fuseau horaire
+        time_zone_placeholder: Choisir un fuseau horaire
+        never: Jamais
+        slug: Identifiant d’URL
+        title: Titre
+        title_help: Laissez vide pour utiliser le nom de la page.
+        description: Description
+        description_placeholder: Une courte ligne pour les résultats de recherche
+        description_help: La ligne sous le titre dans les résultats de recherche.
+        advanced: Avancé
+        noindex: noindex
+        noindex_help: Demander aux moteurs de recherche de ne pas indexer cette page. Elle reste en ligne.
+        canonical_url: URL canonique
+        canonical_placeholder: "https://"
+        canonical_help: L’URL préférée pour cette page. Laissez vide pour utiliser l’URL de cette page.
+        social_title: Titre social
+        social_description: Description sociale
+        social_description_placeholder: Description affichée dans les aperçus sociaux
+        social_image_alt: Image sociale
+        upload_photo: Envoyer une photo
+        select_social_image: Choisir une image sociale
+        search_social_images: Rechercher des images sociales
+        no_images: Pas encore d’images ici.
+        selected_image: Image choisie
+        replace_image: Cliquez pour remplacer l’image.
+        character_count: "%{count} / %{limit} caractères"
+      flashes:
+        save_failed: Impossible d’enregistrer.
+        update_failed: Impossible de mettre à jour cette page.
+        not_found: Page introuvable
+        status_updated: État de publication mis à jour
+        published_just_now: Publié à l’instant
+        scheduled_in: "Publication prévue dans %{distance}"
+        published_ago: "Publié il y a %{distance}"
+      attributes:
+        slug: Identifiant d’URL
+        status: État
+        publish_at: Publier le
+        unpublish_at: Dépublier le
+        time_zone: Fuseau horaire
+        seo_title: Titre
+        seo_description: Description
+        canonical_url: URL canonique
+        meta_robots: Listing de recherche
+        social_title: Titre social
+        social_description: Description sociale
+        social_image_attachment_recording_id: Image sociale
+      errors:
+        attribute_invalid: "%{attribute} n’est pas valide"
+        social_image_invalid: L’image sociale n’est pas valide
+        unknown_transition: Transition de publication inconnue
+        parent_required: La page parente est obligatoire
+        cannot_own_children: Une page de publication ne peut pas contenir d’autres pages de publication
+        recording_not_found: La page de publication est introuvable
+        not_public: Cette page n’est pas actuellement publique
+        slug_stale: L’identifiant d’URL n’est plus à jour
+        slug_format: doit utiliser des segments d’URL en minuscules
+        unpublish_after_publish: doit être postérieur à la date de publication
+  dummy:
+    nav:
+      toggle_sidebar: Afficher le menu
+  flatpack:
+    chat:
+      placeholder: Écrire un message…
+      send: Envoyer
+      back: Retour
+      back_to_conversations: Retour aux conversations
+      loading_older: Chargement des messages plus anciens…
+      jump_to_latest: Aller au plus récent
+      jump_to_latest_message: Aller au message le plus récent
+      sending: Envoi…
+      failed: Échec
+      edit: Modifier
+      delete: Supprimer
+      typing: Quelqu’un écrit
+      outgoing_images: Images envoyées
+      incoming_images: Images reçues
+      image: Image
+      you: Vous
+      attachment: Pièce jointe
+    timestamp:
+      fallback: "-"
+      in: Dans %{distance}
+      ago: "il y a %{distance}"
+      just_now: À l’instant
+      a_min_ago: il y a 1 min
+      minutes_ago: "il y a %{count} minutes"
+      hours_ago: "il y a %{count} heures"
+      yesterday: Hier
+      days_ago: "il y a %{count} jours"
+      weeks_ago: "il y a %{count} semaines"
+      months_ago: "il y a %{count} mois"
+      short_a_min_ago: il y a 1 min
+      short_min_ago: "il y a %{count} min"
+      short_hr_ago: "il y a %{count} h"
+      short_yesterday: il y a 1 j
+      short_d_ago: "il y a %{count} j"
+      short_wk_ago: "il y a %{count} sem"
+      short_mo_ago: "il y a %{count} mois"
+    page_nav:
+      back: Retour
+      close: Fermer
+      previous: Page précédente
+      label: Navigation de page
+    search:
+      placeholder: Rechercher…
+      no_results: Aucun résultat
+      clear: Effacer la recherche
+      searching: Recherche…
+      result_fallback: Résultat
+    search_input:
+      clear: Effacer la recherche
+    select:
+      placeholder: Choisir
+      search: Rechercher…
+      remove: Retirer %{label}
+      type_to_search: Tapez au moins %{count} caractères
+      searching: Recherche…
+      empty: Aucune option
+    common:
+      close: Fermer
+      search: Rechercher
+      previous: Préc.
+      next: Suiv.
+      back: Retour
+      save: Enregistrer
+    modal:
+      close: Fermer
+    alert:
+      dismiss: Fermer
+    button:
+      loading: Chargement
+    notification:
+      bell: Notifications
+      empty: Aucune notification récente
+      fallback: Notification
+      see_all: Voir toutes les notifications
+      overflow: 9+

@@ -2,6 +2,7 @@
 
 require "recording_studio"
 require "recording_studio_publishable/version"
+require "recording_studio_publishable/copy"
 require "recording_studio_publishable/publish_jobs"
 require "recording_studio_publishable/page_link"
 require "recording_studio_publishable/hooks"

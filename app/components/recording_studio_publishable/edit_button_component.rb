@@ -4,7 +4,7 @@ module RecordingStudioPublishable
   class EditButtonComponent < ViewComponent::Base
     BUTTON_BASE_CLASS = "inline-flex items-center justify-center rounded-[var(--button-border-radius)] border px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm font-medium leading-none transition-opacity duration-base hover:opacity-90"
 
-    def initialize(recording: nil, publishable: nil, label: "Edit", show_tooltip: false, **options)
+    def initialize(recording: nil, publishable: nil, label: Copy::UNSET, show_tooltip: false, **options)
       @recording = recording || recording_for_publishable(publishable)
       @label = label
       @show_tooltip = show_tooltip
@@ -58,10 +58,10 @@ module RecordingStudioPublishable
 
     def button_text
       publishable = @recording.current_publishable
-      return @label unless publishable.present?
-      return "Scheduled" if publishable.scheduled_for_future?
+      return Copy.value(@label, "edit_button.label") unless publishable.present?
+      return Copy.t("status.scheduled") if publishable.scheduled_for_future?
 
-      publishable.published_state? ? "Published" : "Draft"
+      publishable.published_state? ? Copy.t("status.published") : Copy.t("status.draft")
     end
 
     def edit_path
@@ -72,14 +72,23 @@ module RecordingStudioPublishable
       publishable = @recording.current_publishable
       return if publishable.blank? || !publishable.published_state?
 
-      if publishable.scheduled_for_future?
-        return "Scheduled to publish in #{helpers.distance_of_time_in_words(Time.current, publishable.publish_at)}"
-      end
+      return scheduled_tooltip(publishable) if publishable.scheduled_for_future?
 
+      published_tooltip(publishable)
+    end
+
+    def scheduled_tooltip(publishable)
+      Copy.t(
+        "flashes.scheduled_in",
+        distance: helpers.distance_of_time_in_words(Time.current, publishable.publish_at)
+      )
+    end
+
+    def published_tooltip(publishable)
       publish_at = publishable.publish_at
-      return "Published just now" if publish_at.blank?
+      return Copy.t("flashes.published_just_now") if publish_at.blank?
 
-      "Published #{helpers.time_ago_in_words(publish_at)} ago"
+      Copy.t("flashes.published_ago", distance: helpers.time_ago_in_words(publish_at))
     end
 
     def recording_for_publishable(publishable)

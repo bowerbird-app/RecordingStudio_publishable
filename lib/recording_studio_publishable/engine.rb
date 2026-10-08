@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 
+require_relative "../../app/helpers/recording_studio_publishable/copy_helper"
+
 module RecordingStudioPublishable
   class Engine < ::Rails::Engine
     isolate_namespace RecordingStudioPublishable
     paths.add "app/components", eager_load: true
+
+    initializer "recording_studio_publishable.view_helpers" do
+      ActiveSupport.on_load(:action_view) do
+        include RecordingStudioPublishable::CopyHelper
+      end
+    end
 
     initializer "recording_studio_publishable.assets" do |app|
       next unless app.config.respond_to?(:assets)

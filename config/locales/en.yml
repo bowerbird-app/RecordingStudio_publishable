@@ -1,0 +1,115 @@
+en:
+  recording_studio:
+    publishable:
+      layout:
+        title: "Recording Studio Publishable"
+      hub:
+        title: Publish
+        back: Home
+        close: Close
+      success:
+        title: Published!
+        copy_link: Copy link
+        copied: Copied
+        view: View
+        copy_prompt: Copy link
+      jobs:
+        schedule:
+          title: Schedule
+          subtitle: Pick when this goes live.
+          notice: Times saved.
+        search:
+          title: SEO
+          subtitle: How this shows up in search.
+          notice: SEO saved.
+        social:
+          title: Social
+          subtitle: How this looks when someone shares it.
+          notice: Social preview saved.
+      nav:
+        back: Publish
+        close: Close
+      actions:
+        publish_now: Publish now
+        schedule: Schedule
+        change_schedule: Change schedule
+        unpublish: Unpublish
+        seo: SEO
+        social: Social
+      status:
+        draft: Draft
+        scheduled: Scheduled
+        published: Published
+      page_link:
+        view: View
+        view_subtitle: See it live.
+        preview: Preview
+        preview_subtitle: See it before it goes live.
+      preview:
+        badge: Preview
+      fallbacks:
+        published_page: Published page
+      edit_button:
+        label: Edit
+      form:
+        save: Save
+        publish_at: Publish at
+        unpublish_at: Unpublish at
+        time_zone: Time zone
+        time_zone_placeholder: Select a time zone
+        never: Never
+        slug: Slug
+        title: Title
+        title_help: Leave blank to use the page name.
+        description: Description
+        description_placeholder: A short line for search results
+        description_help: The line under the title in search results.
+        advanced: Advanced
+        noindex: noindex
+        noindex_help: Ask search engines not to index this page. It stays live.
+        canonical_url: Canonical URL
+        canonical_placeholder: "https://"
+        canonical_help: The preferred URL for this page. Leave blank to use this page's URL.
+        social_title: Social title
+        social_description: Social description
+        social_description_placeholder: Description shown in social previews
+        social_image_alt: Social image
+        upload_photo: Upload Photo
+        select_social_image: Select social image
+        search_social_images: Search social images
+        no_images: No images here yet.
+        selected_image: Selected image
+        replace_image: Click to replace image.
+        character_count: "%{count} / %{limit} characters"
+      flashes:
+        save_failed: Could not save that.
+        update_failed: Could not update this page.
+        not_found: Publishable not found
+        status_updated: Publishable status updated
+        published_just_now: Published just now
+        scheduled_in: "Scheduled to publish in %{distance}"
+        published_ago: "Published %{distance} ago"
+      attributes:
+        slug: Slug
+        status: Status
+        publish_at: Publish at
+        unpublish_at: Unpublish at
+        time_zone: Time zone
+        seo_title: Title
+        seo_description: Description
+        canonical_url: Canonical URL
+        meta_robots: Search listing
+        social_title: Social title
+        social_description: Social description
+        social_image_attachment_recording_id: Social image
+      errors:
+        attribute_invalid: "%{attribute} is invalid"
+        social_image_invalid: Social image is invalid
+        unknown_transition: Unknown publishable transition
+        parent_required: Parent recording is required
+        cannot_own_children: Publishable recordings cannot own publishable children
+        recording_not_found: Publishable recording was not found
+        not_public: Publishable recording is not currently public
+        slug_stale: Publishable slug is stale
+        slug_format: must use URL-safe lowercase slug segments
+        unpublish_after_publish: must be later than publish at

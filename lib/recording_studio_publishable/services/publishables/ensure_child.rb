@@ -14,8 +14,8 @@ module RecordingStudioPublishable
         attr_reader :parent_recording, :actor
 
         def perform
-          return failure("Parent recording is required") unless parent_recording
-          return failure("Publishable recordings cannot own publishable children") if invalid_parent_recording?
+          return failure(Copy.t("errors.parent_required")) unless parent_recording
+          return failure(Copy.t("errors.cannot_own_children")) if invalid_parent_recording?
 
           existing_recording = parent_recording.publishable_child_recording
           return success(existing_recording) if existing_recording
