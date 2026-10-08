@@ -167,10 +167,10 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_flatpack_assets_loaded
   end
 
-  test "dummy gemfile pins recording studio 4.2 and dummy-only root switchable" do
+  test "dummy gemfile pins recording studio 4.3 and dummy-only root switchable" do
     gemfile = File.read(Rails.root.join("Gemfile"))
 
-    assert_includes gemfile, 'tag: "v4.2.2"'
+    assert_includes gemfile, 'tag: "v4.3.0"'
     assert_includes gemfile, 'tag: "v0.11.1"'
     assert_includes gemfile, 'tag: "v0.5.6"'
     assert_includes gemfile, 'tag: "v2.0.6"'
