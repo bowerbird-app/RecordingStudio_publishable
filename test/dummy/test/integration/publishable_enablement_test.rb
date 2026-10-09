@@ -36,8 +36,12 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     refute RecordingStudio::Recording.respond_to?(:published)
     assert_respond_to Page, :indexable
     refute_respond_to Folder, :indexable
-    assert_includes Array(RecordingStudio.configuration.recordable_types).map(&:to_s),
-                    "RecordingStudioPublishable::Publishable"
+    registered = Array(RecordingStudio.configuration.recordable_types).map(&:to_s)
+
+    assert_includes registered, "RecordingStudioPublishable::Publishable"
+    assert_includes registered, "RecordingStudioAttachable::Attachment"
+    assert_includes registered, "RecordingStudioAttachable::Library"
+    assert_includes registered, "RecordingStudioAttachable::Placement"
   end
 
   test "admin api recordable is registered without an admin root" do
@@ -172,10 +176,14 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     gemfile = File.read(Rails.root.join("Gemfile"))
 
     assert_includes gemfile, 'tag: "v4.4.0"'
-    assert_includes gemfile, 'tag: "v0.11.1"'
+    assert_includes gemfile, 'tag: "v0.13.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.13.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.13.0"'
+    assert_includes gemfile, 'tag: "v0.1.213"'
     assert_includes gemfile, 'tag: "v0.5.6"'
     assert_includes gemfile, 'tag: "v2.0.7"'
-    assert_includes gemfile, "recording_studio_root_switchable"
+    assert_includes gemfile,
+                    'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.6.0"'
     refute_includes gemfile, "recording_studio_trashable"
   end
 

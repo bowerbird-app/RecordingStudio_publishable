@@ -9,14 +9,14 @@ gemspec
 gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v4.4.0"
 
 gem "devise"
-gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.209"
+gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.213"
 gem "pg", "~> 1.1"
 gem "puma"
 gem "sprockets-rails"
 
-gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.11.1"
-gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "0.4.0"
-gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.5.3"
+gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.13.0"
+gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.13.0"
+gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.6.0"
 
 group :development, :test do
   gem "debug"
