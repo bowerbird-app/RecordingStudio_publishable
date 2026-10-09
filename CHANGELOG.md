@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-09
+
+### Added
+- Engine public fallback (`published/show`) and staff summary card copy use Rails I18n under `recording_studio.publishable.published.*` and `recording_studio.publishable.summary.*`.
+- Dummy integration test proves a host English override in `test/dummy/config/locales/` wins over the gem without appending to `I18n.load_path`.
+
+### Changed
+- Engine layout title and `application-name` meta pass an English `default:` so non-HTML surfaces never emit "Translation missing".
+
+### Upgrade Notes
+- Install Publishable `0.6.0`. No migration.
+- No host code change is required for English. To translate or override the new keys, copy `recording_studio.publishable.summary.*` and `recording_studio.publishable.published.*` into host locale files.
+- The engine still relies on Rails' automatic `config/locales` loading. Do not add an explicit `i18n.load_path` initializer for this gem.
+
 ## [0.5.0] - 2026-10-08
 
 ### Added
@@ -163,7 +177,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.5.0
 [0.4.4]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.4.4
 [0.4.3]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.4.3

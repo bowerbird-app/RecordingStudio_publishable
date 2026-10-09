@@ -89,6 +89,22 @@ fr:
         badge: Aperçu
       fallbacks:
         published_page: Page publiée
+      summary:
+        title: Résumé
+        subtitle: Métadonnées publiques actuelles pour cet enregistrement.
+        slug: Identifiant d’URL
+        canonical_path: Chemin canonique
+        publish_window: Fenêtre de publication
+        always_available: Toujours disponible une fois publié
+        seo_title: Titre SEO
+        uses_parent_title: Utilise le titre de la page parente
+        empty: Un enregistrement publiable sera créé la première fois que quelqu’un ouvre l’écran d’édition.
+      published:
+        fallback_subtitle: Publié à partir de l’enregistrement courant de la page parente.
+        parent_recordable: Enregistrement parent
+        current_title: Titre actuel
+        canonical_url: URL canonique
+        social_card: Carte sociale
       edit_button:
         label: Modifier
       form:

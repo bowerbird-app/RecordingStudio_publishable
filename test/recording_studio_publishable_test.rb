@@ -83,4 +83,26 @@ class RecordingStudioPublishableTest < Minitest::Test
     refute_includes listed.map(&:key), :schedule
     assert_equal %i[search social], listed.map(&:key)
   end
+
+  def test_summary_card_and_published_fallback_use_i18n_keys
+    summary = File.read(
+      File.expand_path("../app/views/recording_studio_publishable/components/_summary_card.html.erb", __dir__)
+    )
+    published = File.read(
+      File.expand_path("../app/views/recording_studio_publishable/published/show.html.erb", __dir__)
+    )
+    layout = File.read(
+      File.expand_path("../app/views/layouts/recording_studio_publishable/application.html.erb", __dir__)
+    )
+
+    assert_includes summary, 'publishable_t("summary.title")'
+    assert_includes summary, 'publishable_t("summary.subtitle")'
+    assert_includes summary, 'publishable_t("summary.empty")'
+    refute_includes summary, 'title: "Summary"'
+    assert_includes published, 'publishable_t("published.fallback_subtitle")'
+    assert_includes published, 'publishable_t("published.parent_recordable")'
+    assert_includes published, 'publishable_t("published.current_title")'
+    refute_includes published, "Published from the parent recording's current recordable."
+    assert_includes layout, 'publishable_t("layout.title", default: "Recording Studio Publishable")'
+  end
 end

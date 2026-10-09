@@ -1,0 +1,8 @@
+# Dummy-host English override. Rails loads config/locales automatically, so this
+# file wins over the gem's en.yml without any explicit load-path append. Proves
+# the engine does not re-add its locales after the host (which would clobber this).
+en:
+  recording_studio:
+    publishable:
+      preview:
+        badge: Host preview

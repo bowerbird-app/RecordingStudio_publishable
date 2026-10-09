@@ -49,6 +49,22 @@ en:
         badge: Preview
       fallbacks:
         published_page: Published page
+      summary:
+        title: Summary
+        subtitle: Current public metadata for this recording.
+        slug: Slug
+        canonical_path: Canonical path
+        publish_window: Publish window
+        always_available: Always available when published
+        seo_title: SEO title
+        uses_parent_title: Uses parent recording title
+        empty: A publishable child recording will be created the first time someone opens the edit screen.
+      published:
+        fallback_subtitle: Published from the parent recording's current recordable.
+        parent_recordable: Parent recordable
+        current_title: Current title
+        canonical_url: Canonical URL
+        social_card: Social card
       edit_button:
         label: Edit
       form:

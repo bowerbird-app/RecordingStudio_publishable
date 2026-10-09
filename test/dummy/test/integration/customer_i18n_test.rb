@@ -144,6 +144,38 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "host config/locales English override wins on a real preview page" do
+    override_path = Rails.root.join("config/locales/publishable_host_override.en.yml")
+
+    assert_path_exists override_path, "expected host override file in test/dummy/config/locales/"
+    refute_includes File.read(override_path), "I18n.load_path"
+    assert_equal "Host preview", I18n.t("recording_studio.publishable.preview.badge")
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: @recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Host preview"
+    refute_includes response.body, ">Preview<"
+    assert_includes response.body, "Launch Checklist"
+  end
+
+  test "summary card empty state renders gem English copy" do
+    recording = RecordingStudio::Recording.create!(
+      recordable: Page.create!(title: "No publishable yet"),
+      parent_recording: @root
+    )
+
+    html = ApplicationController.render(
+      partial: "recording_studio_publishable/components/summary_card",
+      locals: { recording: recording }
+    )
+
+    assert_includes html, "Summary"
+    assert_includes html, "Current public metadata for this recording."
+    assert_includes html,
+                    "A publishable child recording will be created the first time someone opens the edit screen."
+  end
+
   private
 
   def switch_to_french
