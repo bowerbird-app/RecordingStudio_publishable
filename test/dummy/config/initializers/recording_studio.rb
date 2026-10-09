@@ -8,7 +8,9 @@ recordable_types = [
   "Page",
   "Article",
   "RecordingStudioPublishable::Publishable",
-  "RecordingStudioAttachable::Attachment"
+  "RecordingStudioAttachable::Attachment",
+  "RecordingStudioAttachable::Library",
+  "RecordingStudioAttachable::Placement"
 ]
 if defined?(RecordingStudioApi::Engine)
   recordable_types << RecordingStudioApi::Engine::ADMIN_API_RECORDABLE_TYPE_NAME
