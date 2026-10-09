@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Engine public fallback (`published/show`) and staff summary card copy use Rails I18n under `recording_studio.publishable.published.*` and `recording_studio.publishable.summary.*`.
-- Dummy integration test writes a temporary English override under `test/dummy/config/locales/` for one request, asserts the host string on a real page, then restores the file so the default dummy UI stays gem English.
+- Dummy integration test loads a test-only English override from `test/dummy/test/locales/` last on `I18n.load_path` for one request, asserts the host string on a real page, then restores `I18n.load_path` so the default dummy UI stays gem English.
 
 ### Changed
 - Engine layout title and `application-name` meta pass an English `default:` so non-HTML surfaces never emit "Translation missing".

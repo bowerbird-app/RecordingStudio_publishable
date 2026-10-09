@@ -144,20 +144,14 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "host config/locales English override wins on a real preview page" do
-    override_path = Rails.root.join("config/locales/publishable_host_override.en.yml")
-    original = File.read(override_path)
+  test "host locale fixture appended last wins on a real preview page" do
+    override_path = Rails.root.join("test/locales/host_override.en.yml")
+    previous_load_path = I18n.load_path.dup
 
-    assert_path_exists override_path, "expected host override file in test/dummy/config/locales/"
-    assert_includes I18n.load_path.map { |path| File.expand_path(path) }, override_path.to_s
+    assert_path_exists override_path, "expected test-only host override under test/dummy/test/locales/"
+    refute_includes override_path.to_s, "/config/locales/"
 
-    File.write(override_path, <<~YAML)
-      en:
-        recording_studio:
-          publishable:
-            preview:
-              badge: Host preview
-    YAML
+    I18n.load_path = previous_load_path + [override_path.to_s]
     I18n.reload!
 
     assert_equal "Host preview", I18n.t("recording_studio.publishable.preview.badge")
@@ -169,7 +163,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     refute_includes response.body, ">Preview<"
     assert_includes response.body, "Launch Checklist"
   ensure
-    File.write(override_path, original) if override_path && original
+    I18n.load_path = previous_load_path if previous_load_path
     I18n.reload!
   end
 

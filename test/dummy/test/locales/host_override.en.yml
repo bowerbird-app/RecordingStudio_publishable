@@ -1,0 +1,7 @@
+# Test-only fixture. Loaded last onto I18n.load_path inside one integration
+# test, then removed. Not under config/locales, so the dummy UI stays gem English.
+en:
+  recording_studio:
+    publishable:
+      preview:
+        badge: Host preview

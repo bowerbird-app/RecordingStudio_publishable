@@ -1,4 +1,0 @@
-# Intentionally empty at rest. CustomerI18nTest writes a temporary English
-# override here for one test, then restores this file so the dummy UI keeps
-# the gem's default English.
-en: {}

@@ -30,11 +30,18 @@ class LocalesTest < Minitest::Test
     assert_includes I18n.load_path.map { |path| File.expand_path(path) }, File.expand_path(locale_path)
   end
 
-  def test_engine_does_not_append_i18n_load_path_in_an_initializer
-    engine_source = File.read(File.expand_path("../lib/recording_studio_publishable/engine.rb", __dir__))
+  def test_lib_sources_do_not_append_i18n_load_path
+    lib_root = File.expand_path("../lib", __dir__)
+    ruby_files = Dir[File.join(lib_root, "**", "*.rb")]
 
-    refute_includes engine_source, "i18n.load_path"
-    refute_includes engine_source, "I18n.load_path"
+    refute_empty ruby_files, "expected lib/**/*.rb files to scan"
+
+    ruby_files.each do |path|
+      source = File.read(path)
+
+      refute_includes source, "i18n.load_path", "#{path} must not touch i18n.load_path"
+      refute_includes source, "I18n.load_path", "#{path} must not touch I18n.load_path"
+    end
   end
 
   def test_dummy_french_covers_every_engine_english_key
@@ -135,15 +142,6 @@ class LocalesTest < Minitest::Test
       assert_equal "Ship it", Copy.defaulted("Ship it", "Publish", "hub.title")
       assert_equal "Publish", Copy.defaulted(nil, "Publish", "hub.title")
     end
-  end
-
-  def test_dummy_host_override_locale_file_rests_empty
-    path = File.expand_path("dummy/config/locales/publishable_host_override.en.yml", __dir__)
-
-    assert_path_exists path
-    yaml = YAML.safe_load_file(path, aliases: true)
-
-    assert_equal({}, yaml.fetch("en"))
   end
 
   def test_gemspec_does_not_depend_on_internationalization
