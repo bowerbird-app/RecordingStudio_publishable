@@ -226,7 +226,7 @@ Arguments still win. `EditButtonComponent`'s `label:`, `publishable_head_tags` k
 
 Stored publish state stays data: slugs, titles, descriptions, canonical URLs, and social card fields are not translated.
 
-The engine public fallback template and staff summary card follow the locale under `recording_studio.publishable.published.*` and `recording_studio.publishable.summary.*`. Dummy docs pages, generator CLI text, and developer-facing `ArgumentError`s stay English. Host locale files under `config/locales` override the gem automatically; the engine does not append its own `i18n.load_path`.
+The engine public fallback template and staff summary card follow the locale under `recording_studio.publishable.published.*` and `recording_studio.publishable.summary.*`. Dummy docs pages, generator CLI text, and developer-facing `ArgumentError`s stay English. Hosts override copy by defining the same `recording_studio.publishable.*` keys in their own `config/locales`. The engine does not add an explicit `i18n.load_path` initializer.
 
 Add [Recording Studio Internationalization](https://github.com/bowerbird-app/RecordingStudio_Internationalization) on the host when you want a language selector.
 

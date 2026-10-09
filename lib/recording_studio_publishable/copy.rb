@@ -2,6 +2,7 @@
 
 require "erb"
 require "i18n"
+require "active_support/core_ext/string/output_safety"
 
 module RecordingStudioPublishable
   module Copy

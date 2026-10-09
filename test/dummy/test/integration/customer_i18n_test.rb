@@ -146,9 +146,20 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
 
   test "host config/locales English override wins on a real preview page" do
     override_path = Rails.root.join("config/locales/publishable_host_override.en.yml")
+    original = File.read(override_path)
 
     assert_path_exists override_path, "expected host override file in test/dummy/config/locales/"
-    refute_includes File.read(override_path), "I18n.load_path"
+    assert_includes I18n.load_path.map { |path| File.expand_path(path) }, override_path.to_s
+
+    File.write(override_path, <<~YAML)
+      en:
+        recording_studio:
+          publishable:
+            preview:
+              badge: Host preview
+    YAML
+    I18n.reload!
+
     assert_equal "Host preview", I18n.t("recording_studio.publishable.preview.badge")
 
     get recording_studio_publishable.preview_recording_publishable_path(recording_id: @recording.id)
@@ -157,6 +168,9 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Host preview"
     refute_includes response.body, ">Preview<"
     assert_includes response.body, "Launch Checklist"
+  ensure
+    File.write(override_path, original) if override_path && original
+    I18n.reload!
   end
 
   test "summary card empty state renders gem English copy" do

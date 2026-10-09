@@ -6,6 +6,18 @@ require "yaml"
 class LocalesTest < Minitest::Test
   Copy = RecordingStudioPublishable::Copy
 
+  def setup
+    ensure_gem_english_locale_available!
+  end
+
+  def teardown
+    return unless defined?(@previous_load_path_for_gem_locale) && @previous_load_path_for_gem_locale
+
+    I18n.load_path = @previous_load_path_for_gem_locale
+    I18n.backend.load_translations
+    @previous_load_path_for_gem_locale = nil
+  end
+
   def test_engine_ships_only_english_locale_files
     files = Dir[File.join(engine_locales_dir, "*")].map { |path| File.basename(path) }
 
@@ -125,13 +137,13 @@ class LocalesTest < Minitest::Test
     end
   end
 
-  def test_host_translation_overrides_english
-    I18n.backend.load_translations
-    I18n.backend.store_translations(:en, acme_title)
-    assert_equal "Acme publish", Copy.t("hub.title")
-  ensure
-    I18n.backend.load_translations
-    I18n.backend.store_translations(:en, default_title)
+  def test_dummy_host_override_locale_file_rests_empty
+    path = File.expand_path("dummy/config/locales/publishable_host_override.en.yml", __dir__)
+
+    assert_path_exists path
+    yaml = YAML.safe_load_file(path, aliases: true)
+
+    assert_equal({}, yaml.fetch("en"))
   end
 
   def test_gemspec_does_not_depend_on_internationalization
@@ -178,14 +190,6 @@ class LocalesTest < Minitest::Test
     end
   end
 
-  def acme_title
-    { recording_studio: { publishable: { hub: { title: "Acme publish" } } } }
-  end
-
-  def default_title
-    { recording_studio: { publishable: { hub: { title: "Publish" } } } }
-  end
-
   # Gem English assertions must ignore dummy host overrides under
   # test/dummy/config/locales. Always restore I18n.load_path.
   def with_gem_english_locale_only
@@ -195,6 +199,19 @@ class LocalesTest < Minitest::Test
     yield
   ensure
     I18n.load_path = previous
+    I18n.backend.load_translations
+  end
+
+  # Isolated gem suite (no dummy Rails.application) still needs the engine
+  # English file available. Prefer the path Rails already registered; only
+  # fall back to a one-off load for this test class, then restore.
+  def ensure_gem_english_locale_available!
+    locale_path = File.expand_path(File.join(engine_locales_dir, "en.yml"))
+    expanded = I18n.load_path.map { |path| File.expand_path(path) }
+    return if expanded.include?(locale_path)
+
+    @previous_load_path_for_gem_locale = I18n.load_path.dup
+    I18n.load_path = [locale_path]
     I18n.backend.load_translations
   end
 end

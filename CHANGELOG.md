@@ -11,15 +11,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Engine public fallback (`published/show`) and staff summary card copy use Rails I18n under `recording_studio.publishable.published.*` and `recording_studio.publishable.summary.*`.
-- Dummy integration test proves a host English override in `test/dummy/config/locales/` wins over the gem without appending to `I18n.load_path`.
+- Dummy integration test writes a temporary English override under `test/dummy/config/locales/` for one request, asserts the host string on a real page, then restores the file so the default dummy UI stays gem English.
 
 ### Changed
 - Engine layout title and `application-name` meta pass an English `default:` so non-HTML surfaces never emit "Translation missing".
 
 ### Upgrade Notes
 - Install Publishable `0.6.0`. No migration.
-- No host code change is required for English. To translate or override the new keys, copy `recording_studio.publishable.summary.*` and `recording_studio.publishable.published.*` into host locale files.
-- The engine still relies on Rails' automatic `config/locales` loading. Do not add an explicit `i18n.load_path` initializer for this gem.
+- No host code change is required for English. To translate or override the new keys, define the same `recording_studio.publishable.summary.*` and `recording_studio.publishable.published.*` keys in the host's own `config/locales`.
+- Do not add an explicit `i18n.load_path` initializer for this gem.
 
 ## [0.5.0] - 2026-10-08
 
