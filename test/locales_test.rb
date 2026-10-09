@@ -6,10 +6,42 @@ require "yaml"
 class LocalesTest < Minitest::Test
   Copy = RecordingStudioPublishable::Copy
 
+  def setup
+    ensure_gem_english_locale_available!
+  end
+
+  def teardown
+    return unless defined?(@previous_load_path_for_gem_locale) && @previous_load_path_for_gem_locale
+
+    I18n.load_path = @previous_load_path_for_gem_locale
+    I18n.backend.load_translations
+    @previous_load_path_for_gem_locale = nil
+  end
+
   def test_engine_ships_only_english_locale_files
     files = Dir[File.join(engine_locales_dir, "*")].map { |path| File.basename(path) }
 
     assert_equal ["en.yml"], files.sort
+  end
+
+  def test_rails_i18n_load_path_includes_the_gem_english_locale_file
+    locale_path = File.join(engine_locales_dir, "en.yml")
+
+    assert_includes I18n.load_path.map { |path| File.expand_path(path) }, File.expand_path(locale_path)
+  end
+
+  def test_lib_sources_do_not_append_i18n_load_path
+    lib_root = File.expand_path("../lib", __dir__)
+    ruby_files = Dir[File.join(lib_root, "**", "*.rb")]
+
+    refute_empty ruby_files, "expected lib/**/*.rb files to scan"
+
+    ruby_files.each do |path|
+      source = File.read(path)
+
+      refute_includes source, "i18n.load_path", "#{path} must not touch i18n.load_path"
+      refute_includes source, "I18n.load_path", "#{path} must not touch I18n.load_path"
+    end
   end
 
   def test_dummy_french_covers_every_engine_english_key
@@ -21,32 +53,80 @@ class LocalesTest < Minitest::Test
   end
 
   def test_english_default_copy_is_unchanged
-    I18n.with_locale(:en) do
-      assert_equal "Publish", Copy.t("hub.title")
-      assert_equal "Published!", Copy.t("success.title")
-      assert_equal "Copy link", Copy.t("success.copy_link")
-      assert_equal "Schedule", Copy.t("jobs.schedule.title")
-      assert_equal "Pick when this goes live.", Copy.t("jobs.schedule.subtitle")
-      assert_equal "Times saved.", Copy.t("jobs.schedule.notice")
-      assert_equal "SEO", Copy.t("jobs.search.title")
-      assert_equal "How this shows up in search.", Copy.t("jobs.search.subtitle")
-      assert_equal "SEO saved.", Copy.t("jobs.search.notice")
-      assert_equal "Social", Copy.t("jobs.social.title")
-      assert_equal "Publish now", Copy.t("actions.publish_now")
-      assert_equal "Change schedule", Copy.t("actions.change_schedule")
-      assert_equal "Unpublish", Copy.t("actions.unpublish")
-      assert_equal "Draft", Copy.t("status.draft")
-      assert_equal "Published", Copy.t("status.published")
-      assert_equal "Preview", Copy.t("page_link.preview")
-      assert_equal "See it before it goes live.", Copy.t("page_link.preview_subtitle")
-      assert_equal "See it live.", Copy.t("page_link.view_subtitle")
-      assert_equal "Could not save that.", Copy.t("flashes.save_failed")
-      assert_equal "Could not update this page.", Copy.t("flashes.update_failed")
-      assert_equal "Social image is invalid", Copy.t("errors.social_image_invalid")
-      assert_equal "must use URL-safe lowercase slug segments", Copy.t("errors.slug_format")
-      assert_equal "must be later than publish at", Copy.t("errors.unpublish_after_publish")
-      assert_equal "Social title", Copy.attribute_name(:social_title)
-      assert_equal "Social title is invalid", Copy.attribute_invalid(:social_title)
+    with_gem_english_locale_only do
+      I18n.with_locale(:en) do
+        assert_equal "Publish", Copy.t("hub.title")
+        assert_equal "Published!", Copy.t("success.title")
+        assert_equal "Copy link", Copy.t("success.copy_link")
+        assert_equal "Schedule", Copy.t("jobs.schedule.title")
+        assert_equal "Pick when this goes live.", Copy.t("jobs.schedule.subtitle")
+        assert_equal "Times saved.", Copy.t("jobs.schedule.notice")
+        assert_equal "SEO", Copy.t("jobs.search.title")
+        assert_equal "How this shows up in search.", Copy.t("jobs.search.subtitle")
+        assert_equal "SEO saved.", Copy.t("jobs.search.notice")
+        assert_equal "Social", Copy.t("jobs.social.title")
+        assert_equal "Publish now", Copy.t("actions.publish_now")
+        assert_equal "Change schedule", Copy.t("actions.change_schedule")
+        assert_equal "Unpublish", Copy.t("actions.unpublish")
+        assert_equal "Draft", Copy.t("status.draft")
+        assert_equal "Published", Copy.t("status.published")
+        assert_equal "Preview", Copy.t("page_link.preview")
+        assert_equal "Preview", Copy.t("preview.badge")
+        assert_equal "See it before it goes live.", Copy.t("page_link.preview_subtitle")
+        assert_equal "See it live.", Copy.t("page_link.view_subtitle")
+        assert_equal "Summary", Copy.t("summary.title")
+        assert_equal "Current public metadata for this recording.", Copy.t("summary.subtitle")
+        assert_equal "Slug", Copy.t("summary.slug")
+        assert_equal "Canonical path", Copy.t("summary.canonical_path")
+        assert_equal "Publish window", Copy.t("summary.publish_window")
+        assert_equal "Always available when published", Copy.t("summary.always_available")
+        assert_equal "SEO title", Copy.t("summary.seo_title")
+        assert_equal "Uses parent recording title", Copy.t("summary.uses_parent_title")
+        assert_equal(
+          "A publishable child recording will be created the first time someone opens the edit screen.",
+          Copy.t("summary.empty")
+        )
+        assert_equal(
+          "Published from the parent recording's current recordable.",
+          Copy.t("published.fallback_subtitle")
+        )
+        assert_equal "Parent recordable", Copy.t("published.parent_recordable")
+        assert_equal "Current title", Copy.t("published.current_title")
+        assert_equal "Canonical URL", Copy.t("published.canonical_url")
+        assert_equal "Social card", Copy.t("published.social_card")
+        assert_equal "Could not save that.", Copy.t("flashes.save_failed")
+        assert_equal "Could not update this page.", Copy.t("flashes.update_failed")
+        assert_equal "Social image is invalid", Copy.t("errors.social_image_invalid")
+        assert_equal "must use URL-safe lowercase slug segments", Copy.t("errors.slug_format")
+        assert_equal "must be later than publish at", Copy.t("errors.unpublish_after_publish")
+        assert_equal "Social title", Copy.attribute_name(:social_title)
+        assert_equal "Social title is invalid", Copy.attribute_invalid(:social_title)
+        assert_equal(
+          "Recording Studio Publishable",
+          Copy.t("layout.title", default: "Recording Studio Publishable")
+        )
+      end
+    end
+  end
+
+  def test_nested_summary_and_published_keys_resolve_without_missing_translations
+    with_gem_english_locale_only do
+      I18n.with_locale(:en) do
+        %w[
+          summary.title
+          summary.empty
+          published.fallback_subtitle
+          published.parent_recordable
+          preview.badge
+          layout.title
+        ].each do |key|
+          full_key = "recording_studio.publishable.#{key}"
+          translation = I18n.t(full_key, default: nil)
+
+          refute_nil translation, "#{full_key} should resolve"
+          assert_equal translation, I18n.t(full_key, raise: true)
+        end
+      end
     end
   end
 
@@ -62,15 +142,6 @@ class LocalesTest < Minitest::Test
       assert_equal "Ship it", Copy.defaulted("Ship it", "Publish", "hub.title")
       assert_equal "Publish", Copy.defaulted(nil, "Publish", "hub.title")
     end
-  end
-
-  def test_host_translation_overrides_english
-    I18n.backend.load_translations
-    I18n.backend.store_translations(:en, acme_title)
-    assert_equal "Acme publish", Copy.t("hub.title")
-  ensure
-    I18n.backend.load_translations
-    I18n.backend.store_translations(:en, default_title)
   end
 
   def test_gemspec_does_not_depend_on_internationalization
@@ -117,11 +188,28 @@ class LocalesTest < Minitest::Test
     end
   end
 
-  def acme_title
-    { recording_studio: { publishable: { hub: { title: "Acme publish" } } } }
+  # Gem English assertions must ignore dummy host overrides under
+  # test/dummy/config/locales. Always restore I18n.load_path.
+  def with_gem_english_locale_only
+    previous = I18n.load_path.dup
+    I18n.load_path = [File.join(engine_locales_dir, "en.yml")]
+    I18n.backend.load_translations
+    yield
+  ensure
+    I18n.load_path = previous
+    I18n.backend.load_translations
   end
 
-  def default_title
-    { recording_studio: { publishable: { hub: { title: "Publish" } } } }
+  # Isolated gem suite (no dummy Rails.application) still needs the engine
+  # English file available. Prefer the path Rails already registered; only
+  # fall back to a one-off load for this test class, then restore.
+  def ensure_gem_english_locale_available!
+    locale_path = File.expand_path(File.join(engine_locales_dir, "en.yml"))
+    expanded = I18n.load_path.map { |path| File.expand_path(path) }
+    return if expanded.include?(locale_path)
+
+    @previous_load_path_for_gem_locale = I18n.load_path.dup
+    I18n.load_path = [locale_path]
+    I18n.backend.load_translations
   end
 end

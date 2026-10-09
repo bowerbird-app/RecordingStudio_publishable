@@ -4,7 +4,7 @@
   class="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-12">
   <%= render FlatPack::PageTitle::Component.new(
     title: @parent_recordable.respond_to?(:title) ? @parent_recordable.title : @parent_recording.recordable_type.to_s.demodulize.underscore.humanize,
-    subtitle: @publishable.seo_description.presence || "Published from the parent recording's current recordable.",
+    subtitle: @publishable.seo_description.presence || publishable_t("published.fallback_subtitle"),
     variant: :h1
   ) %>
 
@@ -23,15 +23,15 @@
   <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
     <% card.body do %>
       <div class="space-y-4 text-sm leading-7">
-        <p><strong>Parent recordable:</strong> <%= @parent_recording.recordable_type.to_s.demodulize.underscore.humanize %></p>
+        <p><strong><%= publishable_t("published.parent_recordable") %>:</strong> <%= @parent_recording.recordable_type.to_s.demodulize.underscore.humanize %></p>
         <% if @parent_recordable.respond_to?(:title) %>
-          <p><strong>Current title:</strong> <%= @parent_recordable.title %></p>
+          <p><strong><%= publishable_t("published.current_title") %>:</strong> <%= @parent_recordable.title %></p>
         <% end %>
         <% if @publishable.canonical_url.present? %>
-          <p><strong>Canonical URL:</strong> <%= @publishable.canonical_url %></p>
+          <p><strong><%= publishable_t("published.canonical_url") %>:</strong> <%= @publishable.canonical_url %></p>
         <% end %>
         <% if @publishable.social_title.present? || @publishable.social_description.present? %>
-          <p><strong>Social card:</strong> <%= [@publishable.social_title, @publishable.social_description].compact.join(" — ") %></p>
+          <p><strong><%= publishable_t("published.social_card") %>:</strong> <%= [@publishable.social_title, @publishable.social_description].compact.join(" — ") %></p>
         <% end %>
       </div>
     <% end %>

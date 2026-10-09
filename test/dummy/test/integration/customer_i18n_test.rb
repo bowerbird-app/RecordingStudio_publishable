@@ -144,6 +144,46 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "host locale fixture appended last wins on a real preview page" do
+    override_path = Rails.root.join("test/locales/host_override.en.yml")
+    previous_load_path = I18n.load_path.dup
+
+    assert_path_exists override_path, "expected test-only host override under test/dummy/test/locales/"
+    refute_includes override_path.to_s, "/config/locales/"
+
+    I18n.load_path = previous_load_path + [override_path.to_s]
+    I18n.reload!
+
+    assert_equal "Host preview", I18n.t("recording_studio.publishable.preview.badge")
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: @recording.id)
+
+    assert_response :success
+    assert_includes response.body, "Host preview"
+    refute_includes response.body, ">Preview<"
+    assert_includes response.body, "Launch Checklist"
+  ensure
+    I18n.load_path = previous_load_path if previous_load_path
+    I18n.reload!
+  end
+
+  test "summary card empty state renders gem English copy" do
+    recording = RecordingStudio::Recording.create!(
+      recordable: Page.create!(title: "No publishable yet"),
+      parent_recording: @root
+    )
+
+    html = ApplicationController.render(
+      partial: "recording_studio_publishable/components/summary_card",
+      locals: { recording: recording }
+    )
+
+    assert_includes html, "Summary"
+    assert_includes html, "Current public metadata for this recording."
+    assert_includes html,
+                    "A publishable child recording will be created the first time someone opens the edit screen."
+  end
+
   private
 
   def switch_to_french
