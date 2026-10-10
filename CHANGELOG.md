@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-10
+
+### Added
+- After-commit `ActiveSupport::Notifications` for public visibility: `published.recording_studio_publishable`, `unpublished.recording_studio_publishable`, and `revised.recording_studio_publishable` when a live publication’s snapshot fields change.
+- `RecordingStudioPublishable.subscribe(:published) { |event| ... }` wraps those event names.
+- `WindowTransitionJob` emits the same published/unpublished events when a stored `publish_at` or `unpublish_at` window becomes due. Visibility itself stays a time-based read; the job is the write-adjacent signal.
+
+### Upgrade Notes
+- Install Publishable `0.7.0`. No migration.
+- Subscribe from other gems (Downloadable, Presskits, webhooks) with `RecordingStudioPublishable.subscribe` or `ActiveSupport::Notifications.subscribe`. Publishable does not know about those gems.
+- Events fire after commit. Payload keys: `recording_id`, `recordable_type`, `recordable_id`, `publishable_recording_id`, `publishable_id`, `previous_publishable_id`, `actor_type`, `actor_id`, `previous_state`, `current_state`, `occurred_at`, `source`.
+- Configure Active Job with an adapter that honors `wait_until` so scheduled go-live and expiry notify. Queries (`published`, `currently_published?`) do not wait for the job.
+- Trash and parent-content revises are not Publishable visibility writes. They do not emit these events.
+
 ## [0.6.0] - 2026-10-09
 
 ### Added
@@ -177,7 +191,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.7.0
 [0.6.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.5.0
 [0.4.4]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.4.4

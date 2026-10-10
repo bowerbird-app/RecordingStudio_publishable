@@ -210,6 +210,49 @@ The social image id must be an image attachment recording that is a direct child
 
 `status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
 
+## Lifecycle notifications
+
+Other gems subscribe to publish visibility without Publishable knowing they exist. Do not add a Downloadable or Presskits hook here.
+
+Recording Studio already records snapshot history through `revise` (`action: "updated"` on the publishable child) and can emit `recordings.event_created` for those rows. Service `before_service` / `after_service` hooks run for every Update, in process, and not after commit. Neither of those is “this parent just went live.” Use these events instead.
+
+| Event | When |
+|---|---|
+| `published.recording_studio_publishable` | Public visibility became true |
+| `unpublished.recording_studio_publishable` | Public visibility became false |
+| `revised.recording_studio_publishable` | A currently live parent got a new publishable snapshot (slug, SEO, social, or schedule fields) |
+
+They fire **after commit**. A rolled-back publish never notifies. No-op writes (unpublish of a draft, live update that does not change publishable fields) emit nothing.
+
+Payload (keyword keys):
+
+- `schema_version` — `1`
+- `recording_id` — parent recording (page, article, kit)
+- `recordable_type` / `recordable_id`
+- `publishable_recording_id` / `publishable_id` / `previous_publishable_id`
+- `actor_type` / `actor_id` — present when the write had an actor
+- `previous_state` / `current_state` — `status`, `currently_published`, `scheduled`, `publish_at`, `unpublish_at`
+- `occurred_at`
+- `source` — `"write"` for Update/Transition, `"scheduled"` for a due window
+
+```ruby
+RecordingStudioPublishable.subscribe(:published) do |event|
+  payload = event.payload
+  recording = RecordingStudio::Recording.find(payload[:recording_id])
+  # Build a kit ZIP, fan out a webhook, …
+end
+
+ActiveSupport::Notifications.subscribe("unpublished.recording_studio_publishable") do |*args|
+  payload = ActiveSupport::Notifications::Event.new(*args).payload
+end
+```
+
+Manual publish, unpublish, and live field changes go through `Update` / `Transition` (UI, API, and host service calls).
+
+Scheduled go-live and expiry are **time-based reads**. `currently_published?` becomes true when `publish_at` arrives, and false when `unpublish_at` arrives, with no extra row write. `WindowTransitionJob` is the signal for those windows: `Update` enqueues it at `publish_at` / `unpublish_at`, and the job re-reads the parent and emits `published` or `unpublished` if the window still matches. Hosts need a real Active Job adapter so `wait_until` runs (Solid Queue, Sidekiq). An inline adapter will skip the job while the window is still in the future, then never run it later.
+
+Trash is not a Publishable write. If Trashable hides a published parent, listen to Trashable — this gem does not emit `unpublished` for that. Parent content `revise` (the page body, not the publishable child) also does not emit `revised`; that stays on `recordings.event_created`.
+
 ## Internationalization
 
 The gem ships **English only** in `config/locales/en.yml`. Keys nest under `recording_studio.publishable.*`:
