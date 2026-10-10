@@ -6,6 +6,8 @@ require "recording_studio_publishable/copy"
 require "recording_studio_publishable/publish_jobs"
 require "recording_studio_publishable/page_link"
 require "recording_studio_publishable/hooks"
+require "recording_studio_publishable/lifecycle_notifications"
+require "recording_studio_publishable/window_transition_job"
 require "recording_studio_publishable/configuration"
 require "recording_studio_publishable/trashed_at"
 require "recording_studio_publishable/routing"
@@ -39,6 +41,10 @@ module RecordingStudioPublishable
 
     def reset_configuration!
       @configuration = Configuration.new
+    end
+
+    def subscribe(name, &)
+      LifecycleNotifications.subscribe(name, &)
     end
   end
 end

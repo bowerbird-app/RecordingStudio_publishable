@@ -32,6 +32,7 @@ Metrics/ClassLength:
 Metrics/ModuleLength:
   Exclude:
     - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
+    - 'lib/recording_studio_publishable/lifecycle_notifications.rb'
 
 Metrics/MethodLength:
   Exclude:
@@ -40,6 +41,7 @@ Metrics/MethodLength:
     - 'lib/generators/**/*'
     - 'lib/recording_studio_publishable/parent_recordable.rb'
     - 'lib/recording_studio_publishable/services/**/*'
+    - 'lib/recording_studio_publishable/lifecycle_notifications.rb'
     - 'lib/recording_studio/capabilities/publishable.rb'
     - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
 
@@ -49,6 +51,7 @@ Metrics/AbcSize:
     - 'db/migrate/**/*'
     - 'lib/generators/**/*'
     - 'lib/recording_studio_publishable/services/**/*'
+    - 'lib/recording_studio_publishable/lifecycle_notifications.rb'
     - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
 
 Metrics/BlockLength:
@@ -59,12 +62,14 @@ Metrics/BlockLength:
 Metrics/CyclomaticComplexity:
   Exclude:
     - 'lib/recording_studio_publishable/services/**/*'
+    - 'lib/recording_studio_publishable/lifecycle_notifications.rb'
     - 'lib/recording_studio_publishable/routing.rb'
     - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
 
 Metrics/PerceivedComplexity:
   Exclude:
     - 'lib/recording_studio_publishable/services/**/*'
+    - 'lib/recording_studio_publishable/lifecycle_notifications.rb'
     - 'lib/recording_studio_publishable/routing.rb'
 
 # Allow empty blocks in tests (common for stubs/mocks)

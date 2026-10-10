@@ -118,6 +118,7 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Recordable.published_url"
     assert_includes response.body, "recordable.published_url"
     assert_includes response.body, "recordable.published?"
+    assert_includes response.body, "RecordingStudioPublishable.subscribe"
     refute_includes response.body, "Article.published"
     refute_includes response.body, "RecordingStudioPublishable::Routing.url_for"
     refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"

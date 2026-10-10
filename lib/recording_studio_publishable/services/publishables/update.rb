@@ -15,6 +15,7 @@ module RecordingStudioPublishable
         attr_reader :parent_recording, :attributes, :actor
 
         def perform
+          previous = LifecycleNotifications.snapshot_for(parent_recording)
           ensure_result = EnsureChild.call(parent_recording: parent_recording, actor: actor)
           return ensure_result if ensure_result.failure?
 
@@ -33,10 +34,21 @@ module RecordingStudioPublishable
           end
 
           persist_publishable_attributes!(updated_recording.recordable, validated_attributes.value)
+          emit_lifecycle_notifications!(previous)
 
           success(updated_recording)
         rescue StandardError => e
           failure(e)
+        end
+
+        def emit_lifecycle_notifications!(previous)
+          parent_recording.reload
+          LifecycleNotifications.after_write!(
+            parent_recording: parent_recording,
+            previous: previous,
+            actor: actor,
+            source: "write"
+          )
         end
 
         def service_args

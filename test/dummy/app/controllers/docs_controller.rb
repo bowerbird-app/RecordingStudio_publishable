@@ -190,6 +190,21 @@ class DocsController < ApplicationController
           # Returns nil when the recordable is not currently published.
           recordable.published_url # => nil
         RUBY
+      },
+      {
+        title: "RecordingStudioPublishable.subscribe",
+        subtitle: "Listen for after-commit publish, unpublish, and live revision events.",
+        code: <<~RUBY
+          RecordingStudioPublishable.subscribe(:published) do |event|
+            payload = event.payload
+            payload[:recording_id]
+            payload[:recordable_type]
+            payload[:current_state][:currently_published]
+          end
+
+          RecordingStudioPublishable.subscribe(:unpublished) { |event| event.payload }
+          RecordingStudioPublishable.subscribe(:revised) { |event| event.payload }
+        RUBY
       }
     ]
   end
