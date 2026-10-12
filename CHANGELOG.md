@@ -12,16 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `Copy::ENGLISH` supplies an English `default:` on every `Copy.t` lookup under `recording_studio.publishable.*`, so a host locale without a fallback never shows "translation missing".
 - Boot-order host override under `test/dummy/config/locales/recording_studio_publishable_host.en.yml` for the rarely shown `errors.unknown_transition` key, with a real transition-flash assertion.
-- Validation i18n coverage: English `errors.details` stay byte-identical to main; non-English locales carry the translated string as the ActiveModel String error type for `unpublish_at`; format slug validation keeps the `:invalid` symbol type.
+- Validation i18n tests cover English `errors.details` fidelity and host-override / non-English full_messages for the existing string-typed `unpublish_at` window error (behavior unchanged from main).
 
 ### Changed
-- Summary card and published fallback labels move the trailing colon into the locale keys (`Slug:`, `Parent recordable:`, …) so hosts can use locale-correct punctuation (for example French `Slug :`). English HTML output stays byte-identical to main.
 - `locales_test` load-path check now asserts the gem `en.yml` file actually drives lookups (and that the engine exposes that path), instead of only checking a path setup already injected.
 
 ### Upgrade Notes
 - Install Publishable `0.8.0`. No migration.
-- No host code change is required for English. Hosts that override `summary.slug`, `summary.canonical_path`, `summary.publish_window`, `summary.seo_title`, `published.parent_recordable`, `published.current_title`, `published.canonical_url`, or `published.social_card` should include the trailing colon (or locale equivalent) in their override value.
-- `errors.details` for the inverted publish window carries the translated string in non-English locales (ActiveModel String error types). English details stay identical to main.
+- No host code change is required for English.
 
 ## [0.7.0] - 2026-10-10
 

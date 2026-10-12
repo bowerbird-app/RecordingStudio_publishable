@@ -51,6 +51,8 @@ class HostLocaleOverrideTest < ActionDispatch::IntegrationTest
 
     assert_response :redirect
     assert_equal HOST_UNKNOWN, flash[:alert]
+    follow_redirect!
+    assert_includes response.body, HOST_UNKNOWN
   end
 
   private

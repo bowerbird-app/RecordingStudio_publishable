@@ -184,7 +184,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
                     "A publishable child recording will be created the first time someone opens the edit screen."
   end
 
-  test "summary card label keys keep colon inside the translation" do
+  test "summary card English labels keep colon outside the translation" do
     html = ApplicationController.render(
       partial: "recording_studio_publishable/components/summary_card",
       locals: { recording: @recording }
@@ -194,11 +194,9 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes html, "<strong>Canonical path:</strong>"
     assert_includes html, "<strong>Publish window:</strong>"
     assert_includes html, "<strong>SEO title:</strong>"
-    refute_match(%r{<strong>Slug</strong>:}, html)
-    refute_match(%r{<strong>Canonical path</strong>:}, html)
   end
 
-  test "published fallback page label keys keep colon inside the translation" do
+  test "published fallback English labels keep colon outside the translation" do
     RecordingStudioPublishable::Services::Publishables::Update.call(
       parent_recording: @recording,
       actor: @user,
@@ -228,8 +226,6 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes html, "<strong>Current title:</strong>"
     assert_includes html, "<strong>Canonical URL:</strong>"
     assert_includes html, "<strong>Social card:</strong>"
-    refute_match(%r{<strong>Parent recordable</strong>:}, html)
-    refute_match(%r{<strong>Current title</strong>:}, html)
   end
 
   private
