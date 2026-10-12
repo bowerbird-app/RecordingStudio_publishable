@@ -176,9 +176,8 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     gemfile = File.read(Rails.root.join("Gemfile"))
 
     assert_includes gemfile, 'tag: "v4.5.0"'
-    assert_includes gemfile, 'tag: "v0.13.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.15.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.13.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
     assert_includes gemfile, 'tag: "v0.1.213"'
     assert_includes gemfile, 'tag: "v0.5.6"'
     assert_includes gemfile, 'tag: "v2.1.0"'
