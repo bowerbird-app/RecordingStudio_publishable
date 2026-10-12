@@ -6,10 +6,10 @@
   <% card.body do %>
     <% if publishable.present? %>
       <div class="space-y-3 text-sm leading-6">
-        <p><strong><%= publishable_t("summary.slug") %>:</strong> <%= publishable.slug %></p>
-        <p><strong><%= publishable_t("summary.canonical_path") %>:</strong> <%= recording.publishable_public_path %></p>
-        <p><strong><%= publishable_t("summary.publish_window") %>:</strong> <%= [publishable.publish_at, publishable.unpublish_at].compact.map { |value| l(value, format: :long) rescue value }.join(" → ").presence || publishable_t("summary.always_available") %></p>
-        <p><strong><%= publishable_t("summary.seo_title") %>:</strong> <%= publishable.seo_title.presence || publishable_t("summary.uses_parent_title") %></p>
+        <p><strong><%= publishable_t("summary.slug", default: "Slug") %>:</strong> <%= publishable.slug %></p>
+        <p><strong><%= publishable_t("summary.canonical_path", default: "Canonical path") %>:</strong> <%= recording.publishable_public_path %></p>
+        <p><strong><%= publishable_t("summary.publish_window", default: "Publish window") %>:</strong> <%= [publishable.publish_at, publishable.unpublish_at].compact.map { |value| l(value, format: :long) rescue value }.join(" → ").presence || publishable_t("summary.always_available") %></p>
+        <p><strong><%= publishable_t("summary.seo_title", default: "SEO title") %>:</strong> <%= publishable.seo_title.presence || publishable_t("summary.uses_parent_title") %></p>
       </div>
     <% else %>
       <p class="text-sm text-[var(--surface-muted-content-color)]"><%= publishable_t("summary.empty") %></p>

@@ -3,8 +3,12 @@
 require "erb"
 require "i18n"
 require "active_support/core_ext/string/output_safety"
+require "recording_studio_publishable/copy/english"
 
 module RecordingStudioPublishable
+  # Rails I18n lookups for Publishable user-facing copy. Every call passes
+  # `default:` English (from ENGLISH or an explicit caller default) so a host
+  # locale without a fallback never shows "translation missing".
   module Copy
     PREFIX = "recording_studio.publishable"
     UNSET = Object.new.freeze
@@ -13,6 +17,9 @@ module RecordingStudioPublishable
 
     def t(key, **options)
       full_key = "#{PREFIX}.#{key}"
+      english = ENGLISH[key.to_s]
+      options = { default: english }.merge(options) if english && !options.key?(:default)
+
       return I18n.t(full_key, **options) unless key.to_s.end_with?("_html")
 
       escaped = options.transform_values { |value| value.is_a?(String) ? ERB::Util.html_escape(value) : value }

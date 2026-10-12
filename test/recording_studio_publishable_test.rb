@@ -100,10 +100,16 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes summary, 'publishable_t("summary.title")'
     assert_includes summary, 'publishable_t("summary.subtitle")'
     assert_includes summary, 'publishable_t("summary.empty")'
+    assert_includes summary, 'publishable_t("summary.slug", default: "Slug") %>:'
+    assert_includes summary, 'publishable_t("summary.canonical_path", default: "Canonical path") %>:'
+    assert_includes summary, 'publishable_t("summary.publish_window", default: "Publish window") %>:'
+    assert_includes summary, 'publishable_t("summary.seo_title", default: "SEO title") %>:'
     refute_includes summary, 'title: "Summary"'
     assert_includes published, 'publishable_t("published.fallback_subtitle")'
-    assert_includes published, 'publishable_t("published.parent_recordable")'
-    assert_includes published, 'publishable_t("published.current_title")'
+    assert_includes published, 'publishable_t("published.parent_recordable", default: "Parent recordable") %>:'
+    assert_includes published, 'publishable_t("published.current_title", default: "Current title") %>:'
+    assert_includes published, 'publishable_t("published.canonical_url", default: "Canonical URL") %>:'
+    assert_includes published, 'publishable_t("published.social_card", default: "Social card") %>:'
     refute_includes published, "Published from the parent recording's current recordable."
     assert_includes layout, 'publishable_t("layout.title", default: "Recording Studio Publishable")'
   end

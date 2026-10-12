@@ -33,6 +33,7 @@ Metrics/ModuleLength:
   Exclude:
     - 'lib/recording_studio/capabilities/publishable/recordable_methods.rb'
     - 'lib/recording_studio_publishable/lifecycle_notifications.rb'
+    - 'lib/recording_studio_publishable/copy/english.rb'
 
 Metrics/MethodLength:
   Exclude:

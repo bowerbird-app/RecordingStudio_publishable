@@ -1,0 +1,7 @@
+# Host override for a rarely shown Publishable error (unknown transition alert).
+# Kept out of the default happy-path UI so other dummy tests still see gem English.
+en:
+  recording_studio:
+    publishable:
+      errors:
+        unknown_transition: "HOST Unknown publishable transition"

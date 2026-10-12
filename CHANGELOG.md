@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-12
+
+### Added
+- `Copy::ENGLISH` supplies an English `default:` on every `Copy.t` lookup under `recording_studio.publishable.*`, so a host locale without a fallback never shows "translation missing".
+- Boot-order host override under `test/dummy/config/locales/recording_studio_publishable_host.en.yml` for the rarely shown `errors.unknown_transition` key, with a real transition-flash assertion.
+- Validation i18n tests cover English `errors.details` fidelity and host-override / non-English full_messages for the existing string-typed `unpublish_at` window error (behavior unchanged from main).
+
+### Changed
+- `locales_test` load-path check now asserts the gem `en.yml` file actually drives lookups (and that the engine exposes that path), instead of only checking a path setup already injected.
+
+### Upgrade Notes
+- Install Publishable `0.8.0`. No migration.
+- No host code change is required for English.
+
 ## [0.7.0] - 2026-10-10
 
 ### Added
@@ -191,7 +205,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.7.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.7.0
 [0.6.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.6.0
 [0.5.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.5.0
