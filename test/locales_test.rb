@@ -25,9 +25,29 @@ class LocalesTest < Minitest::Test
   end
 
   def test_rails_i18n_load_path_includes_the_gem_english_locale_file
-    locale_path = File.join(engine_locales_dir, "en.yml")
+    # with_gem_english_locale_only puts only en.yml on the path and reloads.
+    # Assert that file actually drives lookups (not merely that the path we set is present).
+    with_gem_english_locale_only do
+      locale_path = File.expand_path(File.join(engine_locales_dir, "en.yml"))
+      assert_equal([locale_path], I18n.load_path.map { |path| File.expand_path(path) })
+      assert_equal "Publish", I18n.t("recording_studio.publishable.hub.title")
+      assert_equal "Slug:", I18n.t("recording_studio.publishable.summary.slug")
+      assert_equal "Parent recordable:", I18n.t("recording_studio.publishable.published.parent_recordable")
+      assert_equal "Publishable not found", I18n.t("recording_studio.publishable.flashes.not_found")
+    end
+  end
 
-    assert_includes I18n.load_path.map { |path| File.expand_path(path) }, File.expand_path(locale_path)
+  def test_engine_exposes_english_locale_paths
+    locale_path = File.expand_path(File.join(engine_locales_dir, "en.yml"))
+    existent = RecordingStudioPublishable::Engine.paths["config/locales"].existent.map do |path|
+      File.expand_path(path)
+    end
+
+    assert_includes existent, locale_path
+    yaml = YAML.safe_load_file(locale_path, aliases: true)
+    assert_equal "Slug:", yaml.dig("en", "recording_studio", "publishable", "summary", "slug")
+    assert_equal "Parent recordable:",
+                 yaml.dig("en", "recording_studio", "publishable", "published", "parent_recordable")
   end
 
   def test_lib_sources_do_not_append_i18n_load_path
@@ -42,6 +62,14 @@ class LocalesTest < Minitest::Test
       refute_includes source, "i18n.load_path", "#{path} must not touch i18n.load_path"
       refute_includes source, "I18n.load_path", "#{path} must not touch I18n.load_path"
     end
+  end
+
+  def test_copy_english_defaults_cover_every_engine_locale_key
+    english_keys = flatten_keys(locale_tree(File.join(engine_locales_dir, "en.yml"), "en"))
+    default_keys = Copy::ENGLISH.keys.sort
+
+    assert_equal english_keys.sort, default_keys,
+                 "Copy::ENGLISH must match config/locales/en.yml keys exactly"
   end
 
   def test_dummy_french_covers_every_engine_english_key
@@ -76,11 +104,11 @@ class LocalesTest < Minitest::Test
         assert_equal "See it live.", Copy.t("page_link.view_subtitle")
         assert_equal "Summary", Copy.t("summary.title")
         assert_equal "Current public metadata for this recording.", Copy.t("summary.subtitle")
-        assert_equal "Slug", Copy.t("summary.slug")
-        assert_equal "Canonical path", Copy.t("summary.canonical_path")
-        assert_equal "Publish window", Copy.t("summary.publish_window")
+        assert_equal "Slug:", Copy.t("summary.slug")
+        assert_equal "Canonical path:", Copy.t("summary.canonical_path")
+        assert_equal "Publish window:", Copy.t("summary.publish_window")
         assert_equal "Always available when published", Copy.t("summary.always_available")
-        assert_equal "SEO title", Copy.t("summary.seo_title")
+        assert_equal "SEO title:", Copy.t("summary.seo_title")
         assert_equal "Uses parent recording title", Copy.t("summary.uses_parent_title")
         assert_equal(
           "A publishable child recording will be created the first time someone opens the edit screen.",
@@ -90,15 +118,16 @@ class LocalesTest < Minitest::Test
           "Published from the parent recording's current recordable.",
           Copy.t("published.fallback_subtitle")
         )
-        assert_equal "Parent recordable", Copy.t("published.parent_recordable")
-        assert_equal "Current title", Copy.t("published.current_title")
-        assert_equal "Canonical URL", Copy.t("published.canonical_url")
-        assert_equal "Social card", Copy.t("published.social_card")
+        assert_equal "Parent recordable:", Copy.t("published.parent_recordable")
+        assert_equal "Current title:", Copy.t("published.current_title")
+        assert_equal "Canonical URL:", Copy.t("published.canonical_url")
+        assert_equal "Social card:", Copy.t("published.social_card")
         assert_equal "Could not save that.", Copy.t("flashes.save_failed")
         assert_equal "Could not update this page.", Copy.t("flashes.update_failed")
         assert_equal "Social image is invalid", Copy.t("errors.social_image_invalid")
         assert_equal "must use URL-safe lowercase slug segments", Copy.t("errors.slug_format")
         assert_equal "must be later than publish at", Copy.t("errors.unpublish_after_publish")
+        assert_equal "Unknown publishable transition", Copy.t("errors.unknown_transition")
         assert_equal "Social title", Copy.attribute_name(:social_title)
         assert_equal "Social title is invalid", Copy.attribute_invalid(:social_title)
         assert_equal(
@@ -109,12 +138,22 @@ class LocalesTest < Minitest::Test
     end
   end
 
+  def test_copy_english_default_wins_when_locale_has_no_key
+    I18n.available_locales = Array(I18n.available_locales) | [:zz]
+    I18n.with_locale(:zz) do
+      assert_equal "Slug:", Copy.t("summary.slug")
+      assert_equal "Parent recordable:", Copy.t("published.parent_recordable")
+      assert_equal "Publishable not found", Copy.t("flashes.not_found")
+    end
+  end
+
   def test_nested_summary_and_published_keys_resolve_without_missing_translations
     with_gem_english_locale_only do
       I18n.with_locale(:en) do
         %w[
           summary.title
           summary.empty
+          summary.slug
           published.fallback_subtitle
           published.parent_recordable
           preview.badge

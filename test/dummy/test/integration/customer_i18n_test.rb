@@ -184,6 +184,54 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
                     "A publishable child recording will be created the first time someone opens the edit screen."
   end
 
+  test "summary card label keys keep colon inside the translation" do
+    html = ApplicationController.render(
+      partial: "recording_studio_publishable/components/summary_card",
+      locals: { recording: @recording }
+    )
+
+    assert_includes html, "<strong>Slug:</strong>"
+    assert_includes html, "<strong>Canonical path:</strong>"
+    assert_includes html, "<strong>Publish window:</strong>"
+    assert_includes html, "<strong>SEO title:</strong>"
+    refute_match(%r{<strong>Slug</strong>:}, html)
+    refute_match(%r{<strong>Canonical path</strong>:}, html)
+  end
+
+  test "published fallback page label keys keep colon inside the translation" do
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: @recording,
+      actor: @user,
+      attributes: {
+        slug: "launch-checklist",
+        status: "published",
+        canonical_url: "https://example.test/launch",
+        social_title: "Share launch",
+        social_description: "Card line."
+      }
+    ).value!
+
+    publishable_recording = @recording.reload.publishable_child_recording
+    publishable = publishable_recording.recordable
+    html = ApplicationController.render(
+      template: "recording_studio_publishable/published/show",
+      layout: false,
+      assigns: {
+        publishable_recording: publishable_recording,
+        publishable: publishable,
+        parent_recording: @recording,
+        parent_recordable: @recording.recordable
+      }
+    )
+
+    assert_includes html, "<strong>Parent recordable:</strong>"
+    assert_includes html, "<strong>Current title:</strong>"
+    assert_includes html, "<strong>Canonical URL:</strong>"
+    assert_includes html, "<strong>Social card:</strong>"
+    refute_match(%r{<strong>Parent recordable</strong>:}, html)
+    refute_match(%r{<strong>Current title</strong>:}, html)
+  end
+
   private
 
   def switch_to_french
