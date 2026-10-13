@@ -38,8 +38,8 @@ GIT
 
 GIT
   remote: https://github.com/bowerbird-app/RecordingStudio_metrics.git
-  revision: b992b5d3a5ef0b5a96c98a2e1410810d7d872f20
-  tag: v0.2.2
+  revision: eeada2296c2db27585fc5f2726bec19677fe8b5d
+  tag: v0.2.3
   specs:
     recording_studio_metrics (0.2.2)
       rails (~> 8.1.0)
