@@ -172,10 +172,10 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_flatpack_assets_loaded
   end
 
-  test "dummy gemfile pins recording studio 4.5 and dummy-only root switchable" do
+  test "dummy gemfile pins recording studio 4.6 and dummy-only root switchable" do
     gemfile = File.read(Rails.root.join("Gemfile"))
 
-    assert_includes gemfile, 'tag: "v4.5.0"'
+    assert_includes gemfile, 'tag: "v4.6.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.17.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
     assert_includes gemfile, 'tag: "v0.1.213"'
