@@ -1,14 +1,18 @@
-<div id="<%= wrapper_id %>" class="relative overflow-visible">
+<% state = appearance.state_config(closed_state) %>
+<div id="<%= wrapper_id %>" class="publishable-quick-actions relative overflow-visible">
   <% if alert.present? %>
     <%= render FlatPack::Alert::Component.new(description: alert, style: :danger, class: "mb-2") %>
   <% end %>
 
-  <%= render FlatPack::Button::Dropdown::Component.new(
+  <%= render RecordingStudioPublishable::QuickActions::DropdownComponent.new(
     text: trigger_text,
-    style: state_config[:style],
+    style: state[:style],
     size: size,
-    icon: state_config[:icon],
-    placement: (size.to_sym == :sm ? :bottom_left : :bottom_right)
+    icon: state[:icon],
+    placement: (size.to_sym == :sm ? :bottom_left : :bottom_right),
+    button_class: appearance.button_class,
+    menu_class: appearance.menu_class,
+    trigger_attributes: appearance.html_attributes
   ) do |dropdown| %>
     <% menu_actions.each do |action_name| %>
       <% action = action_config(action_name) %>

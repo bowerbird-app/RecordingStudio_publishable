@@ -156,6 +156,46 @@ Put `QuickActions` on a host page to show the current state and change it there.
 
 The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary, Scheduled is default, Published is success. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`), then Preview or View, then SEO and Social.
 
+### Styling the dropdown
+
+Pass host classes and HTML attributes straight to the component. `class:` merges onto the trigger and does not replace the FlatPack button classes. Other attributes (`data`, `aria`, `title`, `id`) land on that same button. `menu_class:` merges onto the menu. FlatPack moves the open menu to `document.body`, and the class goes with it. The menu also always has `publishable-quick-actions-menu`, so a stylesheet can target the open menu without a per-render class. The wrapper has `publishable-quick-actions`.
+
+`states:` overrides the trigger style and icon for `draft`, `scheduled`, and `published`. A partial entry keeps the other default. Styles are FlatPack button styles (`:default`, `:primary`, `:secondary`, `:ghost`, `:success`, `:warning`, `:danger`, or a style registered with FlatPack). Icons are Heroicon names.
+
+```erb
+<%= render RecordingStudioPublishable::QuickActions::Component.new(
+  recording: page_recording,
+  class: "uppercase tracking-wide",
+  menu_class: "ring-2",
+  data: { controller: "publish-menu" },
+  states: {
+    draft: { style: :danger, icon: "bell" },
+    published: { style: :primary, icon: "check-badge" }
+  }
+) %>
+
+<%= render_publishable_quick_actions(page_recording, class: "uppercase", menu_class: "ring-2") %>
+```
+
+The same keys are config defaults. Gem screens, including the publish hub and the Turbo replacement, use them without a view override. A per-render value wins when both are set. Inline publish and unpublish keep the per-render `class:`, `menu_class:`, and `states:` on the replacement.
+
+```ruby
+RecordingStudioPublishable.configure do |config|
+  config.quick_actions_button_class = "uppercase"
+  config.quick_actions_menu_class = "ring-2"
+  config.quick_actions_states = {
+    draft: { style: :danger, icon: "bell" },
+    published: { style: :primary, icon: "check-badge" }
+  }
+end
+```
+
+`EditButtonComponent` merges a host `class:` the same way:
+
+```erb
+<%= render RecordingStudioPublishable::EditButtonComponent.new(recording: page_recording, class: "uppercase") %>
+```
+
 Preview is for drafts and scheduled pages. It opens in a new tab for people who can see the page. Logged-out visitors get 404. It is not the public URL. Live pages use View, which opens the public URL in a new tab. Preview sends `noindex,nofollow` and does not emit the live social or canonical tags. Host public templates can render `publishable_preview_badge`.
 
 Publish settings is a hub. The list starts with Preview or View, then Schedule, SEO, and Social. Schedule in the dropdown opens the schedule screen. SEO and Social in the dropdown open those screens.

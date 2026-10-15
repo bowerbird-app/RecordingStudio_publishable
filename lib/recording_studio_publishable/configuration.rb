@@ -19,8 +19,10 @@ module RecordingStudioPublishable
                   :management_close_url_resolver,
                   :default_time_zone,
                   :layout,
-                  :canonical_redirect_status
-    attr_reader :hooks, :public_path_configs, :public_renderer_configs
+                  :canonical_redirect_status,
+                  :quick_actions_button_class,
+                  :quick_actions_menu_class
+    attr_reader :hooks, :public_path_configs, :public_renderer_configs, :quick_actions_states
 
     def initialize
       @current_actor_resolver = method(:default_current_actor_resolver)
@@ -29,6 +31,7 @@ module RecordingStudioPublishable
       @default_time_zone = default_rails_time_zone
       @layout = "recording_studio_publishable/application"
       @canonical_redirect_status = :found
+      assign_quick_actions_defaults
       @public_path_configs = {}
       @public_renderer_configs = {}
       @hooks = Hooks.new
@@ -43,6 +46,14 @@ module RecordingStudioPublishable
         public_path_configs: public_path_configs.dup,
         public_renderer_configs: public_renderer_configs.transform_values(&:to_h),
         hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
+      }.merge(quick_actions_settings)
+    end
+
+    def quick_actions_settings
+      {
+        quick_actions_button_class: quick_actions_button_class,
+        quick_actions_menu_class: quick_actions_menu_class,
+        quick_actions_states: quick_actions_states.dup
       }
     end
 
@@ -92,6 +103,14 @@ module RecordingStudioPublishable
 
     def public_layout_for(recordable_type)
       public_renderer_for(recordable_type).layout
+    end
+
+    def quick_actions_states=(value)
+      @quick_actions_states = QuickActions::StateOverrides.normalize(value)
+    end
+
+    def quick_actions_state(name)
+      quick_actions_states[name.to_sym] || {}
     end
 
     def schedule_enabled_for(recordable_type)
@@ -156,6 +175,12 @@ module RecordingStudioPublishable
     end
 
     private
+
+    def assign_quick_actions_defaults
+      @quick_actions_button_class = nil
+      @quick_actions_menu_class = nil
+      @quick_actions_states = {}
+    end
 
     def default_current_actor_resolver(controller: nil)
       recording_studio_actor = resolve_recording_studio_actor

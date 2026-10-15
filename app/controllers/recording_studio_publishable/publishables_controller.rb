@@ -267,7 +267,7 @@ module RecordingStudioPublishable
     def render_inline_transition(alert: nil, status: :ok)
       if turbo_stream_request?
         @transition_alert = alert
-        @quick_actions_size = RecordingStudioPublishable::QuickActions::Component.normalize_size(params[:button_size])
+        @quick_actions_options = RecordingStudioPublishable::QuickActions::Appearance.options_from_transition_params(params)
         return render :transition, formats: [:turbo_stream], status: status
       end
 
