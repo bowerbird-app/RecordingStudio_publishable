@@ -14,7 +14,7 @@ module RecordingStudioPublishable
     def call
       raise ArgumentError, "recording is required for EditButtonComponent" unless @recording
 
-      button = link_to edit_path, class: button_class, **@options do
+      button = link_to(edit_path, **link_html_options) do
         concat(tag.span(button_text))
       end
 
@@ -29,6 +29,14 @@ module RecordingStudioPublishable
     end
 
     private
+
+    def link_html_options
+      @options.except(:class).merge(class: merged_button_class)
+    end
+
+    def merged_button_class
+      ClassNames.merge(button_class, @options[:class])
+    end
 
     def button_class
       [BUTTON_BASE_CLASS, button_tone_class].join(" ")

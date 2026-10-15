@@ -15,8 +15,7 @@ module RecordingStudioPublishable
           actions: %i[publish schedule unpublish]
         },
         published: {
-          style: :success,
-          icon: "check-circle",
+          style: :default, icon: "check-circle", icon_variant: :solid, icon_style: :success,
           actions: %i[unpublish schedule]
         }
       }.freeze
@@ -29,13 +28,14 @@ module RecordingStudioPublishable
 
       BUTTON_SIZES = %i[sm md lg].freeze
 
-      def initialize(recording:, size: :md, alert: nil)
+      def initialize(recording:, size: :md, alert: nil, **options)
         @recording = recording
         @size = self.class.normalize_size(size)
         @alert = alert
+        @appearance = Appearance.from(options)
       end
 
-      attr_reader :recording, :size, :alert
+      attr_reader :recording, :size, :alert, :appearance
 
       def self.normalize_size(value)
         size = value.to_s.to_sym
@@ -55,10 +55,6 @@ module RecordingStudioPublishable
         publishable.scheduled_for_future? ? :scheduled : :published
       end
 
-      def state_config
-        CLOSED_STATES.fetch(closed_state)
-      end
-
       def trigger_text
         closed_state == :scheduled ? scheduled_trigger_text : Copy.t("status.#{closed_state}")
       end
@@ -70,7 +66,7 @@ module RecordingStudioPublishable
       end
 
       def menu_actions
-        schedule_enabled? ? state_config[:actions] : state_config[:actions] - [:schedule]
+        appearance.menu_actions(closed_state, schedule_enabled: schedule_enabled?)
       end
 
       def action_href(action)
@@ -91,10 +87,12 @@ module RecordingStudioPublishable
 
       def transition_url(transition)
         helpers.recording_studio_publishable.transition_recording_publishable_path(
-          recording_id: recording.id,
-          transition: transition,
-          inline: 1,
-          button_size: size
+          {
+            recording_id: recording.id,
+            transition: transition,
+            inline: 1,
+            button_size: size
+          }.merge(appearance.transition_style_params)
         )
       end
 

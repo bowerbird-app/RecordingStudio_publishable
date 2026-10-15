@@ -175,4 +175,50 @@ class ConfigurationTest < Minitest::Test
 
     assert_equal "/workspace/42", result
   end
+
+  def test_quick_actions_states_normalize_string_keys
+    RecordingStudioPublishable.configuration.quick_actions_button_class = "config-publish-button"
+    RecordingStudioPublishable.configuration.quick_actions_menu_class = "config-publish-menu"
+    RecordingStudioPublishable.configuration.quick_actions_states = {
+      "draft" => { "style" => "danger", "icon" => "bell_alert" },
+      "published" => {
+        "icon_variant" => "solid",
+        "icon_style" => "success"
+      }
+    }
+
+    assert_equal "config-publish-button", RecordingStudioPublishable.configuration.quick_actions_button_class
+    assert_equal "config-publish-menu", RecordingStudioPublishable.configuration.quick_actions_menu_class
+    state = RecordingStudioPublishable.configuration.quick_actions_state(:draft)
+    assert_equal({ style: :danger, icon: "bell-alert" }, state)
+    published = RecordingStudioPublishable.configuration.quick_actions_state(:published)
+    assert_equal({ icon_variant: :solid, icon_style: :success }, published)
+  end
+
+  def test_quick_actions_states_reject_unknown_state_keys_and_icons
+    error = assert_raises(ArgumentError) do
+      RecordingStudioPublishable.configuration.quick_actions_states = { live: { style: :primary } }
+    end
+    assert_includes error.message, "live"
+
+    error = assert_raises(ArgumentError) do
+      RecordingStudioPublishable.configuration.quick_actions_states = { draft: { color: "red" } }
+    end
+    assert_includes error.message, "color"
+
+    error = assert_raises(ArgumentError) do
+      RecordingStudioPublishable.configuration.quick_actions_states = { draft: { icon: "Bell Icon" } }
+    end
+    assert_includes error.message, "Bell Icon"
+
+    error = assert_raises(ArgumentError) do
+      RecordingStudioPublishable.configuration.quick_actions_states = { draft: { icon_variant: :chunky } }
+    end
+    assert_includes error.message, "chunky"
+
+    error = assert_raises(ArgumentError) do
+      RecordingStudioPublishable.configuration.quick_actions_states = { draft: { icon_style: :neon } }
+    end
+    assert_includes error.message, "neon"
+  end
 end

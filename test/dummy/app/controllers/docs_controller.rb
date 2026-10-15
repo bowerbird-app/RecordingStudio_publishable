@@ -234,6 +234,12 @@ class DocsController < ApplicationController
             required: false,
             description: "When true, shows a published/scheduled tooltip on hover (default: false)."
           },
+          {
+            name: "class:",
+            type: "String",
+            required: false,
+            description: "Host classes merged onto the link. Does not replace the status classes."
+          },
         ],
         preview: :edit_button,
         code: <<~ERB
@@ -281,11 +287,35 @@ class DocsController < ApplicationController
             type: "Symbol",
             required: false,
             description: "Flatpack dropdown size. Default :md."
+          },
+          {
+            name: "class:",
+            type: "String",
+            required: false,
+            description: "Host classes merged onto the trigger. Does not replace the FlatPack button classes."
+          },
+          {
+            name: "menu_class:",
+            type: "String",
+            required: false,
+            description: "Host classes merged onto the menu. Stays with the menu when it moves to document.body."
+          },
+          {
+            name: "states:",
+            type: "Hash",
+            required: false,
+            description: "Per-state style, icon, icon_variant, and icon_style overrides for :draft, :scheduled, and :published. Wins over config."
           }
         ],
         preview: :quick_actions,
         code: <<~ERB
           <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: recording) %>
+          <%= render RecordingStudioPublishable::QuickActions::Component.new(
+            recording: recording,
+            class: "uppercase",
+            menu_class: "ring-2",
+            states: { published: { icon_variant: :mini, icon_style: :primary } }
+          ) %>
         ERB
       },
     ]

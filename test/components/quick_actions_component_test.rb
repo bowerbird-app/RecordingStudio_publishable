@@ -89,9 +89,15 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     section = wrapper_html(recording)
+    button = Nokogiri::HTML(section).at_css("button")
+    icon = button.at_css("svg[data-flat-pack--icon-name-value='check-circle']")
+
     assert_includes section, "Published"
-    assert_includes section, "check-circle"
-    assert_includes section, 'data-fp-style="success"'
+    assert_equal "default", button["data-fp-style"]
+    assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "success", icon["data-icon-style"]
+    assert_includes icon["class"], "fp-button-icon"
+    refute_includes section, 'data-fp-style="success"'
     assert_includes section, "Unpublish"
     refute_includes section, "Back to draft"
     refute_includes section, "Publish now"
@@ -136,6 +142,113 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
       refute_includes section, ">View<"
       assert_footer_job_links(section, recording)
     end
+  end
+
+  test "host classes attributes and state overrides merge onto the dropdown" do
+    recording = draft_recording("Styled dropdown page", "styled-dropdown")
+
+    html = render_quick_actions(
+      recording,
+      class: "host-publish-button",
+      menu_class: "host-publish-menu",
+      title: "Publish status",
+      data: { publishable_host: "1" },
+      states: { draft: { style: :danger, icon: "bell" } }
+    )
+    button = Nokogiri::HTML(html).at_css("button")
+    menu = Nokogiri::HTML(html).at_css("[role='menu']")
+
+    assert_includes button["class"], "fp-button"
+    assert_includes button["class"], "inline-flex"
+    assert_includes button["class"], "host-publish-button"
+    assert_equal "danger", button["data-fp-style"]
+    assert_equal "bell", button.at_css("svg")["data-flat-pack--icon-name-value"]
+    assert_equal "Publish status", button["title"]
+    assert_equal "1", button["data-publishable-host"]
+    assert_includes menu["class"], "fixed"
+    assert_includes menu["class"], "publishable-quick-actions-menu"
+    assert_includes menu["class"], "host-publish-menu"
+    assert_includes html, "button_class=host-publish-button"
+    assert_includes html, "menu_class=host-publish-menu"
+    assert_includes html, "quick_actions_states="
+  end
+
+  test "config defaults style the dropdown and per-render values win" do
+    recording = draft_recording("Config dropdown page", "config-dropdown")
+    configuration = RecordingStudioPublishable.configuration
+    configuration.quick_actions_button_class = "config-publish-button"
+    configuration.quick_actions_menu_class = "config-publish-menu"
+    configuration.quick_actions_states = { draft: { style: :warning, icon: "clock" } }
+
+    configured = render_quick_actions(recording)
+    button = Nokogiri::HTML(configured).at_css("button")
+    menu = Nokogiri::HTML(configured).at_css("[role='menu']")
+
+    assert_includes button["class"], "config-publish-button"
+    assert_includes button["class"], "fp-button"
+    assert_equal "warning", button["data-fp-style"]
+    assert_equal "clock", button.at_css("svg")["data-flat-pack--icon-name-value"]
+    assert_includes menu["class"], "config-publish-menu"
+
+    overridden = render_quick_actions(recording, class: "host-publish-button", states: { draft: { style: :danger } })
+    button = Nokogiri::HTML(overridden).at_css("button")
+
+    assert_includes button["class"], "config-publish-button"
+    assert_includes button["class"], "host-publish-button"
+    assert_equal "danger", button["data-fp-style"]
+    assert_equal "clock", button.at_css("svg")["data-flat-pack--icon-name-value"]
+  ensure
+    reset_quick_actions_style!
+  end
+
+  test "helper forwards quick action style options" do
+    recording = draft_recording("Helper dropdown page", "helper-dropdown")
+
+    html = ApplicationController.render(
+      inline: "<%= render_publishable_quick_actions(@recording, class: 'from-helper', menu_class: 'helper-menu') %>",
+      assigns: { recording: recording },
+      layout: false
+    )
+    button = Nokogiri::HTML(html).at_css("button")
+    menu = Nokogiri::HTML(html).at_css("[role='menu']")
+
+    assert_includes button["class"], "from-helper"
+    assert_includes button["class"], "fp-button"
+    assert_includes menu["class"], "helper-menu"
+  end
+
+  test "state overrides accept icon variant and icon style" do
+    recording = draft_recording("Icon style dropdown page", "icon-style-dropdown")
+    configuration = RecordingStudioPublishable.configuration
+    configuration.quick_actions_states = { draft: { icon_variant: :mini, icon_style: :warning } }
+
+    configured = render_quick_actions(recording)
+    icon = Nokogiri::HTML(configured).at_css("button svg[data-flat-pack--icon-name-value='pencil-square']")
+
+    assert_equal "secondary", Nokogiri::HTML(configured).at_css("button")["data-fp-style"]
+    assert_equal "mini", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "warning", icon["data-icon-style"]
+
+    overridden = render_quick_actions(
+      recording,
+      states: { draft: { icon_variant: :solid, icon_style: :danger } }
+    )
+    icon = Nokogiri::HTML(overridden).at_css("button svg[data-flat-pack--icon-name-value='pencil-square']")
+
+    assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "danger", icon["data-icon-style"]
+  ensure
+    reset_quick_actions_style!
+  end
+
+  test "unknown button style raises" do
+    recording = draft_recording("Bad style page", "bad-style")
+
+    error = assert_raises(ArgumentError) do
+      render_quick_actions(recording, states: { draft: { style: :neon } })
+    end
+
+    assert_includes error.message, "neon"
   end
 
   private
@@ -188,6 +301,30 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
                     recording_studio_publishable.social_recording_publishable_path(recording_id: recording.id)
     assert_nil seo["data-turbo-method"]
     assert_nil social["data-turbo-method"]
+  end
+
+  def render_quick_actions(recording, **)
+    ApplicationController.render(
+      RecordingStudioPublishable::QuickActions::Component.new(recording: recording, **),
+      layout: false
+    )
+  end
+
+  def draft_recording(title, slug)
+    recording = create_parent(title)
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: recording,
+      actor: @user,
+      attributes: { slug: slug, status: "draft" }
+    ).value!
+    recording
+  end
+
+  def reset_quick_actions_style!
+    configuration = RecordingStudioPublishable.configuration
+    configuration.quick_actions_button_class = nil
+    configuration.quick_actions_menu_class = nil
+    configuration.quick_actions_states = {}
   end
 
   def create_parent(title)

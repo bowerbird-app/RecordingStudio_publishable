@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-15
+
+### Added
+- Hosts can style the publish quick-actions dropdown without a view override. `class:` merges onto the trigger, other HTML attributes land on that button, and `menu_class:` stays with the menu after FlatPack moves it to `document.body`.
+- `states:` and `config.quick_actions_states` override `style`, `icon`, `icon_variant` (`:outline`, `:solid`, `:mini`, `:micro`), and `icon_style` (`:primary`, `:success`, `:warning`, `:danger`) for draft, scheduled, and published. A partial entry keeps the other defaults. A per-render value wins over config. `render_publishable_quick_actions` forwards these options. Inline publish and unpublish keep the per-render class, menu class, and states.
+- `EditButtonComponent` merges a host `class:`. Config defaults are `quick_actions_button_class`, `quick_actions_menu_class`, and `quick_actions_states`.
+
+### Changed
+- Published quick actions use the default button style with a solid `check-circle` icon coloured success, so only the icon is green. Draft and scheduled are unchanged.
+- Dummy and development Gemfiles pin Flatpack `v0.1.243`. Card `style: :outlined` is gone in that release, so the summary card and dummy docs cards use `border: :strong`.
+
+### Upgrade Notes
+- Install Publishable `0.9.0`. No migration.
+- Rebuild host Tailwind after the FlatPack bump so the icon colour utilities are generated.
+- Published no longer uses the success button style. Set `states: { published: { style: :success } }` to paint the whole button green again.
+
 ## [0.8.0] - 2026-10-12
 
 ### Added
@@ -205,7 +221,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.8.3...v0.9.0
 [0.8.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.7.0
 [0.6.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.6.0

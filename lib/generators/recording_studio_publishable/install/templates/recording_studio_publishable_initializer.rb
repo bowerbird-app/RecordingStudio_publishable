@@ -27,4 +27,15 @@ RecordingStudioPublishable.configure do |config|
 
   # Change the redirect status used when a stale slug is requested.
   # config.canonical_redirect_status = :moved_permanently
+
+  # App-wide publish dropdown defaults. Per-render class:, menu_class:, and
+  # states: still win. The open menu keeps menu_class after FlatPack moves it
+  # onto document.body.
+  # config.quick_actions_button_class = "uppercase"
+  # config.quick_actions_menu_class = "ring-2"
+  # config.quick_actions_states = {
+  #   draft: { style: :danger, icon: "bell" },
+  #   scheduled: { style: :warning, icon: "clock" },
+  #   published: { icon_variant: :solid, icon_style: :success }
+  # }
 end

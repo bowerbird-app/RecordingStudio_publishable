@@ -255,6 +255,60 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert parent_recording.reload.current_publishable.currently_published?
   end
 
+  test "turbo stream publish keeps host classes and state overrides" do
+    parent_recording = build_publishable_parent(title: "Stream Style Page")
+    states = { published: { style: "danger", icon: "bell" } }.to_json
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "publish",
+      inline: 1,
+      button_class: "host-publish-button",
+      menu_class: "host-publish-menu",
+      quick_actions_states: states
+    ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    document = Nokogiri::HTML(response.body)
+    button = document.at_css("button")
+    menu = document.at_css("[role='menu']")
+
+    icon = button.at_css("svg[data-flat-pack--icon-name-value='bell']")
+
+    assert_includes button["class"], "host-publish-button"
+    assert_includes button["class"], "fp-button"
+    assert_equal "danger", button["data-fp-style"]
+    assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "success", icon["data-icon-style"]
+    assert_includes menu["class"], "publishable-quick-actions-menu"
+    assert_includes menu["class"], "host-publish-menu"
+    assert_includes menu["class"], "fixed"
+    assert parent_recording.reload.current_publishable.currently_published?
+  end
+
+  test "config defaults style the publish hub dropdown" do
+    parent_recording = build_publishable_parent(title: "Hub Style Page")
+    RecordingStudioPublishable.configuration.quick_actions_button_class = "config-publish-button"
+    RecordingStudioPublishable.configuration.quick_actions_menu_class = "config-publish-menu"
+    RecordingStudioPublishable.configuration.quick_actions_states = { draft: { style: :danger, icon: "bell" } }
+
+    get recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    wrapper = Nokogiri::HTML(response.body).at_css("##{RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)}")
+    button = wrapper.at_css("button")
+    menu = wrapper.at_css("[role='menu']")
+
+    assert_includes button["class"], "config-publish-button"
+    assert_equal "danger", button["data-fp-style"]
+    assert_equal "bell", button.at_css("svg")["data-flat-pack--icon-name-value"]
+    assert_includes menu["class"], "config-publish-menu"
+  ensure
+    RecordingStudioPublishable.configuration.quick_actions_button_class = nil
+    RecordingStudioPublishable.configuration.quick_actions_menu_class = nil
+    RecordingStudioPublishable.configuration.quick_actions_states = {}
+  end
+
   test "turbo stream draft replaces the dropdown with draft actions" do
     parent_recording = build_publishable_parent(title: "Stream Draft Page")
     publish_parent_recording!(parent_recording)
