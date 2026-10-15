@@ -154,13 +154,13 @@ Put `QuickActions` on a host page to show the current state and change it there.
 <%= render_publishable_quick_actions(page_recording) %>
 ```
 
-The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary, Scheduled is default, Published is success. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`), then Preview or View, then SEO and Social.
+The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary with a pencil icon. Scheduled is the default button style with a clock icon. Published is the default button style with a solid `check-circle` icon coloured success, so only the icon is green. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`), then Preview or View, then SEO and Social.
 
 ### Styling the dropdown
 
 Pass host classes and HTML attributes straight to the component. `class:` merges onto the trigger and does not replace the FlatPack button classes. Other attributes (`data`, `aria`, `title`, `id`) land on that same button. `menu_class:` merges onto the menu. FlatPack moves the open menu to `document.body`, and the class goes with it. The menu also always has `publishable-quick-actions-menu`, so a stylesheet can target the open menu without a per-render class. The wrapper has `publishable-quick-actions`.
 
-`states:` overrides the trigger style and icon for `draft`, `scheduled`, and `published`. A partial entry keeps the other default. Styles are FlatPack button styles (`:default`, `:primary`, `:secondary`, `:ghost`, `:success`, `:warning`, `:danger`, or a style registered with FlatPack). Icons are Heroicon names.
+`states:` overrides the trigger for `draft`, `scheduled`, and `published`. Each entry accepts `style`, `icon`, `icon_variant`, and `icon_style`. A partial entry keeps the other defaults. Styles are FlatPack button styles (`:default`, `:primary`, `:secondary`, `:ghost`, `:success`, `:warning`, `:danger`, or a style registered with FlatPack). Icons are Heroicon names. `icon_variant` is `:outline`, `:solid`, `:mini`, or `:micro`. `icon_style` is `:primary`, `:success`, `:warning`, or `:danger`, and colours only the icon. Leave `icon_style` unset and the icon inherits the button text colour.
 
 ```erb
 <%= render RecordingStudioPublishable::QuickActions::Component.new(
@@ -170,7 +170,7 @@ Pass host classes and HTML attributes straight to the component. `class:` merges
   data: { controller: "publish-menu" },
   states: {
     draft: { style: :danger, icon: "bell" },
-    published: { style: :primary, icon: "check-badge" }
+    published: { icon_variant: :mini, icon_style: :primary }
   }
 ) %>
 
@@ -185,7 +185,7 @@ RecordingStudioPublishable.configure do |config|
   config.quick_actions_menu_class = "ring-2"
   config.quick_actions_states = {
     draft: { style: :danger, icon: "bell" },
-    published: { style: :primary, icon: "check-badge" }
+    published: { icon_variant: :mini, icon_style: :primary }
   }
 end
 ```
@@ -315,7 +315,7 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v4.6.0`, Accessible `v0.18.0` (Trashable `v0.10.0` query-only, `require: false`), API `v0.7.0`, Admin `v2.3.0`, Attachable `v0.15.0`, Metrics `v0.2.3` (`require: false`), Flatpack `v0.1.213`, dummy-only Root Switchable `v0.9.0` (with Cache `v0.5.0`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav, to the left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
+The dummy host at `test/dummy` pins Recording Studio `v4.6.0`, Accessible `v0.18.0` (Trashable `v0.10.0` query-only, `require: false`), API `v0.7.0`, Admin `v2.3.0`, Attachable `v0.15.0`, Metrics `v0.2.3` (`require: false`), Flatpack `v0.1.243`, dummy-only Root Switchable `v0.9.0` (with Cache `v0.5.0`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav, to the left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 

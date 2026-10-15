@@ -273,10 +273,13 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     button = document.at_css("button")
     menu = document.at_css("[role='menu']")
 
+    icon = button.at_css("svg[data-flat-pack--icon-name-value='bell']")
+
     assert_includes button["class"], "host-publish-button"
     assert_includes button["class"], "fp-button"
     assert_equal "danger", button["data-fp-style"]
-    assert_equal "bell", button.at_css("svg")["data-flat-pack--icon-name-value"]
+    assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "success", icon["data-icon-style"]
     assert_includes menu["class"], "publishable-quick-actions-menu"
     assert_includes menu["class"], "host-publish-menu"
     assert_includes menu["class"], "fixed"

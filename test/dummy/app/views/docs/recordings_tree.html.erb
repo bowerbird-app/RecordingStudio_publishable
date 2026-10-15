@@ -16,7 +16,7 @@
       <% end %>
     </div>
   <% else %>
-    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+    <%= render FlatPack::Card::Component.new(border: :strong) do |card| %>
       <% card.body do %>
         <p class="text-sm text-(--surface-muted-content-color)">No active recordings found.</p>
       <% end %>

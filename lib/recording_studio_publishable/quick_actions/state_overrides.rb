@@ -4,7 +4,9 @@ module RecordingStudioPublishable
   module QuickActions
     module StateOverrides
       STATES = %i[draft scheduled published].freeze
-      ENTRY_KEYS = %i[style icon].freeze
+      ENTRY_KEYS = %i[style icon icon_variant icon_style].freeze
+      ICON_VARIANTS = %i[outline solid mini micro].freeze
+      ICON_STYLES = %i[primary success warning danger].freeze
       ICON_PATTERN = /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/
 
       module_function
@@ -39,10 +41,29 @@ module RecordingStudioPublishable
       end
 
       def compact_entry(entry)
-        result = {}
-        result[:style] = entry[:style].to_sym if entry[:style].present?
-        result[:icon] = normalize_icon(entry[:icon]) if entry[:icon].present?
-        result
+        {
+          style: symbol_or_nil(entry[:style]),
+          icon: icon_or_nil(entry[:icon]),
+          icon_variant: choice_or_nil(entry[:icon_variant], ICON_VARIANTS, "icon variant"),
+          icon_style: choice_or_nil(entry[:icon_style], ICON_STYLES, "icon style")
+        }.compact
+      end
+
+      def symbol_or_nil(value)
+        value.to_sym if value.present?
+      end
+
+      def icon_or_nil(value)
+        normalize_icon(value) if value.present?
+      end
+
+      def choice_or_nil(value, allowed, label)
+        return if value.blank?
+
+        choice = value.to_sym
+        return choice if allowed.include?(choice)
+
+        raise ArgumentError, "Invalid quick actions #{label}: #{value}. Must be one of: #{allowed.join(', ')}"
       end
 
       def normalize_icon(icon)

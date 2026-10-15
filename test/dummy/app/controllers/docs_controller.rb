@@ -304,7 +304,7 @@ class DocsController < ApplicationController
             name: "states:",
             type: "Hash",
             required: false,
-            description: "Per-state style and icon overrides for :draft, :scheduled, and :published. Wins over config."
+            description: "Per-state style, icon, icon_variant, and icon_style overrides for :draft, :scheduled, and :published. Wins over config."
           }
         ],
         preview: :quick_actions,
@@ -314,7 +314,7 @@ class DocsController < ApplicationController
             recording: recording,
             class: "uppercase",
             menu_class: "ring-2",
-            states: { published: { style: :primary, icon: "check-badge" } }
+            states: { published: { icon_variant: :mini, icon_style: :primary } }
           ) %>
         ERB
       },

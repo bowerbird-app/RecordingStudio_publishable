@@ -15,8 +15,7 @@ module RecordingStudioPublishable
           actions: %i[publish schedule unpublish]
         },
         published: {
-          style: :success,
-          icon: "check-circle",
+          style: :default, icon: "check-circle", icon_variant: :solid, icon_style: :success,
           actions: %i[unpublish schedule]
         }
       }.freeze

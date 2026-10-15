@@ -89,9 +89,15 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     section = wrapper_html(recording)
+    button = Nokogiri::HTML(section).at_css("button")
+    icon = button.at_css("svg[data-flat-pack--icon-name-value='check-circle']")
+
     assert_includes section, "Published"
-    assert_includes section, "check-circle"
-    assert_includes section, 'data-fp-style="success"'
+    assert_equal "default", button["data-fp-style"]
+    assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "success", icon["data-icon-style"]
+    assert_includes icon["class"], "fp-button-icon"
+    refute_includes section, 'data-fp-style="success"'
     assert_includes section, "Unpublish"
     refute_includes section, "Back to draft"
     refute_includes section, "Publish now"
@@ -209,6 +215,30 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes button["class"], "from-helper"
     assert_includes button["class"], "fp-button"
     assert_includes menu["class"], "helper-menu"
+  end
+
+  test "state overrides accept icon variant and icon style" do
+    recording = draft_recording("Icon style dropdown page", "icon-style-dropdown")
+    configuration = RecordingStudioPublishable.configuration
+    configuration.quick_actions_states = { draft: { icon_variant: :mini, icon_style: :warning } }
+
+    configured = render_quick_actions(recording)
+    icon = Nokogiri::HTML(configured).at_css("button svg[data-flat-pack--icon-name-value='pencil-square']")
+
+    assert_equal "secondary", Nokogiri::HTML(configured).at_css("button")["data-fp-style"]
+    assert_equal "mini", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "warning", icon["data-icon-style"]
+
+    overridden = render_quick_actions(
+      recording,
+      states: { draft: { icon_variant: :solid, icon_style: :danger } }
+    )
+    icon = Nokogiri::HTML(overridden).at_css("button svg[data-flat-pack--icon-name-value='pencil-square']")
+
+    assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "danger", icon["data-icon-style"]
+  ensure
+    reset_quick_actions_style!
   end
 
   test "unknown button style raises" do

@@ -36,6 +36,6 @@ RecordingStudioPublishable.configure do |config|
   # config.quick_actions_states = {
   #   draft: { style: :danger, icon: "bell" },
   #   scheduled: { style: :warning, icon: "clock" },
-  #   published: { style: :primary, icon: "check-badge" }
+  #   published: { icon_variant: :solid, icon_style: :success }
   # }
 end

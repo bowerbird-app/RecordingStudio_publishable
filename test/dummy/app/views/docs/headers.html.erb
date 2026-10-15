@@ -5,7 +5,7 @@
     variant: :h1
   ) %>
 
-  <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+  <%= render FlatPack::Card::Component.new(border: :strong) do |card| %>
     <% card.body do %>
       <% if @header_recordings.any? %>
         <%= form_with url: docs_headers_path, method: :get, local: true, class: "grid gap-4 md:grid-cols-[1fr_auto] md:items-end" do %>
@@ -105,7 +105,7 @@
       subtitle: "Approximate mockups for how this link can appear on major social platforms."
     ) %>
 
-    <%= render FlatPack::Card::Component.new(style: :outlined) do |card| %>
+    <%= render FlatPack::Card::Component.new(border: :strong) do |card| %>
       <% card.body do %>
         <div class="grid gap-6 lg:grid-cols-2">
           <div class="space-y-2">

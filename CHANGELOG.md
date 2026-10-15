@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Published quick actions use the default button style with a solid `check-circle` icon coloured success, so only the icon is green. Draft and scheduled are unchanged.
+- Per-state quick action overrides accept `icon_variant` (`:outline`, `:solid`, `:mini`, `:micro`) and `icon_style` (`:primary`, `:success`, `:warning`, `:danger`).
+- Dummy and development Gemfiles pin Flatpack `v0.1.243`. Card `style: :outlined` is gone in that release, so the summary card and dummy docs cards use `border: :strong`.
+
 ## [0.8.0] - 2026-10-12
 
 ### Added
