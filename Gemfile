@@ -6,7 +6,7 @@ source "https://rubygems.org"
 gemspec
 
 # recording_studio is not published to RubyGems; resolve the gemspec pin from GitHub.
-gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v4.6.0"
+gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v4.7.0"
 
 gem "devise"
 gem "flat_pack", github: "bowerbird-app/flatpack", tag: "v0.1.243"
@@ -21,7 +21,7 @@ gem "recording_studio_metrics", github: "bowerbird-app/RecordingStudio_metrics",
                                 tag: "v0.2.3", require: false
 gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.9.0"
 gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable",
-                                  tag: "v0.10.0", require: false
+                                  tag: "v0.11.0", require: false
 
 group :development, :test do
   gem "debug"
