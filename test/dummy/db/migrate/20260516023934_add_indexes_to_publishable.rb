@@ -22,9 +22,23 @@ class AddIndexesToPublishable < ActiveRecord::Migration[6.0]
 
   # Same table, columns, and options as index_rs_publishables_on_state_window.
   # A second index with a different name is still a duplicate.
+  # Expression indexes report columns as a String. Array() does not call String#map.
   def equivalent_status_index?
     connection.indexes(:recording_studio_publishable_publishables).any? do |index|
-      index.columns.map(&:to_s) == STATUS_COLUMNS && !index.unique && index.where.blank?
+      plain_status_index?(index)
     end
+  end
+
+  def plain_status_index?(index)
+    [
+      Array(index.columns) == STATUS_COLUMNS,
+      index.valid?,
+      index.using.to_s == "btree",
+      index.opclasses.blank?,
+      index.orders.blank?,
+      index.include.blank?,
+      !index.unique,
+      index.where.blank?
+    ].all?
   end
 end

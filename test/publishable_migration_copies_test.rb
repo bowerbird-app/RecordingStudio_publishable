@@ -65,20 +65,91 @@ class PublishableMigrationCopiesTest < Minitest::Test
     assert_includes unique, "disable_ddl_transaction!"
     assert_includes unique, "algorithm: :concurrently"
     assert_includes unique, "if_not_exists: true"
-    assert_includes unique, "pg_index.indisvalid"
-    assert_includes unique, "will not drop a unique index"
-    assert_includes unique, "SHOW lock_timeout"
+    assert_includes unique, "unique_child_index_shape?"
+    assert_includes unique, "drop_invalid_unique_child_index"
+    assert_includes unique, "with_concurrent_lock_timeout"
+    refute_includes unique, "5s"
 
     assert_includes duplicate, "disable_ddl_transaction!"
     assert_includes duplicate, "algorithm: :concurrently"
     assert_includes duplicate, "if_exists: true"
-    assert_includes duplicate, "pg_index.indisvalid"
+    assert_includes duplicate, "with_concurrent_lock_timeout"
+    assert_includes duplicate, "plain_status_index?"
     assert_includes duplicate, "index_rs_publishables_on_state_window"
     assert_includes duplicate, "index_publishables_on_status_and_publish_times"
     assert_includes duplicate, "IrreversibleMigration"
+    assert_includes duplicate, "refuse_invalid_unique_child_index!"
+    refute_includes duplicate, "AND trashed_at IS NULL"
+    refute_includes duplicate, "5s"
     refute_match(/remove_index[^\n]+index_rs_publishables_on_state_window/, duplicate)
 
     assert_includes indexes, "equivalent_status_index?"
+    assert_includes indexes, "Array(index.columns) == STATUS_COLUMNS"
+    assert_includes indexes, "index.opclasses.blank?"
+    assert_includes indexes, "index.orders.blank?"
+    assert_includes indexes, "index.include.blank?"
     assert_includes indexes, "if_not_exists: true"
+
+    shared = File.read(File.expand_path("../lib/recording_studio_publishable/publishable_child_index.rb", __dir__))
+    assert_includes shared, "connection.indexes(table_name).find { |candidate| candidate.name == index_name }&.valid?"
+    assert_includes shared, "def unique_child_index_where_clause"
+    assert_includes shared, "CONCURRENT_LOCK_TIMEOUT = \"0\""
+    assert_includes shared, "bin/rails db:migrate"
+    refute_includes shared, "5s"
+    refute_includes shared, "current_schema()"
+  end
+
+  def test_migrations_generator_versions_are_unique_increasing_and_above_existing
+    Dir.mktmpdir do |dir|
+      migrate_dir = File.join(dir, "db/migrate")
+      FileUtils.mkdir_p(migrate_dir)
+      existing_version = 20_990_101_000_000
+      File.write(File.join(migrate_dir, "#{existing_version}_already.rb"), "# existing\n")
+      File.write(File.join(migrate_dir, "20000101000000_old.rb"), "# old\n")
+
+      generator = RecordingStudioPublishable::Generators::MigrationsGenerator.new(
+        [],
+        {},
+        destination_root: dir
+      )
+      generator.stub(:say, nil) { generator.copy_migrations }
+
+      gem_order = Dir.children(GEM_MIGRATIONS).grep(/\.rb\z/).sort.map { |name| name.sub(/^\d+_/, "") }
+      copied = Dir.children(migrate_dir).grep(/\.rb\z/)
+      assert_copied_versions(copied, gem_order, existing_version)
+    end
+  end
+
+  def assert_copied_versions(copied, gem_order, existing_version)
+    ordered = copied.select { |name| gem_order.include?(migration_suffix(name)) }
+    ordered = ordered.sort_by { |name| migration_version(name) }
+    versions = ordered.map { |name| migration_version(name) }
+
+    assert_equal(gem_order, ordered.map { |name| migration_suffix(name) })
+    assert_version_sequence(versions, existing_version)
+    assert_equal(copied.map { |name| migration_version(name) }.uniq.size, copied.size)
+  end
+
+  def assert_version_sequence(versions, existing_version)
+    expected = (1..versions.length).map { |offset| existing_version + offset }
+
+    assert_equal versions, versions.uniq
+    assert_equal versions.sort, versions
+    assert_equal expected, versions
+    assert(versions.all? { |version| version > existing_version })
+  end
+
+  def migration_version(name)
+    name[/\A(\d+)/, 1].to_i
+  end
+
+  def migration_suffix(name)
+    name.sub(/^\d+_/, "")
+  end
+
+  def test_gemspec_ships_upgrading_notes
+    spec = Gem::Specification.load(File.expand_path("../recording_studio_publishable.gemspec", __dir__))
+
+    assert_includes spec.files, "UPGRADING.md"
   end
 end

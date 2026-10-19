@@ -2,14 +2,18 @@
 
 ## 0.9.1 — concurrent publishable indexes
 
-Install `recording_studio_publishable` 0.9.1, copy the new migrations, and migrate:
+Install `recording_studio_publishable` 0.9.1, copy the new migrations, and migrate on a direct database connection:
 
 ```bash
 bin/rails generate recording_studio_publishable:migrations
 bin/rails db:migrate
 ```
 
-This is safe while the app is serving traffic. The new migrations build or drop indexes with `CONCURRENTLY`, so they do not take a long lock on `recording_studio_recordings` or on the publishables table. Each one reads `SHOW lock_timeout`, sets it to `5s` only for the short lock at the start and end of that concurrent statement, then restores the previous value.
+Run `db:migrate` against Postgres itself, or through a pooler in session mode. These migrations cannot run through PgBouncer transaction pooling. `disable_ddl_transaction!` splits each migration into several statements that have to stay on one session. Rails also takes a session-scoped advisory lock for the migrator, and the migration sets `lock_timeout` on that session. Transaction pooling can hand the next statement to a different server connection, which drops the lock and the setting.
+
+This is safe while the app is serving traffic. The new migrations build or drop indexes with `CONCURRENTLY`, so they do not take a long lock on `recording_studio_recordings` or on the publishables table. Each concurrent statement reads `SHOW lock_timeout`, sets it to `0` (wait until older transactions finish), then restores the previous value. A 5 second timeout is not used. That timeout also covers the wait inside `CREATE INDEX CONCURRENTLY`, so an older transaction cancels the build and leaves an INVALID unique index.
+
+The migrations generator stamps each copied file at `max(current UTC second, highest host migration version) + 1, + 2, ...` in gem filename order. Copies stay unique even when several are written in the same second.
 
 ### Fresh installs
 
@@ -17,16 +21,16 @@ This is safe while the app is serving traffic. The new migrations build or drop 
 
 ```sql
 SHOW lock_timeout;
-SET lock_timeout = '5s';
+SET lock_timeout = '0';
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS "index_rs_publishable_child_per_parent"
   ON "recording_studio_recordings" ("parent_recording_id")
   WHERE recordable_type = 'RecordingStudioPublishable::Publishable' AND trashed_at IS NULL;
 SET lock_timeout = '<previous>';
 ```
 
-The `WHERE` clause omits `trashed_at` when that column is not on `recording_studio_recordings`.
+The `WHERE` clause omits `trashed_at` when that column is not on `recording_studio_recordings`. An index that already has this name is reused only when it is unique, the column is `parent_recording_id`, and the normalized predicate matches. A drifted predicate (for example an older one that does not mention `trashed_at`) stops the migration. The message includes the repair steps below.
 
-`20260516000100` does not create `index_publishables_on_status_and_publish_times` when `index_rs_publishables_on_state_window` (or any equivalent index on `status`, `publish_at`, `unpublish_at`) is already there. Fresh installs keep that one index.
+`20260516000100` does not create `index_publishables_on_status_and_publish_times` when a valid plain btree index on `status`, `publish_at`, `unpublish_at` is already there (`index_rs_publishables_on_state_window` on a fresh install). The existing index has to be non-unique, with no `WHERE`, no opclass, no sort order, and no `INCLUDE`. Expression indexes are not treated as that index. Fresh installs keep the one state-window index.
 
 If nothing equivalent exists, `20260516000100` still runs:
 
@@ -39,12 +43,12 @@ CREATE INDEX IF NOT EXISTS "index_publishables_on_status_and_publish_times"
 
 Leave the already-migrated files in place. The generator only copies the new migrations. `db:migrate` then:
 
-- Skips the unique index when `index_rs_publishable_child_per_parent` already exists and is valid.
-- Drops `index_publishables_on_status_and_publish_times` only when `index_rs_publishables_on_state_window` exists, covers the same columns, and `pg_index.indisvalid` is true:
+- Skips the unique index when `index_rs_publishable_child_per_parent` already exists, is valid, and matches the column and predicate above.
+- Drops `index_publishables_on_status_and_publish_times` only when `index_rs_publishables_on_state_window` exists, is that same plain btree index, and is valid:
 
 ```sql
 SHOW lock_timeout;
-SET lock_timeout = '5s';
+SET lock_timeout = '0';
 DROP INDEX CONCURRENTLY "index_publishables_on_status_and_publish_times";
 SET lock_timeout = '<previous>';
 ```
@@ -55,14 +59,33 @@ Rolling this migration back raises `ActiveRecord::IrreversibleMigration`. Recrea
 
 ### Invalid unique index
 
-A failed `CREATE INDEX CONCURRENTLY` leaves `index_rs_publishable_child_per_parent` behind with `pg_index.indisvalid = false`. The migration will not drop a unique index, and `IF NOT EXISTS` would skip a rebuild. It stops with instructions. Rebuild it yourself, then run `db:migrate` again:
+`CREATE INDEX CONCURRENTLY` can be cancelled while it waits for an older transaction. Postgres leaves `index_rs_publishable_child_per_parent` behind with `pg_index.indisvalid = false`, and `IF NOT EXISTS` would then skip a rebuild.
+
+If this run created that invalid index, the migration drops it with `DROP INDEX CONCURRENTLY` and stops. Nothing invalid is left behind. Fix the cause (often rows that collide, or a session that was cancelled) and run `bin/rails db:migrate` again.
+
+An INVALID unique index that was already there is not dropped. A unique index with the right name and a different predicate is not dropped either. The migration stops and prints repair steps:
 
 ```sql
-SET lock_timeout = '5s';
-DROP INDEX CONCURRENTLY index_rs_publishable_child_per_parent;
+SELECT parent_recording_id, count(*)
+FROM recording_studio_recordings
+WHERE recordable_type = 'RecordingStudioPublishable::Publishable' AND trashed_at IS NULL
+GROUP BY parent_recording_id
+HAVING count(*) > 1;
 ```
 
-The migration then runs `CREATE UNIQUE INDEX CONCURRENTLY` as shown above. If `trashed_at` is absent, drop `AND trashed_at IS NULL` from the `WHERE` clause.
+That `WHERE` clause is the one the migration would build. It omits `trashed_at` when the column is not on the table. When the query returns no rows:
+
+```sql
+DROP INDEX CONCURRENTLY "public"."index_rs_publishable_child_per_parent";
+```
+
+Use the schema-qualified name from the message if the index is not in `public`. Then:
+
+```bash
+bin/rails db:migrate
+```
+
+The migration runs `CREATE UNIQUE INDEX CONCURRENTLY` as shown above.
 
 ### Copied migrations that have not run yet
 
