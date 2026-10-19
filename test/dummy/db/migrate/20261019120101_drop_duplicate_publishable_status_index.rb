@@ -3,7 +3,7 @@
 require "recording_studio_publishable/publishable_child_index"
 
 class DropDuplicatePublishableStatusIndex < ActiveRecord::Migration[8.1]
-  include RecordingStudioPublishable::PublishableChildIndex
+  include RecordingStudioPublishable::PublishableChildIndex::V1
 
   # Created with the publishables table. Fresh installs keep this index.
   ORIGINAL_INDEX = "index_rs_publishables_on_state_window"

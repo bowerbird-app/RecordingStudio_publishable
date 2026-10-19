@@ -68,12 +68,15 @@ class PublishableMigrationCopiesTest < Minitest::Test
     assert_includes unique, "unique_child_index_shape?"
     assert_includes unique, "drop_invalid_unique_child_index"
     assert_includes unique, "with_concurrent_lock_timeout"
+    assert_includes unique, "PublishableChildIndex::V1"
+    assert_includes unique, "swap_stricter_unique_child_index!"
     refute_includes unique, "5s"
 
     assert_includes duplicate, "disable_ddl_transaction!"
     assert_includes duplicate, "algorithm: :concurrently"
     assert_includes duplicate, "if_exists: true"
     assert_includes duplicate, "with_concurrent_lock_timeout"
+    assert_includes duplicate, "PublishableChildIndex::V1"
     assert_includes duplicate, "plain_status_index?"
     assert_includes duplicate, "index_rs_publishables_on_state_window"
     assert_includes duplicate, "index_publishables_on_status_and_publish_times"
@@ -94,6 +97,9 @@ class PublishableMigrationCopiesTest < Minitest::Test
     assert_includes shared, "connection.indexes(table_name).find { |candidate| candidate.name == index_name }&.valid?"
     assert_includes shared, "def unique_child_index_where_clause"
     assert_includes shared, "CONCURRENT_LOCK_TIMEOUT = \"0\""
+    assert_includes shared, "SHOW statement_timeout"
+    assert_includes shared, "module V1"
+    assert_includes shared, "schema_qualified_table_name"
     assert_includes shared, "bin/rails db:migrate"
     refute_includes shared, "5s"
     refute_includes shared, "current_schema()"
@@ -145,6 +151,73 @@ class PublishableMigrationCopiesTest < Minitest::Test
 
   def migration_suffix(name)
     name.sub(/^\d+_/, "")
+  end
+
+  def test_generator_rerun_copies_nothing
+    Dir.mktmpdir do |dir|
+      migrate_dir = File.join(dir, "db/migrate")
+      FileUtils.mkdir_p(migrate_dir)
+      generator = RecordingStudioPublishable::Generators::MigrationsGenerator.new([], {}, destination_root: dir)
+
+      generator.stub(:say, nil) { generator.copy_migrations }
+      first = Dir.children(migrate_dir).sort
+      generator.stub(:say, nil) { generator.copy_migrations }
+
+      assert_equal first, Dir.children(migrate_dir).sort
+      assert_equal Dir.children(GEM_MIGRATIONS).grep(/\.rb\z/).size, first.size
+    end
+  end
+
+  def test_generator_uses_now_when_it_is_later_than_the_host_max
+    Dir.mktmpdir do |dir|
+      migrate_dir = File.join(dir, "db/migrate")
+      FileUtils.mkdir_p(migrate_dir)
+      File.write(File.join(migrate_dir, "20000101000000_old.rb"), "# old\n")
+      before = Time.now.utc
+      generator = RecordingStudioPublishable::Generators::MigrationsGenerator.new([], {}, destination_root: dir)
+      generator.stub(:say, nil) { generator.copy_migrations }
+
+      versions = Dir.children(migrate_dir).filter_map do |name|
+        migration_version(name) if migration_version(name) > 20_000_101_000_000
+      end.sort
+      assert_predicate versions, :any?
+      assert_equal versions.uniq, versions
+      assert(versions.all? { |version| version > before.strftime("%Y%m%d%H%M%S").to_i })
+      versions.each { |version| assert_valid_migration_clock(version) }
+      assert_consecutive_seconds(versions)
+    end
+  end
+
+  def test_generator_skips_install_task_copies
+    Dir.mktmpdir do |dir|
+      migrate_dir = File.join(dir, "db/migrate")
+      FileUtils.mkdir_p(migrate_dir)
+      installed = "20200101000000_create_recording_studio_publishable_publishables.recording_studio_publishable.rb"
+      File.write(File.join(migrate_dir, installed), "# installed\n")
+      generator = RecordingStudioPublishable::Generators::MigrationsGenerator.new([], {}, destination_root: dir)
+      generator.stub(:say, nil) { generator.copy_migrations }
+
+      names = Dir.children(migrate_dir)
+      assert_includes names, installed
+      refute(names.any? { |name| name.match?(/\A\d+_create_recording_studio_publishable_publishables\.rb\z/) })
+      assert(names.any? { |name| name.end_with?("_add_indexes_to_publishable.rb") })
+    end
+  end
+
+  def assert_valid_migration_clock(version)
+    text = format("%014d", version)
+    assert_operator text[10, 2].to_i, :<=, 59
+    assert_operator text[12, 2].to_i, :<=, 59
+  end
+
+  def assert_consecutive_seconds(versions)
+    times = versions.map { |version| Time.utc(*migration_clock_parts(version)) }
+    times.each_cons(2) { |earlier, later| assert_equal 1, later - earlier }
+  end
+
+  def migration_clock_parts(version)
+    text = format("%014d", version)
+    [text[0, 4], text[4, 2], text[6, 2], text[8, 2], text[10, 2], text[12, 2]].map(&:to_i)
   end
 
   def test_gemspec_ships_upgrading_notes

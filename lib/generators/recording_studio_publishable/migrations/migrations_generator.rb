@@ -43,11 +43,11 @@ module RecordingStudioPublishable
 
         say "Found #{migration_files.size} migration(s) to install:", :green
 
-        # Migration versions are one second. Sleeping a fraction of a second
-        # still stamps every copy with the same version, and Rails then raises
-        # DuplicateMigrationVersionError. Start past now and past any host
-        # version, then add 1, 2, 3... so the copies stay unique and in gem order.
-        base = [Time.now.utc.strftime("%Y%m%d%H%M%S").to_i, highest_host_migration_version].max
+        # Migration versions are one second. Adding to the integer stamp turns
+        # second 59 into 60, which is not a clock time. Add real seconds instead,
+        # starting past now and past any host version, so the copies stay unique
+        # and in gem order.
+        base = migration_version_base
         sequence = 0
 
         migration_files.each do |source_path|
@@ -60,7 +60,7 @@ module RecordingStudioPublishable
           end
 
           sequence += 1
-          timestamp = (base + sequence).to_s
+          timestamp = (base + sequence).strftime("%Y%m%d%H%M%S")
           destination_filename = "#{timestamp}_#{migration_name}"
           destination_path = File.join("db/migrate", destination_filename)
 
@@ -76,7 +76,35 @@ module RecordingStudioPublishable
       private
 
       def migration_exists?(migration_name)
-        Dir.glob(File.join(destination_root, "db/migrate", "*_#{migration_name}")).any?
+        directory = File.join(destination_root, "db/migrate")
+        return false unless File.directory?(directory)
+
+        stem = migration_name.sub(/\.rb\z/, "")
+        Dir.children(directory).any? do |name|
+          name.match?(/\A\d+_#{Regexp.escape(stem)}(\.recording_studio_publishable)?\.rb\z/)
+        end
+      end
+
+      def migration_version_base
+        now = Time.now.utc
+        highest = highest_host_migration_version
+        return now if highest.zero?
+
+        [now, time_from_migration_version(highest)].max
+      end
+
+      def time_from_migration_version(version)
+        text = format("%014d", version)
+        Time.utc(*migration_clock_parts(text))
+      rescue ArgumentError
+        # A stamp such as 20261019084460 is not a clock time. Carry the extra seconds.
+        clock = migration_clock_parts(text)
+        clock[-1] = 0
+        Time.utc(*clock) + text[12, 2].to_i
+      end
+
+      def migration_clock_parts(text)
+        [text[0, 4], text[4, 2], text[6, 2], text[8, 2], text[10, 2], text[12, 2]].map(&:to_i)
       end
 
       def highest_host_migration_version

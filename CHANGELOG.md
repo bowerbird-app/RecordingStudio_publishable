@@ -18,7 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade Notes
 - Install Publishable `0.9.1`.
 - Run `bin/rails generate recording_studio_publishable:migrations`, then `bin/rails db:migrate` on a direct database connection. PgBouncer transaction pooling cannot run these migrations.
-- Safe on a live `recording_studio_recordings` table. Concurrent statements set `lock_timeout` to 0 so they can wait for an older transaction, then restore the previous value.
+- Safe on a live `recording_studio_recordings` table. Concurrent statements set `lock_timeout` and `statement_timeout` to 0 so they can wait for an older transaction, then restore the previous values. Check `pg_stat_activity` for an idle transaction first. Steps are in `UPGRADING.md`.
+- A unique index built before `trashed_at` existed is swapped in place: build `_new`, drop the old index, then rename. If `_new` is INVALID it is dropped and the old index stays.
 - If this run leaves `index_rs_publishable_child_per_parent` INVALID, the migration drops that invalid index and stops. An INVALID unique index left by an earlier attempt is not dropped. Rebuild steps are in `UPGRADING.md`.
 
 ## [0.9.0] - 2026-10-15

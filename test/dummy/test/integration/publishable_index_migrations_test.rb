@@ -56,6 +56,7 @@ class PublishableIndexMigrationsTest < ActiveSupport::TestCase
     assert_includes joined, UNIQUE_SQL
     refute_includes joined, DUPLICATE_INDEX
     assert_includes joined, "SET lock_timeout = '0'"
+    assert_includes joined, "SET statement_timeout = '0'"
     refute_includes joined, "5s"
     assert open_transactions.any?, "expected a concurrent statement"
     assert_equal [0], open_transactions.uniq
@@ -65,6 +66,7 @@ class PublishableIndexMigrationsTest < ActiveSupport::TestCase
     refute_includes second.join("\n"), "CREATE UNIQUE INDEX"
     refute_includes second.join("\n"), "DROP INDEX"
     refute_includes second.join("\n"), "SET lock_timeout"
+    refute_includes second.join("\n"), "SET statement_timeout"
 
     third, = capture_sql { AddUniquePublishableChildIndexConcurrently.new.migrate(:up) }
     refute_includes third.join("\n"), "SET lock_timeout"
@@ -206,25 +208,131 @@ class PublishableIndexMigrationsTest < ActiveSupport::TestCase
     refute_includes sql.join("\n"), "CREATE UNIQUE INDEX"
   end
 
-  test "a valid unique index with a drifted predicate is not accepted" do
+  test "a unique index that is not the old publishable predicate is not replaced" do
     create_recordings_table
     connection.add_index RECORDINGS, :parent_recording_id,
                         unique: true,
                         name: UNIQUE_INDEX,
-                        where: "recordable_type = 'RecordingStudioPublishable::Publishable'"
+                        where: "recordable_type = 'Other'"
 
     error = assert_raises(RuntimeError) do
       AddUniquePublishableChildIndexConcurrently.new.migrate(:up)
     end
 
     assert_match(/does not match/, error.message)
-    assert_match(/trashed_at IS NULL/, error.message)
+    assert_match(/FROM "[\w.]+"\."recording_studio_recordings"/, error.message)
     assert_match(/DROP INDEX CONCURRENTLY "[\w.]+"\."#{UNIQUE_INDEX}"/, error.message)
     assert_match(/HAVING count\(\*\) > 1/, error.message)
     assert_match(%r{bin/rails db:migrate}, error.message)
     refute_match(/lock_timeout/i, error.message)
     assert connection.index_exists?(RECORDINGS, name: UNIQUE_INDEX)
+    assert_not connection.index_exists?(RECORDINGS, name: "#{UNIQUE_INDEX}_new")
+  end
+
+  test "an older stricter unique index is swapped without a gap" do
+    create_recordings_table
+    connection.add_index RECORDINGS, :parent_recording_id,
+                        unique: true,
+                        name: UNIQUE_INDEX,
+                        where: "recordable_type = 'RecordingStudioPublishable::Publishable'"
+
+    sql, = capture_sql { AddUniquePublishableChildIndexConcurrently.new.migrate(:up) }
+    joined = sql.join("\n")
+    create_at = joined.index("CREATE UNIQUE INDEX CONCURRENTLY")
+    drop_at = joined.index("DROP INDEX CONCURRENTLY")
+    rename_at = joined.index("RENAME TO")
+
+    assert create_at
+    assert drop_at
+    assert rename_at
+    assert_operator create_at, :<, drop_at
+    assert_operator drop_at, :<, rename_at
+    assert_includes joined, "#{UNIQUE_INDEX}_new"
+    assert_includes joined, "SET statement_timeout = '0'"
+    assert_not connection.index_exists?(RECORDINGS, name: "#{UNIQUE_INDEX}_new")
+    index = connection.indexes(RECORDINGS).find { |candidate| candidate.name == UNIQUE_INDEX }
+    assert index.valid?
+    assert_includes index.where, "trashed_at"
+  end
+
+  test "a valid replacement index is renamed when the old index is already gone" do
+    create_recordings_table
+    connection.add_index RECORDINGS, :parent_recording_id,
+                        unique: true,
+                        name: "#{UNIQUE_INDEX}_new",
+                        where: "recordable_type = 'RecordingStudioPublishable::Publishable' AND trashed_at IS NULL"
+
+    AddUniquePublishableChildIndexConcurrently.new.migrate(:up)
+
+    assert_not connection.index_exists?(RECORDINGS, name: "#{UNIQUE_INDEX}_new")
+    index = connection.indexes(RECORDINGS).find { |candidate| candidate.name == UNIQUE_INDEX }
+    assert index.valid?
+    assert_includes index.where, "trashed_at"
+  end
+
+  test "an invalid replacement index is dropped and the old unique index stays" do
+    create_recordings_table
+    connection.add_index RECORDINGS, :parent_recording_id,
+                        unique: true,
+                        name: UNIQUE_INDEX,
+                        where: "recordable_type = 'RecordingStudioPublishable::Publishable'"
+    pid = connection.select_value("SELECT pg_backend_pid()")
+    connection.execute("SET statement_timeout = '20s'")
+    blocker = open_pg
+    poller = open_pg
+    blocker.exec("BEGIN ISOLATION LEVEL REPEATABLE READ")
+    blocker.exec("SELECT count(*) FROM recording_studio_recordings")
+    watcher_error = nil
+    replacement = "#{UNIQUE_INDEX}_new"
+
+    watcher = Thread.new do
+      cancel_when_index_is_invalid(poller, blocker, replacement, pid)
+    rescue StandardError => error
+      watcher_error = error
+      rollback_pg(blocker)
+    end
+
+    error = assert_raises(RuntimeError) do
+      AddUniquePublishableChildIndexConcurrently.new.migrate(:up)
+    end
+    watcher.join
+    flunk(watcher_error.to_s) if watcher_error
+
+    assert_match(/INVALID/, error.message)
+    assert_match(/still in place/, error.message)
+    assert_match(%r{bin/rails db:migrate}, error.message)
+    assert_match(/FROM "[\w.]+"\."recording_studio_recordings"/, error.message)
+    assert_not connection.index_exists?(RECORDINGS, name: replacement)
+    assert connection.index_exists?(RECORDINGS, name: UNIQUE_INDEX)
     assert index_valid?(RECORDINGS, UNIQUE_INDEX)
+    old = connection.indexes(RECORDINGS).find { |candidate| candidate.name == UNIQUE_INDEX }
+    refute_includes old.where, "trashed_at"
+  ensure
+    watcher&.kill
+    [blocker, poller].each { |conn| close_pg(conn) }
+  end
+
+  test "a host statement_timeout of 3s does not cancel the concurrent build" do
+    create_recordings_table
+    connection.execute("SET statement_timeout = '3s'")
+    blocker = open_pg
+    blocker.exec("BEGIN ISOLATION LEVEL REPEATABLE READ")
+    blocker.exec("SELECT count(*) FROM recording_studio_recordings")
+    holder = Thread.new do
+      sleep 4
+      blocker.exec("COMMIT")
+    end
+
+    sql, = capture_sql { AddUniquePublishableChildIndexConcurrently.new.migrate(:up) }
+    holder.join
+
+    assert index_valid?(RECORDINGS, UNIQUE_INDEX)
+    assert_includes sql.join("\n"), "SET statement_timeout = '0'"
+    assert_includes sql.join("\n"), "SET lock_timeout = '0'"
+    assert_equal "3s", connection.select_value("SHOW statement_timeout")
+  ensure
+    holder&.kill
+    close_pg(blocker)
   end
 
   test "a build blocked by an open transaction does not leave an invalid index" do
@@ -413,6 +521,32 @@ class PublishableIndexMigrationsTest < ActiveSupport::TestCase
       TOPLEVEL_BINDING.eval(source.sub("class #{original_class}", "class #{class_name}"), filename)
     end
     Object.const_get(class_name).new.migrate(:up)
+  end
+
+  def cancel_when_index_is_invalid(poller, blocker, index_name, pid)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 15
+    loop do
+      if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+        blocker.exec("COMMIT")
+        raise "timed out waiting for the invalid index #{index_name}"
+      end
+
+      seen = poller.exec_params(<<~SQL, [index_name])
+        SELECT i.indisvalid
+        FROM pg_class c
+        INNER JOIN pg_index i ON i.indexrelid = c.oid
+        WHERE c.relname = $1
+      SQL
+      unless seen.ntuples.positive? && seen.getvalue(0, 0) == "f"
+        sleep 0.05
+        next
+      end
+
+      poller.exec_params("SELECT pg_cancel_backend($1)", [pid])
+      sleep 0.25
+      blocker.exec("COMMIT")
+      break
+    end
   end
 
   def rollback_pg(conn)

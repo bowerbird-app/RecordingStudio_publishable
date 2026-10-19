@@ -9,11 +9,27 @@ bin/rails generate recording_studio_publishable:migrations
 bin/rails db:migrate
 ```
 
-Run `db:migrate` against Postgres itself, or through a pooler in session mode. These migrations cannot run through PgBouncer transaction pooling. `disable_ddl_transaction!` splits each migration into several statements that have to stay on one session. Rails also takes a session-scoped advisory lock for the migrator, and the migration sets `lock_timeout` on that session. Transaction pooling can hand the next statement to a different server connection, which drops the lock and the setting.
+Run `db:migrate` against Postgres itself, or through a pooler in session mode. These migrations cannot run through PgBouncer transaction pooling. `disable_ddl_transaction!` splits each migration into several statements that have to stay on one session. Rails also takes a session-scoped advisory lock for the migrator, and the migration sets `lock_timeout` and `statement_timeout` on that session. Transaction pooling can hand the next statement to a different server connection, which drops the lock and the settings.
 
-This is safe while the app is serving traffic. The new migrations build or drop indexes with `CONCURRENTLY`, so they do not take a long lock on `recording_studio_recordings` or on the publishables table. Each concurrent statement reads `SHOW lock_timeout`, sets it to `0` (wait until older transactions finish), then restores the previous value. A 5 second timeout is not used. That timeout also covers the wait inside `CREATE INDEX CONCURRENTLY`, so an older transaction cancels the build and leaves an INVALID unique index.
+### Before you migrate
 
-The migrations generator stamps each copied file at `max(current UTC second, highest host migration version) + 1, + 2, ...` in gem filename order. Copies stay unique even when several are written in the same second.
+Concurrent statements set `lock_timeout` and `statement_timeout` to `0`, so they wait until older transactions finish. An `idle in transaction` session holds its snapshot until it commits or rolls back, and the deploy waits with it. Check the oldest open transaction before you migrate:
+
+```sql
+SELECT pid, usename, application_name, state, xact_start, query
+FROM pg_stat_activity
+WHERE xact_start IS NOT NULL
+ORDER BY xact_start
+LIMIT 1;
+```
+
+If `xact_start` is old, or `state` is `idle in transaction`, commit or cancel that session first. Then migrate.
+
+This is safe while the app is serving traffic. The new migrations build or drop indexes with `CONCURRENTLY`, so they do not take a long lock on `recording_studio_recordings` or on the publishables table. Each concurrent statement, including a cleanup `DROP INDEX CONCURRENTLY`, reads `SHOW lock_timeout` and `SHOW statement_timeout`, sets both to `0`, then restores the previous values. A short timeout is not used around those statements. It would also cover the wait inside `CREATE INDEX CONCURRENTLY`, so an older transaction would cancel the build and leave an INVALID unique index.
+
+The migrations generator stamps each copied file by adding seconds on the clock, starting at the later of the current UTC second and the highest host migration version. Copies stay unique even when several are written in the same second, and second 59 rolls into the next minute.
+
+Copied migrations call `RecordingStudioPublishable::PublishableChildIndex::V1`. That module stays frozen. A later change to this index ships as a new version of the module and a new migration.
 
 ### Fresh installs
 
@@ -21,14 +37,21 @@ The migrations generator stamps each copied file at `max(current UTC second, hig
 
 ```sql
 SHOW lock_timeout;
+SHOW statement_timeout;
 SET lock_timeout = '0';
+SET statement_timeout = '0';
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS "index_rs_publishable_child_per_parent"
   ON "recording_studio_recordings" ("parent_recording_id")
   WHERE recordable_type = 'RecordingStudioPublishable::Publishable' AND trashed_at IS NULL;
+SET statement_timeout = '<previous>';
 SET lock_timeout = '<previous>';
 ```
 
-The `WHERE` clause omits `trashed_at` when that column is not on `recording_studio_recordings`. An index that already has this name is reused only when it is unique, the column is `parent_recording_id`, and the normalized predicate matches. A drifted predicate (for example an older one that does not mention `trashed_at`) stops the migration. The message includes the repair steps below.
+The `WHERE` clause omits `trashed_at` when that column is not on `recording_studio_recordings`. An index that already has this name is reused when it is unique, the column is `parent_recording_id`, and the normalized predicate matches.
+
+If that index was built before `trashed_at` existed, its predicate is only `recordable_type = 'RecordingStudioPublishable::Publishable'`. That predicate is stricter: it also covers trashed rows. The migration does not drop it first. It builds `index_rs_publishable_child_per_parent_new` concurrently with the current predicate, checks that the new index is valid, drops the old index concurrently, then renames `_new` to `index_rs_publishable_child_per_parent`. The table has a unique index the whole time. If `_new` comes out INVALID, the migration drops `_new` concurrently and stops. The old index stays.
+
+Any other drifted predicate stops the migration. The message includes the repair steps below.
 
 `20260516000100` does not create `index_publishables_on_status_and_publish_times` when a valid plain btree index on `status`, `publish_at`, `unpublish_at` is already there (`index_rs_publishables_on_state_window` on a fresh install). The existing index has to be non-unique, with no `WHERE`, no opclass, no sort order, and no `INCLUDE`. Expression indexes are not treated as that index. Fresh installs keep the one state-window index.
 
@@ -48,8 +71,11 @@ Leave the already-migrated files in place. The generator only copies the new mig
 
 ```sql
 SHOW lock_timeout;
+SHOW statement_timeout;
 SET lock_timeout = '0';
+SET statement_timeout = '0';
 DROP INDEX CONCURRENTLY "index_publishables_on_status_and_publish_times";
+SET statement_timeout = '<previous>';
 SET lock_timeout = '<previous>';
 ```
 
@@ -67,7 +93,7 @@ An INVALID unique index that was already there is not dropped. A unique index wi
 
 ```sql
 SELECT parent_recording_id, count(*)
-FROM recording_studio_recordings
+FROM "public"."recording_studio_recordings"
 WHERE recordable_type = 'RecordingStudioPublishable::Publishable' AND trashed_at IS NULL
 GROUP BY parent_recording_id
 HAVING count(*) > 1;
