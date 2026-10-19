@@ -63,6 +63,7 @@ module RecordingStudioPublishable
         end
 
         say "\nRun 'bin/rails db:migrate' to apply the migrations.", :green
+        say "Index changes use CONCURRENTLY and are safe on a live recordings table.", :green
       end
 
       private

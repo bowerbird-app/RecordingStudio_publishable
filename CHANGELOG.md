@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-10-19
+
+### Fixed
+- The unique partial index `index_rs_publishable_child_per_parent` on the shared `recording_studio_recordings` table is created with `CONCURRENTLY` in its own migration. The publishables table migration stays transactional.
+- `20260516000100` skips `index_publishables_on_status_and_publish_times` when an equivalent index on `status`, `publish_at`, and `unpublish_at` already exists.
+- Hosts that already created that duplicate get a migration that drops it concurrently when `index_rs_publishables_on_state_window` exists and `pg_index.indisvalid` is true. That original index is not dropped.
+
+### Upgrade Notes
+- Install Publishable `0.9.1`.
+- Run `bin/rails generate recording_studio_publishable:migrations`, then `bin/rails db:migrate`.
+- Safe on a live `recording_studio_recordings` table. `lock_timeout` is set to 5 seconds only for the short lock, then restored.
+- If `index_rs_publishable_child_per_parent` is INVALID, the migration stops and does not drop it. Rebuild steps are in `UPGRADING.md`.
+
 ## [0.9.0] - 2026-10-15
 
 ### Added

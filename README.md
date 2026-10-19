@@ -34,6 +34,8 @@ bin/rails generate recording_studio_publishable:migrations
 bin/rails db:migrate
 ```
 
+Upgrades: run the migrations generator again, then `bin/rails db:migrate`. The unique publishable-child index is built with `CONCURRENTLY` on `recording_studio_recordings`, outside the transaction that creates the publishables table. A later migration drops the duplicate status index the same way, and only when `index_rs_publishables_on_state_window` is valid. Both set `lock_timeout` for that short lock and then restore it. They are safe to run while the app is serving traffic. If `index_rs_publishable_child_per_parent` is left INVALID, rebuild it concurrently. Do not drop that unique index and leave it dropped. Steps are in `UPGRADING.md`.
+
 ## Setup
 
 Mount the engine if you did not use the install generator:
