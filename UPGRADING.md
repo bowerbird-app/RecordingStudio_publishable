@@ -27,7 +27,7 @@ If `xact_start` is old, or `state` is `idle in transaction`, commit or cancel th
 
 This is safe while the app is serving traffic. The new migrations build or drop indexes with `CONCURRENTLY`, so they do not take a long lock on `recording_studio_recordings` or on the publishables table. Each concurrent statement, including a cleanup `DROP INDEX CONCURRENTLY`, reads `SHOW lock_timeout` and `SHOW statement_timeout`, sets both to `0`, then restores the previous values. A short timeout is not used around those statements. It would also cover the wait inside `CREATE INDEX CONCURRENTLY`, so an older transaction would cancel the build and leave an INVALID unique index.
 
-The migrations generator stamps each copied file by adding seconds on the clock, starting at the later of the current UTC second and the highest host migration version. Copies stay unique even when several are written in the same second, and second 59 rolls into the next minute.
+The migrations generator stamps a 14-digit host version by adding seconds on the clock, starting at the later of the current UTC second and that version. Second 59 rolls into the next minute. A host version that is not a 14-digit clock time, such as `001`, an 8-digit date, minute 60, or a 15-digit stamp, is not parsed as a time and is not cut down to 14 digits. Those copies use integer versions starting at `max(current UTC stamp, highest host version + 1)`, then `+ 1` for each following file.
 
 Copied migrations call `RecordingStudioPublishable::PublishableChildIndex::V1`. That module stays frozen. A later change to this index ships as a new version of the module and a new migration.
 
@@ -50,6 +50,10 @@ SET lock_timeout = '<previous>';
 The `WHERE` clause omits `trashed_at` when that column is not on `recording_studio_recordings`. An index that already has this name is reused when it is unique, the column is `parent_recording_id`, and the normalized predicate matches.
 
 If that index was built before `trashed_at` existed, its predicate is only `recordable_type = 'RecordingStudioPublishable::Publishable'`. That predicate is stricter: it also covers trashed rows. The migration does not drop it first. It builds `index_rs_publishable_child_per_parent_new` concurrently with the current predicate, checks that the new index is valid, drops the old index concurrently, then renames `_new` to `index_rs_publishable_child_per_parent`. The table has a unique index the whole time. If `_new` comes out INVALID, the migration drops `_new` concurrently and stops. The old index stays.
+
+`_new` is reused only when it is unique, the column is `parent_recording_id`, and the normalized predicate matches. A stray valid index with that name, including a non-unique one, stops the migration. Neither index is dropped or renamed.
+
+If the drop is cancelled, the old index can be left INVALID while a matching `_new` is still valid. The error includes the repair steps. Run `bin/rails db:migrate` again. The migration drops that invalid index and renames `_new`.
 
 Any other drifted predicate stops the migration. The message includes the repair steps below.
 

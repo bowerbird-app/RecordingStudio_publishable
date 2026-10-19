@@ -42,11 +42,11 @@ module RecordingStudioPublishable
 
         def unique_child_index_drift_message(index)
           <<~MSG
-            #{UNIQUE_CHILD_INDEX} does not match the publishable child index.
+            #{index.name} does not match the publishable child index.
             Expected a unique index on (#{PARENT_COLUMN}) WHERE #{unique_child_index_where_clause}.
             Found unique=#{index.unique} columns=#{Array(index.columns).inspect} where=#{index.where.inspect}.
-            This migration will not drop a unique index it did not create in this run.
-            #{unique_child_index_repair_steps}
+            This migration will not drop an index it did not create in this run.
+            #{unique_child_index_repair_steps(index.name)}
           MSG
         end
 
@@ -101,12 +101,16 @@ module RecordingStudioPublishable
         "recordable_type = '#{RECORDABLE_TYPE}'"
       end
 
-      def stricter_unique_child_index?(index)
+      def stricter_unique_child_shape?(index)
         return false unless column_exists?(RECORDINGS, :trashed_at)
-        return false unless index.unique && index.valid?
+        return false unless index.unique
         return false unless Array(index.columns) == [PARENT_COLUMN]
 
         normalize_index_predicate(index.where) == normalize_index_predicate(stricter_unique_child_predicate)
+      end
+
+      def stricter_unique_child_index?(index)
+        index.valid? && stricter_unique_child_shape?(index)
       end
 
       def unique_child_index_shape?(index)

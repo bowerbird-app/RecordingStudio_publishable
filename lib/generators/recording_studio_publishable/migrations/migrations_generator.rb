@@ -43,11 +43,10 @@ module RecordingStudioPublishable
 
         say "Found #{migration_files.size} migration(s) to install:", :green
 
-        # Migration versions are one second. Adding to the integer stamp turns
-        # second 59 into 60, which is not a clock time. Add real seconds instead,
-        # starting past now and past any host version, so the copies stay unique
-        # and in gem order.
-        base = migration_version_base
+        # A 14-digit clock time gets real seconds, so second 59 rolls forward.
+        # Anything else (001, 8 digits, minute 60, 15 digits) stays an integer:
+        # max(now, highest + 1), then + 1 for each following file.
+        mode, base = migration_version_base
         sequence = 0
 
         migration_files.each do |source_path|
@@ -60,7 +59,7 @@ module RecordingStudioPublishable
           end
 
           sequence += 1
-          timestamp = (base + sequence).strftime("%Y%m%d%H%M%S")
+          timestamp = migration_timestamp(mode, base, sequence)
           destination_filename = "#{timestamp}_#{migration_name}"
           destination_path = File.join("db/migrate", destination_filename)
 
@@ -85,22 +84,33 @@ module RecordingStudioPublishable
         end
       end
 
+      def migration_timestamp(mode, base, sequence)
+        if mode == :time
+          (base + sequence).strftime("%Y%m%d%H%M%S")
+        else
+          (base + sequence - 1).to_s
+        end
+      end
+
       def migration_version_base
         now = Time.now.utc
         highest = highest_host_migration_version
-        return now if highest.zero?
+        return [:time, now] if highest.zero?
 
-        [now, time_from_migration_version(highest)].max
+        parsed = time_from_migration_version(highest)
+        return [:time, [now, parsed].max] if parsed
+
+        now_int = now.strftime("%Y%m%d%H%M%S").to_i
+        [:integer, [now_int, highest + 1].max]
       end
 
       def time_from_migration_version(version)
-        text = format("%014d", version)
+        text = version.to_s
+        return nil unless text.match?(/\A\d{14}\z/)
+
         Time.utc(*migration_clock_parts(text))
       rescue ArgumentError
-        # A stamp such as 20261019084460 is not a clock time. Carry the extra seconds.
-        clock = migration_clock_parts(text)
-        clock[-1] = 0
-        Time.utc(*clock) + text[12, 2].to_i
+        nil
       end
 
       def migration_clock_parts(text)

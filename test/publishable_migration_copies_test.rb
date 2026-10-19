@@ -188,6 +188,38 @@ class PublishableMigrationCopiesTest < Minitest::Test
     end
   end
 
+  def test_generator_integer_steps_when_the_host_version_is_not_a_clock_time
+    planted = {
+      "001_early.rb" => 1,
+      "20261019_short.rb" => 20_261_019,
+      "20990101006000_minute_sixty.rb" => 20_990_101_006_000,
+      "202610190901341_fifteen.rb" => 202_610_190_901_341
+    }
+
+    planted.each do |filename, highest|
+      Dir.mktmpdir do |dir|
+        migrate_dir = File.join(dir, "db/migrate")
+        FileUtils.mkdir_p(migrate_dir)
+        File.write(File.join(migrate_dir, filename), "# old\n")
+        before = Time.now.utc.strftime("%Y%m%d%H%M%S").to_i
+        generator = RecordingStudioPublishable::Generators::MigrationsGenerator.new([], {}, destination_root: dir)
+        generator.stub(:say, nil) { generator.copy_migrations }
+
+        versions = Dir.children(migrate_dir).filter_map do |name|
+          version = migration_version(name)
+          version if version != highest
+        end.sort
+        floor = [before, highest + 1].max
+
+        assert_predicate versions, :any?, filename
+        assert_operator versions.min, :>=, floor
+        assert_operator versions.min, :>, highest
+        assert_equal (0...versions.length).map { |offset| versions.min + offset }, versions
+        assert_operator versions.min.to_s.length, :>=, highest.to_s.length
+      end
+    end
+  end
+
   def test_generator_skips_install_task_copies
     Dir.mktmpdir do |dir|
       migrate_dir = File.join(dir, "db/migrate")
