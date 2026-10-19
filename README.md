@@ -18,6 +18,8 @@ Trashable is optional. Publishable does not depend on it. Query SQL only mention
 
 ## Installation
 
+Requires PostgreSQL 16+.
+
 Add the gems to your host app. This addon requires Recording Studio 4.2.0 or newer:
 
 ```ruby

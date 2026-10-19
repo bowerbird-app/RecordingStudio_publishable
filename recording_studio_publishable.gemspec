@@ -17,6 +17,7 @@ Gem::Specification.new do |spec|
   spec.metadata["source_code_uri"] = "https://github.com/bowerbird-app/RecordingStudio_publishable"
   spec.metadata["changelog_uri"] = "https://github.com/bowerbird-app/RecordingStudio_publishable/blob/main/CHANGELOG.md"
   spec.metadata["rubygems_mfa_required"] = "true"
+  spec.metadata["required_postgresql_version"] = "Requires PostgreSQL 16+"
 
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "UPGRADING.md"]

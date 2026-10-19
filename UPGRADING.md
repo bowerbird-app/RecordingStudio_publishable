@@ -53,6 +53,12 @@ If that index was built before `trashed_at` existed, its predicate is only `reco
 
 `_new` is reused only when it is unique, the column is `parent_recording_id`, and the normalized predicate matches. A stray valid index with that name, including a non-unique one, stops the migration. Neither index is dropped or renamed.
 
+If `index_rs_publishable_child_per_parent` is already the correct valid index and a valid `index_rs_publishable_child_per_parent_new` is still beside it, drop the leftover by hand:
+
+```sql
+DROP INDEX CONCURRENTLY index_rs_publishable_child_per_parent_new;
+```
+
 If the drop is cancelled, the old index can be left INVALID while a matching `_new` is still valid. The error includes the repair steps. Run `bin/rails db:migrate` again. The migration drops that invalid index and renames `_new`.
 
 Any other drifted predicate stops the migration. The message includes the repair steps below.
