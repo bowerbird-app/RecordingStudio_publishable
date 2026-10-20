@@ -18,6 +18,8 @@ Trashable is optional. Publishable does not depend on it. Query SQL only mention
 
 ## Installation
 
+Requires PostgreSQL 16+.
+
 Add the gems to your host app. This addon requires Recording Studio 4.2.0 or newer:
 
 ```ruby
@@ -33,6 +35,8 @@ bin/rails generate recording_studio_publishable:install
 bin/rails generate recording_studio_publishable:migrations
 bin/rails db:migrate
 ```
+
+Upgrades: run the migrations generator again, then `bin/rails db:migrate` on a direct database connection. PgBouncer in transaction pooling mode cannot run these migrations: they turn the DDL transaction off, Rails holds a session advisory lock, and `SET lock_timeout` and `SET statement_timeout` have to stay on that same session. Check `pg_stat_activity` for an idle transaction before you migrate, or the deploy waits for it. The unique publishable-child index is built with `CONCURRENTLY` on `recording_studio_recordings`, outside the transaction that creates the publishables table. A later migration drops the duplicate status index the same way, and only when `index_rs_publishables_on_state_window` is a matching valid index. Concurrent statements set `lock_timeout` and `statement_timeout` to 0, so they wait for an older transaction, then restore the previous values. They are safe to run while the app is serving traffic. If this run leaves `index_rs_publishable_child_per_parent` INVALID, the migration drops that invalid index and stops. An older unique index from before `trashed_at` is swapped in place, and it stays if the replacement is INVALID. Steps are in `UPGRADING.md`.
 
 ## Setup
 
