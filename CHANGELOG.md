@@ -10,19 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.10.0] - 2026-10-22
 
 ### Added
-- `QuickActions::ListComponent` renders the same publish rows as a flat list for a menu or the phone hamburger. `render_publishable_quick_actions_list` and `publishable_quick_actions_list_for` render it. `publishable_quick_actions_for` returns the dropdown component so a host layout can pass it to `register_page_nav`.
+- `QuickActions::ListComponent` renders the publish rows for use inside a host dropdown. `render_publishable_quick_actions_list` and `publishable_quick_actions_list_for` render it. `publishable_quick_actions_for` returns the dropdown component so a host layout can pass it to `register_page_nav`.
 - `name:` keeps wrapper ids unique when one page shows the control more than once.
-- The dummy page `/publishable/placements` shows the dropdown on the page and in the top nav, the flat list inside a dropdown, and the flat list in the phone menu.
+- The dummy page `/publishable/placements` shows the dropdown on the page and the rows inside a host dropdown.
 
 ### Changed
-- Publish and unpublish submit a PATCH form. The outer wrapper stays put. Turbo replaces the label and updates the rows inside it.
+- Publish and unpublish submit a PATCH form. The outer wrapper stays put. Turbo replaces the label and updates the rows in every quick-actions control for that recording.
 - Development and dummy Gemfiles pin Flatpack `v0.1.296`. Card `style:` is gone in that release, and PageNav back and close are slots (`with_back`, `with_close`).
 
 ### Upgrade Notes
 - Install Publishable `0.10.0`. No migration.
 - Rebuild host Tailwind after the Flatpack bump.
 - The gem does not call `register_page_nav`. A host that wants the control in the page nav bar registers it from the layout. See the README.
-- Inline publish no longer replaces `#publishable_quick_actions_<id>`. The node stays. The label id is `#publishable_quick_actions_<id>_state` and the rows id is `#publishable_quick_actions_<id>_menu_items`. A flat list updates `#publishable_quick_actions_<id>_list`.
+- Inline publish no longer replaces `#publishable_quick_actions_<id>`. The node stays. Turbo `targets` updates every quick-actions control for that recording through the shared classes `publishable-quick-actions-for-<recording id>` plus `publishable-quick-actions-state`, `publishable-quick-actions-menu-items`, `publishable-quick-actions-alert`, or `publishable-quick-actions-list`. The submitting control's size, name, and state overrides are what the other controls pick up.
 
 ## [0.9.2] - 2026-10-20
 

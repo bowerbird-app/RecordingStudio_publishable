@@ -326,7 +326,7 @@ class DocsController < ApplicationController
       },
       {
         title: "RecordingStudioPublishable::QuickActions::ListComponent",
-        subtitle: "The same actions as rows, for a menu or the phone menu.",
+        subtitle: "Publish rows for a host's dropdown.",
         entrypoint: "app/components/recording_studio_publishable/quick_actions/list_component.rb",
         params: [
           {

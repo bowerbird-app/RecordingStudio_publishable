@@ -1,26 +1,25 @@
 <% presenter = @quick_actions_presenter %>
-<turbo-stream action="update" target="<%= presenter.alert_id %>">
+<% dropdown = presenter.with_renderer("dropdown") %>
+<% list = presenter.with_renderer("list") %>
+<turbo-stream action="update" targets="<%= presenter.targets_selector(:alert) %>">
   <template>
     <% if presenter.alert.present? %>
       <%= render FlatPack::Alert::Component.new(description: presenter.alert, style: :danger, class: "mb-2") %>
     <% end %>
   </template>
 </turbo-stream>
-<% if presenter.renderer == "list" %>
-  <turbo-stream action="update" target="<%= presenter.list_body_id %>">
-    <template>
-      <%= render RecordingStudioPublishable::QuickActions::ListBodyComponent.new(presenter: presenter) %>
-    </template>
-  </turbo-stream>
-<% else %>
-  <turbo-stream action="replace" target="<%= presenter.state_id %>">
-    <template>
-      <%= render RecordingStudioPublishable::QuickActions::StateComponent.new(presenter: presenter) %>
-    </template>
-  </turbo-stream>
-  <turbo-stream action="update" target="<%= presenter.menu_body_id %>">
-    <template>
-      <%= render RecordingStudioPublishable::QuickActions::RowsComponent.new(presenter: presenter) %>
-    </template>
-  </turbo-stream>
-<% end %>
+<turbo-stream action="replace" targets="<%= dropdown.targets_selector(:state) %>">
+  <template>
+    <%= render RecordingStudioPublishable::QuickActions::StateComponent.new(presenter: dropdown, identify: false) %>
+  </template>
+</turbo-stream>
+<turbo-stream action="update" targets="<%= dropdown.targets_selector(:menu_items) %>">
+  <template>
+    <%= render RecordingStudioPublishable::QuickActions::RowsComponent.new(presenter: dropdown) %>
+  </template>
+</turbo-stream>
+<turbo-stream action="update" targets="<%= list.targets_selector(:list) %>">
+  <template>
+    <%= render RecordingStudioPublishable::QuickActions::ListBodyComponent.new(presenter: list) %>
+  </template>
+</turbo-stream>

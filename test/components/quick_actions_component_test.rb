@@ -281,6 +281,9 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     refute_equal standalone_id, menu_id
     assert_includes standalone, %(id="#{standalone_id}")
     assert_includes menu, %(id="#{menu_id}")
+    marker = RecordingStudioPublishable::QuickActions::Presenter.recording_class(recording)
+    assert_includes standalone, marker
+    assert_includes menu, marker
   end
 
   test "a bad control name raises" do

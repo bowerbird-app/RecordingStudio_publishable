@@ -162,7 +162,7 @@ The closed button names Draft, the scheduled date (for example `Jan 22`), or Pub
 
 Publish and unpublish submit a real form (`button_to`, PATCH). Schedule, Preview, View, SEO, and Social are links. A surrounding menu that closes on `a[href]` stays open for the form, and the request is a PATCH rather than a link with `data-turbo-method`.
 
-The outer wrapper stays in the document. Turbo updates the label and the rows inside it. Pass `name:` when one page shows the control more than once. The name is a short slug (`page-nav`) and becomes part of the wrapper id.
+The outer wrapper stays in the document. Turbo updates the label and the rows in every quick-actions control for that recording, whatever its name or placement. Pass `name:` when one page shows the control more than once. The name is a short slug (`standalone`, `menu`) and becomes part of the wrapper id.
 
 ```erb
 <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: page_recording, name: "standalone") %>
@@ -170,7 +170,7 @@ The outer wrapper stays in the document. Turbo updates the label and the rows in
 
 ### In the page nav
 
-Register the dropdown from the host layout, before the layout renders page nav. The host draws that component in the bar, including on a phone.
+Register the dropdown from the host layout, before the layout renders page nav. The host draws that component in the bar.
 
 ```erb
 <% register_page_nav component: publishable_quick_actions_for(page_recording, name: "page-nav", size: :sm), role: :secondary %>
@@ -178,9 +178,9 @@ Register the dropdown from the host layout, before the layout renders page nav. 
 
 `publishable_quick_actions_for` returns the component. `render_publishable_quick_actions` renders it immediately, which is too early for `register_page_nav`.
 
-### In a menu or the phone hamburger
+### Inside a host dropdown
 
-`ListComponent` is the same rows without a second dropdown. Use it inside a menu, and in the phone hamburger.
+`ListComponent` is the publish rows without a second dropdown. Put it inside a host dropdown, next to the host's own items.
 
 ```erb
 <%= render RecordingStudioPublishable::QuickActions::ListComponent.new(recording: page_recording, name: "menu") %>
@@ -209,13 +209,13 @@ end
 
 ```erb
 <%= render PageMenu.new(
-  text: "Page menu",
+  text: "Menu",
   style: :secondary,
   menu_html: render(publishable_quick_actions_list_for(page_recording, name: "menu"))
 ) %>
 ```
 
-The dummy page at `/publishable/placements` shows the dropdown on the page and in the top nav, the flat list inside a dropdown, and the flat list in the phone menu.
+The dummy page at `/publishable/placements` shows the dropdown on the page and those rows inside a host dropdown named Menu.
 
 ### Styling the dropdown
 

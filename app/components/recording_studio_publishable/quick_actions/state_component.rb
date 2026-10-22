@@ -4,20 +4,25 @@ module RecordingStudioPublishable
   module QuickActions
     # The label inside the trigger. Replaced on its own so the trigger node stays.
     class StateComponent < ViewComponent::Base
-      def initialize(presenter:)
+      def initialize(presenter:, identify: true)
         @presenter = presenter
+        @identify = identify
       end
 
       def call
-        tag.span(
-          safe_join([icon, label].compact),
-          id: @presenter.state_id,
-          class: "inline-flex items-center gap-2",
-          data: span_data
-        )
+        tag.span(safe_join([icon, label].compact), **span_attributes)
       end
 
       private
+
+      def span_attributes
+        attributes = {
+          class: ClassNames.merge("inline-flex items-center gap-2", @presenter.target_classes(:state)),
+          data: span_data
+        }
+        attributes[:id] = @presenter.state_id if @identify
+        attributes
+      end
 
       def span_data
         {

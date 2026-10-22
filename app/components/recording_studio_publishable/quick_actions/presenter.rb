@@ -4,6 +4,8 @@ module RecordingStudioPublishable
   module QuickActions
     # State, label, icon, and the rows both renderers share.
     class Presenter
+      include Targets
+
       NAME_PATTERN = /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/
 
       def self.wrapper_id(recording, name: nil)
@@ -45,6 +47,18 @@ module RecordingStudioPublishable
       def menu_frame_id = "#{wrapper_id}_menu"
       def menu_body_id = "#{wrapper_id}_menu_items"
       def list_body_id = "#{wrapper_id}_list"
+
+      def with_renderer(renderer)
+        self.class.new(
+          recording: recording,
+          routes: routes,
+          size: size,
+          alert: alert,
+          appearance: appearance,
+          name: name,
+          renderer: renderer
+        )
+      end
 
       def closed_state
         publishable = recording.current_publishable

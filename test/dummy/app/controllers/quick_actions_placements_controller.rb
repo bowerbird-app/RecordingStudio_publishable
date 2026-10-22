@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class QuickActionsPlacementsController < ApplicationController
-  layout "quick_actions_placements"
-
   def show
     @recording = placement_recording
   end

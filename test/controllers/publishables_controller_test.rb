@@ -219,7 +219,6 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
   test "turbo stream publish updates the inner control and stays off the success page" do
     parent_recording = build_publishable_parent(title: "Stream Publish Page")
-    wrapper = RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)
 
     patch recording_studio_publishable.transition_recording_publishable_path(
       recording_id: parent_recording.id,
@@ -229,10 +228,8 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "text/vnd.turbo-stream.html", response.media_type
-    assert_includes response.body, %(target="#{wrapper}_state")
-    assert_includes response.body, %(target="#{wrapper}_menu_items")
-    assert_includes response.body, %(target="#{wrapper}_alert")
-    refute_match(/target="#{Regexp.escape(wrapper)}"/, response.body)
+    assert_targets parent_recording, :state, :menu_items, :alert
+    refute_match(/<turbo-stream[^>]*\starget="/, response.body)
     assert_includes CGI.unescapeHTML(response.body), "Published"
     assert_includes response.body, "Unpublish"
     assert_includes response.body, "View"
@@ -285,8 +282,8 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "host-publish-button", document.at_css("input[name='button_class']")["value"]
     assert_equal "host-publish-menu", document.at_css("input[name='menu_class']")["value"]
     assert_includes document.at_css("input[name='quick_actions_states']")["value"], "bell"
-    wrapper = RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)
-    refute_match(/target="#{Regexp.escape(wrapper)}"/, response.body)
+    refute_match(/<turbo-stream[^>]*\starget="/, response.body)
+    assert_targets parent_recording, :state
     assert parent_recording.reload.current_publishable.currently_published?
   end
 
@@ -315,7 +312,6 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
   test "turbo stream publish for a named list updates that list" do
     parent_recording = build_publishable_parent(title: "Stream List Page")
-    wrapper = RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording, name: "menu")
 
     patch recording_studio_publishable.transition_recording_publishable_path(
       recording_id: parent_recording.id,
@@ -326,13 +322,14 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     assert_response :success
-    assert_includes response.body, %(target="#{wrapper}_list")
-    assert_includes response.body, %(target="#{wrapper}_alert")
-    refute_includes response.body, %(target="#{wrapper}_state")
-    refute_match(/target="#{Regexp.escape(wrapper)}"/, response.body)
+    assert_targets parent_recording, :list, :alert, :state, :menu_items
+    refute_match(/<turbo-stream[^>]*\starget="/, response.body)
     assert_includes CGI.unescapeHTML(response.body), "Published"
-    assert_equal "list", Nokogiri::HTML(response.body).at_css("input[name='quick_actions_renderer']")["value"]
-    assert_equal "menu", Nokogiri::HTML(response.body).at_css("input[name='quick_actions_name']")["value"]
+    document = Nokogiri::HTML(response.body)
+    renderers = document.css("input[name='quick_actions_renderer']").map { |node| node["value"] }
+    assert_includes renderers, "dropdown"
+    assert_includes renderers, "list"
+    assert_equal ["menu"], document.css("input[name='quick_actions_name']").map { |node| node["value"] }.uniq
   end
 
   test "turbo stream draft updates the inner control with draft actions" do
@@ -726,6 +723,13 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
       actor: @user,
       attributes: { slug: "spring-release-notes", status: "published" }
     ).value!
+  end
+
+  def assert_targets(recording, *parts)
+    presenter = RecordingStudioPublishable::QuickActions::Presenter
+    parts.each do |part|
+      assert_includes response.body, %(targets="#{presenter.targets_selector(recording, part)}")
+    end
   end
 
   def grant_edit_access!(root_recording)

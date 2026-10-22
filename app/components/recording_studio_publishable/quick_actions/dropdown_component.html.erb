@@ -7,7 +7,7 @@
   </button>
 
   <div <%= tag.attributes(menu_attributes) %>>
-    <div id="<%= state_presenter.menu_body_id %>">
+    <div id="<%= state_presenter.menu_body_id %>" class="<%= state_presenter.target_classes(:menu_items) %>">
       <%= render RecordingStudioPublishable::QuickActions::RowsComponent.new(presenter: state_presenter) %>
     </div>
   </div>
