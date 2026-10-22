@@ -9,7 +9,12 @@ module RecordingStudioPublishable
       end
 
       def call
-        tag.span(safe_join([icon, label].compact), id: @presenter.state_id, data: span_data)
+        tag.span(
+          safe_join([icon, label].compact),
+          id: @presenter.state_id,
+          class: "inline-flex items-center gap-2",
+          data: span_data
+        )
       end
 
       private

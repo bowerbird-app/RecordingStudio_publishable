@@ -36,6 +36,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     section = wrapper_html(recording)
+    assert_inline_trigger(section)
     assert_includes section, "Draft"
     assert_includes section, "pencil-square"
     assert_includes section, "Publish now"
@@ -87,6 +88,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     section = wrapper_html(recording)
+    assert_inline_trigger(section)
     button = Nokogiri::HTML(section).at_css("button")
     icon = button.at_css("svg[data-flat-pack--icon-name-value='check-circle']")
 
@@ -124,6 +126,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
       assert_response :success
       section = wrapper_html(recording)
+      assert_inline_trigger(section)
       trigger_labels = Nokogiri::HTML(section).css("button span").map { |span| span.text.strip }
 
       assert_includes trigger_labels, "Jan 22"
@@ -254,6 +257,10 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert wrapper
     assert_includes wrapper["class"], "publishable-quick-actions"
+    status = wrapper.at_css("[role='presentation']")
+    assert_includes status["class"], "flex"
+    assert_includes status["class"], "items-center"
+    assert_equal %w[svg span], status.element_children.map(&:name)
     refute wrapper.at_css("[data-controller~='flat-pack--button-dropdown']")
     assert_includes wrapper.text, "Draft"
     assert_publish_form(wrapper.to_html, recording, renderer: "list", name: "menu")
@@ -299,6 +306,16 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def assert_inline_trigger(section)
+    state = Nokogiri::HTML(section).at_css("[data-publishable-quick-actions-target='state']")
+    classes = state["class"].to_s.split
+
+    assert_includes classes, "inline-flex"
+    assert_includes classes, "items-center"
+    assert_equal %w[svg span], state.element_children.map(&:name)
+    assert state.element_children.last.text.present?
+  end
 
   def wrapper_html(recording)
     wrapper = RecordingStudioPublishable::QuickActions::Component.wrapper_id(recording)
