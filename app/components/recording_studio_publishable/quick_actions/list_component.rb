@@ -2,7 +2,7 @@
 
 module RecordingStudioPublishable
   module QuickActions
-    # Publish rows for use inside a host's dropdown. No second dropdown.
+    # Publish rows inside a host dropdown, collapsed to the current state.
     class ListComponent < Component
       def renderer_name
         "list"

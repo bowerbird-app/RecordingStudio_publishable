@@ -255,17 +255,56 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert wrapper
     assert_includes wrapper["class"], "publishable-quick-actions"
-    status = wrapper.at_css("[role='presentation']")
-    assert_includes status["class"], "flex"
-    assert_includes status["class"], "items-center"
-    assert_equal %w[svg span], status.element_children.map(&:name)
+    assert_list_collapse(wrapper, title: "Draft", icon: "pencil-square")
+    refute wrapper.at_css("[role='presentation']")
     refute wrapper.at_css("[data-controller~='flat-pack--button-dropdown']")
-    assert_includes wrapper.text, "Draft"
     assert_publish_form(wrapper.to_html, recording, renderer: "list", name: "menu")
     assert_equal "list", hidden_value(wrapper.to_html, "quick_actions_renderer")
     assert_page_link(wrapper.to_html, recording, text: "Preview", icon: "eye", public: false)
     assert_footer_job_links(wrapper.to_html, recording)
     assert_equal 1, document.css("##{wrapper_id}").length
+  end
+
+  test "published list collapse names the state and keeps the rows" do
+    recording = create_parent("Published list page")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: recording,
+      actor: @user,
+      attributes: { slug: "published-list", status: "published" }
+    ).value!
+
+    html = ApplicationController.render(
+      RecordingStudioPublishable::QuickActions::ListComponent.new(recording: recording, name: "menu"),
+      layout: false
+    )
+    wrapper_id = RecordingStudioPublishable::QuickActions::Component.wrapper_id(recording, name: "menu")
+    wrapper = Nokogiri::HTML(html).at_css("##{wrapper_id}")
+
+    assert_list_collapse(wrapper, title: "Published", icon: "check-circle")
+    assert_includes wrapper.text, "Unpublish"
+    refute_includes wrapper.text, "Publish now"
+    refute wrapper.at_css("[data-controller~='flat-pack--button-dropdown']")
+  end
+
+  test "list alert stays outside the collapse" do
+    recording = draft_recording("List alert page", "list-alert")
+
+    html = ApplicationController.render(
+      RecordingStudioPublishable::QuickActions::ListComponent.new(
+        recording: recording,
+        name: "menu",
+        alert: "Try again"
+      ),
+      layout: false
+    )
+    document = Nokogiri::HTML(html)
+    wrapper_id = RecordingStudioPublishable::QuickActions::Component.wrapper_id(recording, name: "menu")
+    wrapper = document.at_css("##{wrapper_id}")
+    alert = wrapper.at_css(".publishable-quick-actions-alert")
+    collapse = wrapper.at_css(".fp-menu-collapse")
+
+    assert_includes alert.text, "Try again"
+    refute collapse.at_css(".publishable-quick-actions-alert")
   end
 
   test "two controls for one page get different ids" do
@@ -307,6 +346,20 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def assert_list_collapse(wrapper, title:, icon:)
+    collapse = wrapper.at_css("[data-controller~='flat-pack--menu-collapse']")
+    header = collapse.at_css("button.fp-menu-collapse__button")
+    panel = collapse.at_css(".fp-menu-collapse__panel")
+    items = collapse.at_css(".fp-menu-collapse__items")
+
+    assert_equal "false", collapse["data-flat-pack--menu-collapse-open-value"]
+    assert_equal title, header.at_css(".fp-menu-collapse__label").text
+    assert_equal icon, header.at_css(".fp-menu-collapse__icon svg")["data-flat-pack--icon-name-value"]
+    assert_equal "false", header["aria-expanded"]
+    assert panel["hidden"]
+    assert_equal "form", items.element_children.first.name
+  end
 
   def assert_inline_trigger(section)
     state = Nokogiri::HTML(section).at_css("[data-publishable-quick-actions-target='state']")

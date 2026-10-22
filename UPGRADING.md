@@ -1,5 +1,15 @@
 # Upgrading
 
+## 0.11.0 — collapsed publish rows
+
+Install `recording_studio_publishable` 0.11.0. No migration.
+
+Flatpack must be `0.1.302` or newer. Reload Flatpack CSS and JavaScript. This Flatpack release does not need a Tailwind rebuild.
+
+`ListComponent` is one collapsed line inside a host dropdown. The line shows Draft, the scheduled date, or Published, with that state's icon. Open it for the same rows as before. The separate status line is gone. The dropdown button is unchanged.
+
+Turbo still leaves the outer wrapper in place. The list update redraws the whole collapse, header included. The alert above it still updates on its own.
+
 ## 0.10.0 — publish control placements
 
 Install `recording_studio_publishable` 0.10.0. No migration.

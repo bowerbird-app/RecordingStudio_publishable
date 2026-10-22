@@ -49,8 +49,11 @@ class QuickActionsPlacementsTest < ActionDispatch::IntegrationTest
     refute host_menu.at_css("[data-controller~='flat-pack--button-dropdown']")
 
     list = document.at_css("##{menu_id}")
-    assert_includes list.text, "Draft"
+    collapse = list.at_css("[data-controller~='flat-pack--menu-collapse']")
+    assert_equal "Draft", collapse.at_css(".fp-menu-collapse__label").text
+    assert collapse.at_css(".fp-menu-collapse__panel")["hidden"]
     refute list.at_css("[data-controller~='flat-pack--button-dropdown']")
+    refute standalone.at_css("[data-controller~='flat-pack--menu-collapse']")
     assert_publish_form(list)
     assert_equal "list", list.at_css("input[name='quick_actions_renderer']")["value"]
 
