@@ -13,14 +13,14 @@
   </head>
 
   <body class="m-0 min-h-screen bg-[var(--surface-page-background-color)] text-[var(--surface-content-color)]">
-    <% register_page_nav component: publishable_quick_actions_for(@recording, name: "page-nav", size: :sm), role: :secondary %>
-
     <%= render FlatPack::SidebarLayout::Component.new(storage_key: "publishable-placements") do |layout| %>
       <% layout.top_nav do %>
-        <%# The phone menu is this slot. Let the bar grow so those rows stay clear of the page nav. %>
-        <%= render FlatPack::TopNav::Component.new(style: "height: auto") do |nav| %>
-          <% nav.right do %>
-            <%= render publishable_quick_actions_list_for(@recording, name: "phone") %>
+        <%= render FlatPack::TopNav::Component.new do |nav| %>
+          <% nav.center do %>
+            <%= render QuickActionsPlacements::PhoneMenu.new(recording: @recording) %>
+          <% end %>
+          <% nav.right(always_display: true) do %>
+            <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @recording, name: "page-nav", size: :sm) %>
           <% end %>
         <% end %>
       <% end %>

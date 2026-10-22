@@ -40,9 +40,11 @@ class QuickActionsPlacementsTest < ActionDispatch::IntegrationTest
     assert standalone.at_css("[data-controller~='flat-pack--button-dropdown']")
     assert_publish_form(standalone)
 
-    page_nav = document.at_css(".fp-page-nav")
-    assert page_nav.at_css("##{page_nav_id}")
-    assert page_nav.at_css(".fp-page-nav-components")
+    top_nav = document.at_css("[data-controller~='flat-pack--top-nav']")
+    bar = top_nav.at_css("[data-flat-pack-top-nav-section='right']")
+    assert_equal "false", bar["data-flat-pack-top-nav-collapsible"]
+    assert bar.at_css("##{page_nav_id} [data-flat-pack--button-dropdown-target='trigger']")
+    refute top_nav["style"].to_s.include?("height")
 
     list = document.at_css("##{menu_id}")
     assert ancestor_match?(list, "[role='menu']")
@@ -51,12 +53,13 @@ class QuickActionsPlacementsTest < ActionDispatch::IntegrationTest
     assert_equal "list", list.at_css("input[name='quick_actions_renderer']")["value"]
 
     phone = document.at_css("##{phone_id}")
+    assert ancestor_match?(phone, ".fp-page-nav-menu")
     assert ancestor_match?(phone, "[data-controller~='flat-pack--top-nav']")
+    refute ancestor_match?(phone, "[data-flat-pack-top-nav-section='right']")
     refute phone.at_css("[data-controller~='flat-pack--button-dropdown']")
     assert_publish_form(phone)
     assert_equal "list", phone.at_css("input[name='quick_actions_renderer']")["value"]
 
-    top_nav = document.at_css("[data-controller~='flat-pack--top-nav']")
     left = top_nav.at_css("[data-flat-pack-top-nav-section='left']")
     assert_equal "", left.text.squish
     assert_equal "Where it sits", document.at_css("h1").text.squish

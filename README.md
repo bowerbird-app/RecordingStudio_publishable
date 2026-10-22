@@ -215,7 +215,7 @@ end
 ) %>
 ```
 
-The dummy page at `/publishable/placements` shows the dropdown on the page, registered from the layout with `register_page_nav`, the flat list inside a dropdown, and the flat list in the phone menu.
+The dummy page at `/publishable/placements` shows the dropdown on the page and in the top nav, the flat list inside a dropdown, and the flat list in the phone menu.
 
 ### Styling the dropdown
 
