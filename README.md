@@ -162,7 +162,7 @@ The closed button names Draft, the scheduled date (for example `Jan 22`), or Pub
 
 Publish and unpublish submit a real form (`button_to`, PATCH). Schedule, Preview, View, SEO, and Social are links. A surrounding menu that closes on `a[href]` stays open for the form, and the request is a PATCH rather than a link with `data-turbo-method`.
 
-The outer wrapper stays in the document. Turbo updates the label and the rows inside it, so a FlatPack TopNav that already turned the dropdown into a phone disclosure keeps the trigger and menu it wired. TopNav only scans for that disclosure once. If the menu is still portaled to `document.body` at that moment (the dropdown was open, or just closing), the control puts the menu back inside the trigger and discloses it in place. Pass `name:` when one page shows the control more than once. The name is a short slug (`page-nav`, `top-nav`) and becomes part of the wrapper id.
+The outer wrapper stays in the document. Turbo updates the label and the rows inside it. Pass `name:` when one page shows the control more than once. The name is a short slug (`page-nav`) and becomes part of the wrapper id.
 
 ```erb
 <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: page_recording, name: "standalone") %>
@@ -170,7 +170,7 @@ The outer wrapper stays in the document. Turbo updates the label and the rows in
 
 ### In the page nav
 
-Register the dropdown from the host layout, before the layout renders page nav. FlatPack draws a registered component once, in the bar. On a phone it stays on screen. The TopNav does not move it into the hamburger.
+Register the dropdown from the host layout, before the layout renders page nav. The host draws that component in the bar, including on a phone.
 
 ```erb
 <% register_page_nav component: publishable_quick_actions_for(page_recording, name: "page-nav", size: :sm), role: :secondary %>
@@ -180,7 +180,7 @@ Register the dropdown from the host layout, before the layout renders page nav. 
 
 ### In a menu or the phone hamburger
 
-`ListComponent` is the same rows without a second dropdown. Use it inside a menu you render, or in the TopNav panel, so the list is not a child menu portaled to `document.body`.
+`ListComponent` is the same rows without a second dropdown. Use it inside a menu, and in the phone hamburger.
 
 ```erb
 <%= render RecordingStudioPublishable::QuickActions::ListComponent.new(recording: page_recording, name: "menu") %>
@@ -215,9 +215,7 @@ end
 ) %>
 ```
 
-The dropdown renderer can also sit in a TopNav slot. On a phone, TopNav turns that dropdown into a disclosure. Keep that slot's control as the dropdown when you want the closed button in the hamburger. Use the flat list when the rows should already be open inside a menu.
-
-The dummy page at `/publishable/placements` shows all four: on the page, registered in the layout with `register_page_nav`, inside a dropdown as the flat list, and in the TopNav slot that becomes the phone menu.
+The dummy page at `/publishable/placements` shows the dropdown on the page, registered from the layout with `register_page_nav`, the flat list inside a dropdown, and the flat list in the phone menu.
 
 ### Styling the dropdown
 

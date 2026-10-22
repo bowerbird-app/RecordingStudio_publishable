@@ -12,10 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - `QuickActions::ListComponent` renders the same publish rows as a flat list for a menu or the phone hamburger. `render_publishable_quick_actions_list` and `publishable_quick_actions_list_for` render it. `publishable_quick_actions_for` returns the dropdown component so a host layout can pass it to `register_page_nav`.
 - `name:` keeps wrapper ids unique when one page shows the control more than once.
-- The dummy page `/publishable/placements` shows the dropdown on the page, registered from the layout with `register_page_nav`, the flat list inside a dropdown, and the dropdown in the TopNav slot that becomes the phone menu.
+- The dummy page `/publishable/placements` shows the dropdown on the page, registered from the layout with `register_page_nav`, the flat list inside a dropdown, and the flat list in the phone menu.
 
 ### Changed
-- Publish and unpublish submit a PATCH form. The outer wrapper stays put. Turbo replaces the label and updates the rows inside it, so a TopNav disclosure keeps the trigger and menu it wired. If that scan misses a menu that is still portaled to `document.body`, the control puts the menu back and discloses it in place.
+- Publish and unpublish submit a PATCH form. The outer wrapper stays put. Turbo replaces the label and updates the rows inside it.
 - Development and dummy Gemfiles pin Flatpack `v0.1.296`. Card `style:` is gone in that release, and PageNav back and close are slots (`with_back`, `with_close`).
 
 ### Upgrade Notes

@@ -169,8 +169,6 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes menu["class"], "fixed"
     assert_includes menu["class"], "publishable-quick-actions-menu"
     assert_includes menu["class"], "host-publish-menu"
-    dropdown = Nokogiri::HTML(html).at_css("[data-controller~='publishable-quick-actions']")
-    assert_equal menu["id"], dropdown["data-publishable-quick-actions-menu-id-value"]
     assert_equal "host-publish-button", hidden_value(html, "button_class")
     assert_equal "host-publish-menu", hidden_value(html, "menu_class")
     assert hidden_value(html, "quick_actions_states").present?

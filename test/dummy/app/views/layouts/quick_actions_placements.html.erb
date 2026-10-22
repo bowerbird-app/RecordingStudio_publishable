@@ -22,7 +22,7 @@
             <span class="text-sm font-medium">Placements</span>
           <% end %>
           <% nav.right do %>
-            <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @recording, name: "top-nav", size: :sm) %>
+            <%= render publishable_quick_actions_list_for(@recording, name: "phone") %>
           <% end %>
         <% end %>
       <% end %>

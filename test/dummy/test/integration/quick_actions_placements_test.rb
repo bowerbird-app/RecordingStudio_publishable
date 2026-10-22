@@ -15,7 +15,7 @@ class QuickActionsPlacementsTest < ActionDispatch::IntegrationTest
     sign_in @user
   end
 
-  test "demo page places the control on the page, in the bar, in a menu, and in the top nav" do
+  test "demo page places the dropdown on the page and in the bar, and the flat list in a menu and the phone menu" do
     get quick_actions_placements_path
 
     assert_response :success
@@ -28,9 +28,9 @@ class QuickActionsPlacementsTest < ActionDispatch::IntegrationTest
     standalone_id = wrapper_id(recording, "standalone")
     page_nav_id = wrapper_id(recording, "page-nav")
     menu_id = wrapper_id(recording, "menu")
-    top_nav_id = wrapper_id(recording, "top-nav")
+    phone_id = wrapper_id(recording, "phone")
 
-    [standalone_id, page_nav_id, menu_id, top_nav_id].each do |id|
+    [standalone_id, page_nav_id, menu_id, phone_id].each do |id|
       assert_equal 1, document.css("##{id}").length, id
     end
 
@@ -50,10 +50,11 @@ class QuickActionsPlacementsTest < ActionDispatch::IntegrationTest
     assert_publish_form(list)
     assert_equal "list", list.at_css("input[name='quick_actions_renderer']")["value"]
 
-    top_nav = document.at_css("[data-controller~='flat-pack--top-nav']")
-    assert top_nav.at_css("##{top_nav_id}")
-    assert top_nav.at_css("##{top_nav_id} [data-flat-pack--button-dropdown-target='trigger']")
-    assert top_nav.at_css("##{top_nav_id} [data-flat-pack--button-dropdown-target='menu']")
+    phone = document.at_css("##{phone_id}")
+    assert ancestor_match?(phone, "[data-controller~='flat-pack--top-nav']")
+    refute phone.at_css("[data-controller~='flat-pack--button-dropdown']")
+    assert_publish_form(phone)
+    assert_equal "list", phone.at_css("input[name='quick_actions_renderer']")["value"]
   end
 
   private

@@ -18,7 +18,7 @@ This gem does not call `register_page_nav`. To keep the dropdown in the page nav
 <% register_page_nav component: publishable_quick_actions_for(page_recording, name: "page-nav", size: :sm), role: :secondary %>
 ```
 
-Use `ListComponent` (`render_publishable_quick_actions_list`) inside a menu or the phone hamburger when the rows should not be their own dropdown. Pass `name:` when the same page shows more than one control. `name:` is a short slug such as `page-nav`.
+Use `ListComponent` (`render_publishable_quick_actions_list`) inside a menu, and in the phone hamburger. Pass `name:` when the same page shows more than one control. `name:` is a short slug such as `page-nav`.
 
 ## 0.9.1 — concurrent publishable indexes
 

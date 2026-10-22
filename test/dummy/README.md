@@ -13,7 +13,7 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 - Flatpack CSS and JS loaded the way the [live kit](https://flatpack.bowerbird.io/) does: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then host Tailwind; stylesheets in `manifest.js`; Flatpack controllers lazy-loaded from `importmap.rb`
 - Publish settings is a hub. The list starts with Preview or View, then Schedule, SEO, and Social. On desktop the list stays left-aligned at a narrower width; the title and dropdown keep the full layout width
 - a host **publish dropdown** on the Pages table (`QuickActions`) so a page can go live or unpublish without opening that screen. Schedule, SEO, and Social in the dropdown open those screens. Draft and scheduled menus include Preview. Live menus include View
-- `/publishable/placements` shows that control in four places: on the page, registered by the layout with `register_page_nav`, as a flat list inside a dropdown, and in the TopNav slot that folds into the phone menu
+- `/publishable/placements` shows that control on the page, registered by the layout with `register_page_nav`, as a flat list inside a dropdown, and as a flat list in the phone menu
 - the default public route at `/published/:uuid/:slug`
 - seeded published indexable, published hidden-from-search, scheduled, and draft pages so head tags, `indexable?`, and the three dropdown states can be checked
 
