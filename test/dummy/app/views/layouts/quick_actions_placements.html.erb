@@ -17,10 +17,8 @@
 
     <%= render FlatPack::SidebarLayout::Component.new(storage_key: "publishable-placements") do |layout| %>
       <% layout.top_nav do %>
-        <%= render FlatPack::TopNav::Component.new do |nav| %>
-          <% nav.left do %>
-            <span class="text-sm font-medium">Placements</span>
-          <% end %>
+        <%# The phone menu is this slot. Let the bar grow so those rows stay clear of the page nav. %>
+        <%= render FlatPack::TopNav::Component.new(style: "height: auto") do |nav| %>
           <% nav.right do %>
             <%= render publishable_quick_actions_list_for(@recording, name: "phone") %>
           <% end %>
@@ -28,9 +26,11 @@
       <% end %>
 
       <% layout.main do %>
-        <main class="px-4 py-6 sm:px-6">
-          <%= yield %>
-        </main>
+        <div class="fp-layout-content">
+          <div class="fp-layout-column">
+            <%= yield %>
+          </div>
+        </div>
       <% end %>
     <% end %>
   </body>

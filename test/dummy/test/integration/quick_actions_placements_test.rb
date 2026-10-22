@@ -55,6 +55,11 @@ class QuickActionsPlacementsTest < ActionDispatch::IntegrationTest
     refute phone.at_css("[data-controller~='flat-pack--button-dropdown']")
     assert_publish_form(phone)
     assert_equal "list", phone.at_css("input[name='quick_actions_renderer']")["value"]
+
+    top_nav = document.at_css("[data-controller~='flat-pack--top-nav']")
+    left = top_nav.at_css("[data-flat-pack-top-nav-section='left']")
+    assert_equal "", left.text.squish
+    assert_equal "Where it sits", document.at_css("h1").text.squish
   end
 
   private
