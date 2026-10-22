@@ -13,9 +13,9 @@
   </head>
 
   <body class="m-0 min-h-screen bg-[var(--surface-page-background-color)] text-[var(--surface-content-color)]">
-    <%= render FlatPack::SidebarLayout::Component.new(storage_key: "publishable-placements") do |layout| %>
+    <%= render FlatPack::PageLayout::Component.new(width: :full) do |layout| %>
       <% layout.top_nav do %>
-        <%= render FlatPack::TopNav::Component.new do |nav| %>
+        <%= render FlatPack::TopNav::Component.new(data: { theme: "ocean" }) do |nav| %>
           <% nav.center do %>
             <%= render QuickActionsPlacements::PhoneMenu.new(recording: @recording) %>
           <% end %>
@@ -24,14 +24,7 @@
           <% end %>
         <% end %>
       <% end %>
-
-      <% layout.main do %>
-        <div class="fp-layout-content">
-          <div class="fp-layout-column">
-            <%= yield %>
-          </div>
-        </div>
-      <% end %>
+      <%= yield %>
     <% end %>
   </body>
 </html>

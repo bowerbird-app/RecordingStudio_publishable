@@ -41,6 +41,8 @@ class QuickActionsPlacementsTest < ActionDispatch::IntegrationTest
     assert_publish_form(standalone)
 
     top_nav = document.at_css("[data-controller~='flat-pack--top-nav']")
+    assert ancestor_match?(top_nav, ".fp-page-layout")
+    assert_equal "ocean", top_nav["data-theme"]
     bar = top_nav.at_css("[data-flat-pack-top-nav-section='right']")
     assert_equal "false", bar["data-flat-pack-top-nav-collapsible"]
     assert bar.at_css("##{page_nav_id} [data-flat-pack--button-dropdown-target='trigger']")
