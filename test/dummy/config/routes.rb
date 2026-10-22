@@ -21,6 +21,8 @@ Rails.application.routes.draw do
   get "docs/headers", to: "docs#headers", as: :docs_headers
   get "docs/components", to: "docs#components", as: :docs_components
 
+  get "/publishable/placements", to: "quick_actions_placements#show", as: :quick_actions_placements
+
   get "/dummy/pages/new", to: "dummy_pages#new", as: :new_dummy_page
   post "/dummy/pages", to: "dummy_pages#create", as: :dummy_pages
 

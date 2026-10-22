@@ -1,0 +1,6 @@
+<div class="<%= status_classes %>" role="presentation">
+  <%= status_icon %>
+  <span class="flex-1"><%= presenter.trigger_text %></span>
+</div>
+<%= render FlatPack::Button::DropdownDivider::Component.new %>
+<%= render RecordingStudioPublishable::QuickActions::RowsComponent.new(presenter: presenter) %>

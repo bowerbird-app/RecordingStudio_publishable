@@ -84,8 +84,20 @@ module RecordingStudioPublishable
       render RecordingStudioPublishable::StatusBadge::Component.new(publishable: publishable)
     end
 
+    def publishable_quick_actions_for(recording, **)
+      RecordingStudioPublishable::QuickActions::Component.new(recording: recording, **)
+    end
+
+    def publishable_quick_actions_list_for(recording, **)
+      RecordingStudioPublishable::QuickActions::ListComponent.new(recording: recording, **)
+    end
+
     def render_publishable_quick_actions(recording, **)
-      render RecordingStudioPublishable::QuickActions::Component.new(recording: recording, **)
+      render publishable_quick_actions_for(recording, **)
+    end
+
+    def render_publishable_quick_actions_list(recording, **)
+      render publishable_quick_actions_list_for(recording, **)
     end
 
     def publishable_preview?

@@ -46,6 +46,9 @@ Lint/MissingSuper:
     - 'test/services/**/*'
     - 'app/components/recording_studio_publishable/edit_button_component.rb'
     - 'app/components/recording_studio_publishable/quick_actions/component.rb'
+    - 'app/components/recording_studio_publishable/quick_actions/list_body_component.rb'
+    - 'app/components/recording_studio_publishable/quick_actions/rows_component.rb'
+    - 'app/components/recording_studio_publishable/quick_actions/state_component.rb'
     - 'app/components/recording_studio_publishable/status_badge/component.rb'
 
 # Offense count: 1

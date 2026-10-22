@@ -1,50 +1,9 @@
-<% state = appearance.state_config(closed_state) %>
-<div id="<%= wrapper_id %>" class="publishable-quick-actions relative overflow-visible">
-  <% if alert.present? %>
-    <%= render FlatPack::Alert::Component.new(description: alert, style: :danger, class: "mb-2") %>
-  <% end %>
+<div id="<%= presenter.wrapper_id %>" class="publishable-quick-actions relative overflow-visible">
+  <div id="<%= presenter.alert_id %>" class="<%= presenter.target_classes(:alert) %>">
+    <% if alert.present? %>
+      <%= render FlatPack::Alert::Component.new(description: alert, style: :danger, class: "mb-2") %>
+    <% end %>
+  </div>
 
-  <%= render RecordingStudioPublishable::QuickActions::DropdownComponent.new(
-    text: trigger_text,
-    style: state[:style],
-    size: size,
-    icon: state[:icon],
-    icon_variant: state[:icon_variant],
-    icon_style: state[:icon_style],
-    placement: (size.to_sym == :sm ? :bottom_left : :bottom_right),
-    button_class: appearance.button_class,
-    menu_class: appearance.menu_class,
-    trigger_attributes: appearance.html_attributes
-  ) do |dropdown| %>
-    <% menu_actions.each do |action_name| %>
-      <% action = action_config(action_name) %>
-      <% dropdown.menu_item(
-        text: action[:text],
-        icon: action[:icon],
-        href: action_href(action),
-        data: action_data(action)
-      ) %>
-    <% end %>
-    <% if page_link %>
-      <% dropdown.menu_item(
-        text: page_link[:text],
-        icon: page_link[:icon],
-        href: page_link[:href],
-        target: "_blank",
-        rel: "noopener noreferrer",
-        data: { turbo: false }
-      ) %>
-    <% end %>
-    <% dropdown.menu_divider %>
-    <% dropdown.menu_item(
-      text: job_action_text(:seo),
-      icon: "magnifying-glass",
-      href: job_url(:search)
-    ) %>
-    <% dropdown.menu_item(
-      text: job_action_text(:social),
-      icon: "share",
-      href: job_url(:social)
-    ) %>
-  <% end %>
+  <%= render dropdown %>
 </div>

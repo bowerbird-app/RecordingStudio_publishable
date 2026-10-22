@@ -5,14 +5,19 @@ module RecordingStudioPublishable
     # FlatPack moves the open menu onto document.body, so a class on an
     # ancestor does not travel with it. Host classes are applied to the menu
     # element itself, along with a stable hook class.
+    #
+    # Publish replaces the label and the rows. The trigger and menu elements stay.
     class DropdownComponent < FlatPack::Button::Dropdown::Component
       MENU_HOOK_CLASS = "publishable-quick-actions-menu"
 
-      def initialize(button_class: nil, menu_class: nil, **)
+      def initialize(button_class: nil, menu_class: nil, state_presenter: nil, **)
         @button_class = button_class
         @menu_class = menu_class
+        @state_presenter = state_presenter
         super(**)
       end
+
+      attr_reader :state_presenter
 
       private
 
@@ -25,6 +30,18 @@ module RecordingStudioPublishable
 
       def menu_classes
         ClassNames.merge(super, MENU_HOOK_CLASS, @menu_class)
+      end
+
+      def dropdown_data_attributes
+        data = super
+        data.merge(controller: "publishable-quick-actions #{data[:controller]}")
+      end
+
+      def menu_attributes
+        attributes = super
+        return attributes if state_presenter.blank?
+
+        attributes.merge(id: state_presenter.menu_frame_id)
       end
     end
   end

@@ -1,0 +1,20 @@
+<% presenter.rows.each do |row| %>
+  <% if row.divider? %>
+    <%= render FlatPack::Button::DropdownDivider::Component.new %>
+  <% elsif row.form? %>
+    <%= button_to row.href,
+      method: :patch,
+      params: presenter.form_params,
+      form: { class: "w-full", data: { turbo_stream: true } },
+      class: item_classes,
+      role: "menuitem" do %>
+      <%= icon_for(row) %>
+      <span class="flex-1"><%= row.text %></span>
+    <% end %>
+  <% else %>
+    <%= link_to row.href, **link_options(row) do %>
+      <%= icon_for(row) %>
+      <span class="flex-1"><%= row.text %></span>
+    <% end %>
+  <% end %>
+<% end %>

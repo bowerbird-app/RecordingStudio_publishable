@@ -36,6 +36,12 @@
               <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: recording, size: :sm) %>
             <% end %>
           </div>
+        <% when :quick_actions_list %>
+          <div class="max-w-xs">
+            <% if (recording = @component_demo_quick_action_recordings.first) %>
+              <%= render RecordingStudioPublishable::QuickActions::ListComponent.new(recording: recording, name: "docs") %>
+            <% end %>
+          </div>
         <% when :edit_button %>
           <div class="space-y-4">
             <div class="space-y-2">

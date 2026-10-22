@@ -20,7 +20,7 @@
     <%= render FlatPack::Badge::Component.new(text: "#{@publishable_recording.id}", style: :info, size: :sm) %>
   </div>
 
-  <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+  <%= render FlatPack::Card::Component.new do |card| %>
     <% card.body do %>
       <div class="space-y-4 text-sm leading-7">
         <p><strong><%= publishable_t("published.parent_recordable", default: "Parent recordable") %>:</strong> <%= @parent_recording.recordable_type.to_s.demodulize.underscore.humanize %></p>

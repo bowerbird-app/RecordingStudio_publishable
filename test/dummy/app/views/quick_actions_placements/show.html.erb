@@ -1,0 +1,21 @@
+<%= render FlatPack::PageTitle::Component.new(
+  title: "Where it sits",
+  variant: :h1
+) %>
+
+<%= render FlatPack::SectionTitle::Component.new(title: "Publishable button") %>
+<%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @recording, name: "standalone") %>
+
+<%= render FlatPack::SectionTitle::Component.new(title: "Inside a host dropdown") %>
+<% menu_html = safe_join([
+  render(FlatPack::Button::DropdownItem::Component.new(text: "Rename", icon: "pencil", type: "button")),
+  render(FlatPack::Button::DropdownItem::Component.new(text: "Duplicate", icon: "document-duplicate", type: "button")),
+  render(publishable_quick_actions_list_for(@recording, name: "menu"))
+]) %>
+<%= render QuickActionsPlacements::Menu.new(
+  text: "Menu",
+  style: :secondary,
+  size: :md,
+  placement: :bottom_left,
+  menu_html: menu_html
+) %>

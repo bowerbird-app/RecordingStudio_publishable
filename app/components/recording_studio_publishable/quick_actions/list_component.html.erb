@@ -1,0 +1,11 @@
+<div id="<%= presenter.wrapper_id %>" class="publishable-quick-actions w-full">
+  <div id="<%= presenter.alert_id %>" class="<%= presenter.target_classes(:alert) %>">
+    <% if alert.present? %>
+      <%= render FlatPack::Alert::Component.new(description: alert, style: :danger, class: "mb-2") %>
+    <% end %>
+  </div>
+
+  <div id="<%= presenter.list_body_id %>" class="<%= list_classes %>" aria-live="polite">
+    <%= render RecordingStudioPublishable::QuickActions::ListBodyComponent.new(presenter: presenter) %>
+  </div>
+</div>

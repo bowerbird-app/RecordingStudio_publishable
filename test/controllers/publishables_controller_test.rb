@@ -217,7 +217,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert parent_recording.reload.current_publishable.draft_state?
   end
 
-  test "turbo stream publish replaces the dropdown and stays off the success page" do
+  test "turbo stream publish updates the inner control and stays off the success page" do
     parent_recording = build_publishable_parent(title: "Stream Publish Page")
 
     patch recording_studio_publishable.transition_recording_publishable_path(
@@ -228,12 +228,13 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_equal "text/vnd.turbo-stream.html", response.media_type
-    assert_includes response.body, "turbo-stream"
-    assert_includes response.body, RecordingStudioPublishable::QuickActions::Component.wrapper_id(parent_recording)
+    assert_targets parent_recording, :state, :menu_items, :alert
+    refute_match(/<turbo-stream[^>]*\starget="/, response.body)
     assert_includes CGI.unescapeHTML(response.body), "Published"
     assert_includes response.body, "Unpublish"
-    assert_includes response.body, "button-padding-y-md"
     assert_includes response.body, "View"
+    assert_includes response.body, 'name="button_size"'
+    assert_includes response.body, 'value="md"'
     refute_includes CGI.unescapeHTML(response.body), "It's live."
     refute_includes response.body, "Published!"
     assert parent_recording.reload.current_publishable.currently_published?
@@ -250,8 +251,10 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
 
     assert_response :success
-    assert_includes response.body, "button-padding-y-sm"
+    assert_includes response.body, 'name="button_size"'
+    assert_includes response.body, 'value="sm"'
     refute_includes response.body, "button-padding-y-md"
+    refute_includes response.body, "button-padding-y-sm"
     assert parent_recording.reload.current_publishable.currently_published?
   end
 
@@ -270,19 +273,17 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     document = Nokogiri::HTML(response.body)
-    button = document.at_css("button")
-    menu = document.at_css("[role='menu']")
+    state = document.at_css("span[data-style='danger']")
+    icon = state.at_css("svg[data-flat-pack--icon-name-value='bell']")
 
-    icon = button.at_css("svg[data-flat-pack--icon-name-value='bell']")
-
-    assert_includes button["class"], "host-publish-button"
-    assert_includes button["class"], "fp-button"
-    assert_equal "danger", button["data-fp-style"]
+    assert_equal "raised", state["data-press"]
     assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
     assert_equal "success", icon["data-icon-style"]
-    assert_includes menu["class"], "publishable-quick-actions-menu"
-    assert_includes menu["class"], "host-publish-menu"
-    assert_includes menu["class"], "fixed"
+    assert_equal "host-publish-button", document.at_css("input[name='button_class']")["value"]
+    assert_equal "host-publish-menu", document.at_css("input[name='menu_class']")["value"]
+    assert_includes document.at_css("input[name='quick_actions_states']")["value"], "bell"
+    refute_match(/<turbo-stream[^>]*\starget="/, response.body)
+    assert_targets parent_recording, :state
     assert parent_recording.reload.current_publishable.currently_published?
   end
 
@@ -309,7 +310,29 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     RecordingStudioPublishable.configuration.quick_actions_states = {}
   end
 
-  test "turbo stream draft replaces the dropdown with draft actions" do
+  test "turbo stream publish for a named list updates that list" do
+    parent_recording = build_publishable_parent(title: "Stream List Page")
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "publish",
+      inline: 1,
+      quick_actions_name: "menu",
+      quick_actions_renderer: "list"
+    ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    assert_targets parent_recording, :list, :alert, :state, :menu_items
+    refute_match(/<turbo-stream[^>]*\starget="/, response.body)
+    assert_includes CGI.unescapeHTML(response.body), "Published"
+    document = Nokogiri::HTML(response.body)
+    renderers = document.css("input[name='quick_actions_renderer']").map { |node| node["value"] }
+    assert_includes renderers, "dropdown"
+    assert_includes renderers, "list"
+    assert_equal ["menu"], document.css("input[name='quick_actions_name']").map { |node| node["value"] }.uniq
+  end
+
+  test "turbo stream draft updates the inner control with draft actions" do
     parent_recording = build_publishable_parent(title: "Stream Draft Page")
     publish_parent_recording!(parent_recording)
 
@@ -700,6 +723,13 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
       actor: @user,
       attributes: { slug: "spring-release-notes", status: "published" }
     ).value!
+  end
+
+  def assert_targets(recording, *parts)
+    presenter = RecordingStudioPublishable::QuickActions::Presenter
+    parts.each do |part|
+      assert_includes response.body, %(targets="#{presenter.targets_selector(recording, part)}")
+    end
   end
 
   def grant_edit_access!(root_recording)

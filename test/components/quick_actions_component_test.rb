@@ -36,14 +36,13 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     section = wrapper_html(recording)
+    assert_inline_trigger(section)
     assert_includes section, "Draft"
     assert_includes section, "pencil-square"
     assert_includes section, "Publish now"
     assert_includes section, "rocket-launch"
     assert_includes section, "Schedule"
-    assert_includes section, "inline=1"
-    assert_includes section, "button_size=sm"
-    assert_includes section, "data-turbo-method=\"patch\""
+    assert_publish_form(section, recording, size: "sm")
     refute_includes section, "Back to draft"
     refute_includes section, "Unpublish"
 
@@ -89,6 +88,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     section = wrapper_html(recording)
+    assert_inline_trigger(section)
     button = Nokogiri::HTML(section).at_css("button")
     icon = button.at_css("svg[data-flat-pack--icon-name-value='check-circle']")
 
@@ -126,6 +126,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
       assert_response :success
       section = wrapper_html(recording)
+      assert_inline_trigger(section)
       trigger_labels = Nokogiri::HTML(section).css("button span").map { |span| span.text.strip }
 
       assert_includes trigger_labels, "Jan 22"
@@ -168,9 +169,9 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes menu["class"], "fixed"
     assert_includes menu["class"], "publishable-quick-actions-menu"
     assert_includes menu["class"], "host-publish-menu"
-    assert_includes html, "button_class=host-publish-button"
-    assert_includes html, "menu_class=host-publish-menu"
-    assert_includes html, "quick_actions_states="
+    assert_equal "host-publish-button", hidden_value(html, "button_class")
+    assert_equal "host-publish-menu", hidden_value(html, "menu_class")
+    assert hidden_value(html, "quick_actions_states").present?
   end
 
   test "config defaults style the dropdown and per-render values win" do
@@ -241,6 +242,60 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     reset_quick_actions_style!
   end
 
+  test "flat list renders forms and keeps a separate id" do
+    recording = draft_recording("List page", "list-page")
+
+    html = ApplicationController.render(
+      RecordingStudioPublishable::QuickActions::ListComponent.new(recording: recording, name: "menu"),
+      layout: false
+    )
+    document = Nokogiri::HTML(html)
+    wrapper_id = RecordingStudioPublishable::QuickActions::Component.wrapper_id(recording, name: "menu")
+    wrapper = document.at_css("##{wrapper_id}")
+
+    assert wrapper
+    assert_includes wrapper["class"], "publishable-quick-actions"
+    status = wrapper.at_css("[role='presentation']")
+    assert_includes status["class"], "flex"
+    assert_includes status["class"], "items-center"
+    assert_equal %w[svg span], status.element_children.map(&:name)
+    refute wrapper.at_css("[data-controller~='flat-pack--button-dropdown']")
+    assert_includes wrapper.text, "Draft"
+    assert_publish_form(wrapper.to_html, recording, renderer: "list", name: "menu")
+    assert_equal "list", hidden_value(wrapper.to_html, "quick_actions_renderer")
+    assert_page_link(wrapper.to_html, recording, text: "Preview", icon: "eye", public: false)
+    assert_footer_job_links(wrapper.to_html, recording)
+    assert_equal 1, document.css("##{wrapper_id}").length
+  end
+
+  test "two controls for one page get different ids" do
+    recording = draft_recording("Two controls page", "two-controls")
+    standalone = render_quick_actions(recording, name: "standalone")
+    menu = ApplicationController.render(
+      RecordingStudioPublishable::QuickActions::ListComponent.new(recording: recording, name: "menu"),
+      layout: false
+    )
+    standalone_id = RecordingStudioPublishable::QuickActions::Component.wrapper_id(recording, name: "standalone")
+    menu_id = RecordingStudioPublishable::QuickActions::Component.wrapper_id(recording, name: "menu")
+
+    refute_equal standalone_id, menu_id
+    assert_includes standalone, %(id="#{standalone_id}")
+    assert_includes menu, %(id="#{menu_id}")
+    marker = RecordingStudioPublishable::QuickActions::Presenter.recording_class(recording)
+    assert_includes standalone, marker
+    assert_includes menu, marker
+  end
+
+  test "a bad control name raises" do
+    recording = draft_recording("Bad name page", "bad-name")
+
+    error = assert_raises(ArgumentError) do
+      render_quick_actions(recording, name: "Page nav")
+    end
+
+    assert_includes error.message, "Page nav"
+  end
+
   test "unknown button style raises" do
     recording = draft_recording("Bad style page", "bad-style")
 
@@ -253,6 +308,16 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
   private
 
+  def assert_inline_trigger(section)
+    state = Nokogiri::HTML(section).at_css("[data-publishable-quick-actions-target='state']")
+    classes = state["class"].to_s.split
+
+    assert_includes classes, "inline-flex"
+    assert_includes classes, "items-center"
+    assert_equal %w[svg span], state.element_children.map(&:name)
+    assert state.element_children.last.text.present?
+  end
+
   def wrapper_html(recording)
     wrapper = RecordingStudioPublishable::QuickActions::Component.wrapper_id(recording)
     node = Nokogiri::HTML(response.body).at_css("##{wrapper}")
@@ -264,7 +329,33 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
   end
 
   def menu_link(section, text)
-    Nokogiri::HTML(section).css("a").find { |link| link.at_css("span")&.text == text }
+    Nokogiri::HTML(section).css("a, button").find { |link| link.at_css("span")&.text == text }
+  end
+
+  def assert_publish_form(section, recording, size: nil, renderer: "dropdown", name: nil)
+    form = Nokogiri::HTML(section).css("form").find { |node| node.at_css("button")&.text&.include?("Publish now") }
+    assert form
+    assert_equal "true", form["data-turbo-stream"]
+    assert_equal "post", form["method"]
+    assert_equal "patch", form.at_css("input[name='_method']")["value"]
+    assert_equal "1", form.at_css("input[name='inline']")["value"]
+    assert_equal renderer, form.at_css("input[name='quick_actions_renderer']")["value"]
+    assert_equal size, form.at_css("input[name='button_size']")["value"] if size
+    if name
+      assert_equal name, form.at_css("input[name='quick_actions_name']")["value"]
+    else
+      assert_nil form.at_css("input[name='quick_actions_name']")
+    end
+    assert_includes form["action"],
+                    recording_studio_publishable.transition_recording_publishable_path(
+                      recording_id: recording.id,
+                      transition: "publish"
+                    )
+    refute_includes form["action"], "inline="
+  end
+
+  def hidden_value(section, name)
+    Nokogiri::HTML(section).at_css("input[name='#{name}']")&.[]("value")
   end
 
   def assert_page_link(section, recording, text:, icon:, public:)
