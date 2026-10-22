@@ -151,7 +151,7 @@ page_recording.publishable_public_path
 
 ## Host publish control
 
-Put `QuickActions` on a host page to show the current state and change it there.
+Put `QuickActions` on a host page to show the current state and change it there. The gem does not register page navigation. Where the control sits is the host's choice.
 
 ```erb
 <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: page_recording) %>
@@ -159,6 +159,65 @@ Put `QuickActions` on a host page to show the current state and change it there.
 ```
 
 The closed button names Draft, the scheduled date (for example `Jan 22`), or Published. Draft is secondary with a pencil icon. Scheduled is the default button style with a clock icon. Published is the default button style with a solid `check-circle` icon coloured success, so only the icon is green. The menu holds the other verbs (`Publish now`, `Schedule` on drafts, `Change schedule` when a date is already set, `Unpublish`), then Preview or View, then SEO and Social.
+
+Publish and unpublish submit a real form (`button_to`, PATCH). Schedule, Preview, View, SEO, and Social are links. A surrounding menu that closes on `a[href]` stays open for the form, and the request is a PATCH rather than a link with `data-turbo-method`.
+
+The outer wrapper stays in the document. Turbo updates the label and the rows inside it, so a FlatPack TopNav that already turned the dropdown into a phone disclosure keeps the trigger and menu it wired. TopNav only scans for that disclosure once. If the menu is still portaled to `document.body` at that moment (the dropdown was open, or just closing), the control puts the menu back inside the trigger and discloses it in place. Pass `name:` when one page shows the control more than once. The name is a short slug (`page-nav`, `top-nav`) and becomes part of the wrapper id.
+
+```erb
+<%= render RecordingStudioPublishable::QuickActions::Component.new(recording: page_recording, name: "standalone") %>
+```
+
+### In the page nav
+
+Register the dropdown from the host layout, before the layout renders page nav. FlatPack draws a registered component once, in the bar. On a phone it stays on screen. The TopNav does not move it into the hamburger.
+
+```erb
+<% register_page_nav component: publishable_quick_actions_for(page_recording, name: "page-nav", size: :sm), role: :secondary %>
+```
+
+`publishable_quick_actions_for` returns the component. `render_publishable_quick_actions` renders it immediately, which is too early for `register_page_nav`.
+
+### In a menu or the phone hamburger
+
+`ListComponent` is the same rows without a second dropdown. Use it inside a menu you render, or in the TopNav panel, so the list is not a child menu portaled to `document.body`.
+
+```erb
+<%= render RecordingStudioPublishable::QuickActions::ListComponent.new(recording: page_recording, name: "menu") %>
+<%= render_publishable_quick_actions_list(page_recording, name: "menu") %>
+```
+
+FlatPack's dropdown slots are a link or a bare button. They cannot wrap this list. Render the list inside markup you control. A dropdown subclass that yields into its menu is enough:
+
+```ruby
+class PageMenu < FlatPack::Button::Dropdown::Component
+  def initialize(menu_html:, **)
+    @menu_html = menu_html
+    super(**)
+  end
+
+  def call
+    content_tag(:div, **wrapper_attributes) do
+      safe_join([
+        content_tag(:button, button_content, **button_attributes),
+        content_tag(:div, @menu_html, **menu_attributes)
+      ])
+    end
+  end
+end
+```
+
+```erb
+<%= render PageMenu.new(
+  text: "Page menu",
+  style: :secondary,
+  menu_html: render(publishable_quick_actions_list_for(page_recording, name: "menu"))
+) %>
+```
+
+The dropdown renderer can also sit in a TopNav slot. On a phone, TopNav turns that dropdown into a disclosure. Keep that slot's control as the dropdown when you want the closed button in the hamburger. Use the flat list when the rows should already be open inside a menu.
+
+The dummy page at `/publishable/placements` shows all four: on the page, registered in the layout with `register_page_nav`, inside a dropdown as the flat list, and in the TopNav slot that becomes the phone menu.
 
 ### Styling the dropdown
 
@@ -181,7 +240,7 @@ Pass host classes and HTML attributes straight to the component. `class:` merges
 <%= render_publishable_quick_actions(page_recording, class: "uppercase", menu_class: "ring-2") %>
 ```
 
-The same keys are config defaults. Gem screens, including the publish hub and the Turbo replacement, use them without a view override. A per-render value wins when both are set. Inline publish and unpublish keep the per-render `class:`, `menu_class:`, and `states:` on the replacement.
+The same keys are config defaults. Gem screens, including the publish hub and the Turbo update, use them without a view override. A per-render value wins when both are set. Inline publish and unpublish keep the per-render `class:`, `menu_class:`, and `states:` on the next paint. The trigger node keeps its classes. The fresh label carries the style, and a small controller copies that style onto the trigger.
 
 ```ruby
 RecordingStudioPublishable.configure do |config|
@@ -204,7 +263,7 @@ Preview is for drafts and scheduled pages. It opens in a new tab for people who 
 
 Publish settings is a hub. The list starts with Preview or View, then Schedule, SEO, and Social. Schedule in the dropdown opens the schedule screen. SEO and Social in the dropdown open those screens.
 
-A change from this control stays on the host page. With Turbo, the dropdown replaces itself at the same size the host rendered. Inline publish and unpublish do not insert a success banner. Without Turbo, the request returns to the same page. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
+A change from this control stays on the host page. With Turbo, the wrapper stays and the label and rows update in place, at the size the host rendered. Inline publish and unpublish do not insert a success banner. Without Turbo, the request returns to the same page. Direct PATCHes to the transition route without `inline=1` still use the gem success and edit screens.
 
 ## Recording Studio API
 
@@ -319,7 +378,7 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v4.6.0`, Accessible `v0.18.0` (Trashable `v0.10.0` query-only, `require: false`), API `v0.7.0`, Admin `v2.3.0`, Attachable `v0.15.0`, Metrics `v0.2.3` (`require: false`), Flatpack `v0.1.243`, dummy-only Root Switchable `v0.9.0` (with Cache `v0.5.0`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav, to the left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
+The dummy host at `test/dummy` pins Recording Studio `v4.6.0`, Accessible `v0.18.0` (Trashable `v0.10.0` query-only, `require: false`), API `v0.7.0`, Admin `v2.3.0`, Attachable `v0.15.0`, Metrics `v0.2.3` (`require: false`), Flatpack `v0.1.296`, dummy-only Root Switchable `v0.9.0` (with Cache `v0.5.0`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav, to the left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 

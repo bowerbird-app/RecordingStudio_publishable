@@ -3,129 +3,71 @@
 module RecordingStudioPublishable
   module QuickActions
     class Component < ViewComponent::Base
-      CLOSED_STATES = {
-        draft: {
-          style: :secondary,
-          icon: "pencil-square",
-          actions: %i[publish schedule]
-        },
-        scheduled: {
-          style: :default,
-          icon: "clock",
-          actions: %i[publish schedule unpublish]
-        },
-        published: {
-          style: :default, icon: "check-circle", icon_variant: :solid, icon_style: :success,
-          actions: %i[unpublish schedule]
-        }
-      }.freeze
-
-      ACTIONS = {
-        publish: { icon: "rocket-launch", transition: :publish, text_key: "actions.publish_now" },
-        schedule: { icon: "clock", text_key: "actions.schedule" },
-        unpublish: { icon: "pencil-square", transition: :draft, text_key: "actions.unpublish" }
-      }.freeze
-
       BUTTON_SIZES = %i[sm md lg].freeze
 
-      def initialize(recording:, size: :md, alert: nil, **options)
+      def initialize(recording:, size: :md, alert: nil, name: nil, **options)
         @recording = recording
         @size = self.class.normalize_size(size)
         @alert = alert
+        @name = self.class.normalize_name(name)
         @appearance = Appearance.from(options)
       end
 
-      attr_reader :recording, :size, :alert, :appearance
+      attr_reader :recording, :size, :alert, :appearance, :name
 
       def self.normalize_size(value)
         size = value.to_s.to_sym
         BUTTON_SIZES.include?(size) ? size : :md
       end
 
-      def self.wrapper_id(recording)
-        "publishable_quick_actions_#{recording.id}"
+      def self.normalize_name(name)
+        Presenter.normalize_name(name)
       end
 
-      def wrapper_id = self.class.wrapper_id(recording)
-
-      def closed_state
-        publishable = recording.current_publishable
-        return :draft if publishable.blank? || !publishable.published_state?
-
-        publishable.scheduled_for_future? ? :scheduled : :published
+      def self.wrapper_id(recording, name: nil)
+        Presenter.wrapper_id(recording, name: name)
       end
 
-      def trigger_text
-        closed_state == :scheduled ? scheduled_trigger_text : Copy.t("status.#{closed_state}")
-      end
-
-      def action_config(action_name)
-        config = ACTIONS.fetch(action_name)
-        key = change_schedule?(action_name) ? "actions.change_schedule" : config[:text_key]
-        config.merge(text: Copy.t(key))
-      end
-
-      def menu_actions
-        appearance.menu_actions(closed_state, schedule_enabled: schedule_enabled?)
-      end
-
-      def action_href(action)
-        return transition_url(action[:transition]) if action[:transition]
-
-        job_url(:schedule)
-      end
-
-      def action_data(action)
-        return { turbo_method: :patch, turbo_stream: true } if action[:transition]
-
-        {}
-      end
-
-      def schedule_enabled?
-        RecordingStudioPublishable.configuration.schedule_enabled_for(recording.recordable_type)
-      end
-
-      def transition_url(transition)
-        helpers.recording_studio_publishable.transition_recording_publishable_path(
-          {
-            recording_id: recording.id,
-            transition: transition,
-            inline: 1,
-            button_size: size
-          }.merge(appearance.transition_style_params)
-        )
-      end
-
-      def job_url(key)
-        helpers.recording_studio_publishable.public_send(
-          "#{key}_recording_publishable_path",
-          recording_id: recording.id
-        )
-      end
-
-      def page_link
-        RecordingStudioPublishable::PageLink.for(
+      def presenter
+        @presenter ||= Presenter.new(
           recording: recording,
-          preview_href: job_url(:preview)
-        ).to_h
+          size: size,
+          alert: alert,
+          appearance: appearance,
+          name: name,
+          renderer: renderer_name,
+          routes: helpers
+        )
       end
 
-      def job_action_text(key)
-        Copy.t("actions.#{key}")
+      def renderer_name
+        "dropdown"
       end
 
-      private
-
-      def change_schedule?(action_name)
-        action_name == :schedule && closed_state == :scheduled
+      def dropdown
+        DropdownComponent.new(**dropdown_content, **dropdown_chrome)
       end
 
-      def scheduled_trigger_text
-        publishable = recording.current_publishable
-        return Copy.t("status.scheduled") if publishable&.publish_at.blank?
+      def dropdown_content
+        state = presenter.state
+        {
+          text: presenter.trigger_text,
+          style: state[:style],
+          size: size,
+          icon: state[:icon],
+          icon_variant: state[:icon_variant],
+          icon_style: state[:icon_style]
+        }
+      end
 
-        time = publishable.publish_at.in_time_zone(publishable.effective_time_zone)
-        "#{Copy.l(time, format: '%b')} #{time.day}"
+      def dropdown_chrome
+        {
+          placement: (size.to_sym == :sm ? :bottom_left : :bottom_right),
+          button_class: appearance.button_class,
+          menu_class: appearance.menu_class,
+          trigger_attributes: appearance.html_attributes,
+          state_presenter: presenter
+        }
       end
     end
   end

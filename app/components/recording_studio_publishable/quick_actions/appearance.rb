@@ -15,11 +15,25 @@ module RecordingStudioPublishable
       end
 
       def self.options_from_transition_params(params)
-        options = { size: Component.normalize_size(params[:button_size]) }
+        { size: Component.normalize_size(params[:button_size]) }
+          .merge(host_style_options(params))
+          .merge(identity_options(params))
+      end
+
+      def self.host_style_options(params)
+        options = {}
         options[:class] = params[:button_class] if params[:button_class].present?
         options[:menu_class] = params[:menu_class] if params[:menu_class].present?
         states = states_from_transition_param(params[:quick_actions_states])
         options[:states] = states if states.present?
+        options
+      end
+
+      def self.identity_options(params)
+        options = {}
+        name = Presenter.name_from_param(params[:quick_actions_name])
+        options[:name] = name if name.present?
+        options[:renderer] = params[:quick_actions_renderer].to_s == "list" ? "list" : "dropdown"
         options
       end
 
@@ -56,7 +70,7 @@ module RecordingStudioPublishable
       end
 
       def state_config(closed_state)
-        config = Component::CLOSED_STATES.fetch(closed_state).merge(state_override(closed_state))
+        config = Catalog::CLOSED_STATES.fetch(closed_state).merge(state_override(closed_state))
         validate_style!(config[:style])
         config
       end

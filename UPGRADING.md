@@ -1,5 +1,25 @@
 # Upgrading
 
+## 0.10.0 — publish control placements
+
+Install `recording_studio_publishable` 0.10.0. No migration.
+
+Rebuild host Tailwind. This release pins Flatpack `v0.1.296`, and the icon and menu utilities come from that build.
+
+Flatpack 0.1.296 drops Card `style:` (use the default card, or `border:` / `background:` / `shadow:`) and PageNav constructor keywords such as `anchor_href` and `secondary_anchor_href`. PageNav back and close are `with_back` and `with_close`. The dummy layout does that. A host that copied the old constructor call needs the same change.
+
+The publish control no longer replaces its outer node after publish or unpublish. Turbo updates the label and the rows inside the same wrapper. A host that targeted `#publishable_quick_actions_<id>` with a Turbo Stream replace should stop. The id still marks the wrapper. The pieces that change are `#publishable_quick_actions_<id>_state`, `#publishable_quick_actions_<id>_menu_items`, and `#publishable_quick_actions_<id>_alert`. The flat list updates `#publishable_quick_actions_<id>_list`.
+
+Publish and unpublish are PATCH forms. Schedule, Preview, View, SEO, and Social stay links.
+
+This gem does not call `register_page_nav`. To keep the dropdown in the page nav bar, including on a phone, register it from the host layout:
+
+```erb
+<% register_page_nav component: publishable_quick_actions_for(page_recording, name: "page-nav", size: :sm), role: :secondary %>
+```
+
+Use `ListComponent` (`render_publishable_quick_actions_list`) inside a menu or the phone hamburger when the rows should not be their own dropdown. Pass `name:` when the same page shows more than one control. `name:` is a short slug such as `page-nav`.
+
 ## 0.9.1 — concurrent publishable indexes
 
 Install `recording_studio_publishable` 0.9.1, copy the new migrations, and migrate on a direct database connection:

@@ -1,0 +1,24 @@
+<%= render FlatPack::PageTitle::Component.new(
+  title: "Where it sits",
+  subtitle: "On the page, in the bar, in a menu, and in the phone menu.",
+  variant: :h1
+) %>
+
+<%= render FlatPack::SectionTitle::Component.new(
+  title: "On the page",
+  subtitle: "Stays where you put it."
+) %>
+<%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @recording, name: "standalone") %>
+
+<%= render FlatPack::SectionTitle::Component.new(
+  title: "In a menu",
+  subtitle: "A flat list, so the menu around it stays put."
+) %>
+<% menu_list = render publishable_quick_actions_list_for(@recording, name: "menu") %>
+<%= render QuickActionsPlacements::Menu.new(
+  text: "Page menu",
+  style: :secondary,
+  size: :md,
+  placement: :bottom_left,
+  menu_html: menu_list
+) %>

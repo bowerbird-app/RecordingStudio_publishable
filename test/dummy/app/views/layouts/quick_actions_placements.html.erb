@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html <%= tag.attributes(dummy_document_attributes.merge(class: "min-h-full")) %>>
+  <head>
+    <title>Where it sits</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <%= stylesheet_link_tag "flat_pack/variables", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "flat_pack/application", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "flat_pack/rich_text", "data-turbo-track": "reload" %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="m-0 min-h-screen bg-[var(--surface-page-background-color)] text-[var(--surface-content-color)]">
+    <% register_page_nav component: publishable_quick_actions_for(@recording, name: "page-nav", size: :sm), role: :secondary %>
+
+    <%= render FlatPack::SidebarLayout::Component.new(storage_key: "publishable-placements") do |layout| %>
+      <% layout.top_nav do %>
+        <%= render FlatPack::TopNav::Component.new do |nav| %>
+          <% nav.left do %>
+            <span class="text-sm font-medium">Placements</span>
+          <% end %>
+          <% nav.right do %>
+            <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @recording, name: "top-nav", size: :sm) %>
+          <% end %>
+        <% end %>
+      <% end %>
+
+      <% layout.main do %>
+        <main class="px-4 py-6 sm:px-6">
+          <%= yield %>
+        </main>
+      <% end %>
+    <% end %>
+  </body>
+</html>

@@ -268,6 +268,7 @@ module RecordingStudioPublishable
       if turbo_stream_request?
         @transition_alert = alert
         @quick_actions_options = RecordingStudioPublishable::QuickActions::Appearance.options_from_transition_params(params)
+        @quick_actions_presenter = quick_actions_presenter_for(@quick_actions_options)
         return render :transition, formats: [:turbo_stream], status: status
       end
 
@@ -276,6 +277,23 @@ module RecordingStudioPublishable
         alert: alert,
         status: :see_other,
         allow_other_host: false
+      )
+    end
+
+    def quick_actions_presenter_for(options)
+      attributes = options.dup
+      renderer = attributes.delete(:renderer) || "dropdown"
+      name = attributes.delete(:name)
+      size = attributes.delete(:size) || :md
+
+      RecordingStudioPublishable::QuickActions::Presenter.new(
+        recording: @parent_recording,
+        size: size,
+        alert: @transition_alert,
+        appearance: RecordingStudioPublishable::QuickActions::Appearance.from(attributes),
+        name: name,
+        renderer: renderer,
+        routes: helpers
       )
     end
 

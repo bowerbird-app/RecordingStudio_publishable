@@ -1,0 +1,14 @@
+<div <%= tag.attributes(wrapper_attributes) %>>
+  <button type="button" <%= tag.attributes(button_attributes) %>>
+    <%= render RecordingStudioPublishable::QuickActions::StateComponent.new(presenter: state_presenter) %>
+    <% if @show_chevron %>
+      <%= chevron_icon %>
+    <% end %>
+  </button>
+
+  <div <%= tag.attributes(menu_attributes) %>>
+    <div id="<%= state_presenter.menu_body_id %>">
+      <%= render RecordingStudioPublishable::QuickActions::RowsComponent.new(presenter: state_presenter) %>
+    </div>
+  </div>
+</div>

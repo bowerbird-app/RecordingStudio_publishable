@@ -289,6 +289,12 @@ class DocsController < ApplicationController
             description: "Flatpack dropdown size. Default :md."
           },
           {
+            name: "name:",
+            type: "String",
+            required: false,
+            description: "Short slug that keeps the wrapper id unique when one page shows the control more than once. Example: page-nav."
+          },
+          {
             name: "class:",
             type: "String",
             required: false,
@@ -316,6 +322,30 @@ class DocsController < ApplicationController
             menu_class: "ring-2",
             states: { published: { icon_variant: :mini, icon_style: :primary } }
           ) %>
+        ERB
+      },
+      {
+        title: "RecordingStudioPublishable::QuickActions::ListComponent",
+        subtitle: "The same actions as rows, for a menu or the phone menu.",
+        entrypoint: "app/components/recording_studio_publishable/quick_actions/list_component.rb",
+        params: [
+          {
+            name: "recording:",
+            type: "RecordingStudio::Recording",
+            required: true,
+            description: "The parent recording that owns the publishable child and transition routes."
+          },
+          {
+            name: "name:",
+            type: "String",
+            required: false,
+            description: "Short slug so this list does not share an id with a dropdown for the same page."
+          }
+        ],
+        preview: :quick_actions_list,
+        code: <<~ERB
+          <%= render RecordingStudioPublishable::QuickActions::ListComponent.new(recording: recording, name: "menu") %>
+          <%= render_publishable_quick_actions_list(recording, name: "menu") %>
         ERB
       },
     ]

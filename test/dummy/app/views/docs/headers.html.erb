@@ -49,7 +49,7 @@
       subtitle: "Runtime state that affects whether headers are emitted for this record."
     ) %>
 
-    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <%= render FlatPack::Card::Component.new do |card| %>
       <% card.body do %>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-(--surface-border-color) text-left text-sm">
@@ -77,7 +77,7 @@
       subtitle: "Quick check of the values that map to head tags for the selected record."
     ) %>
 
-    <%= render FlatPack::Card::Component.new(style: :default) do |card| %>
+    <%= render FlatPack::Card::Component.new do |card| %>
       <% card.body do %>
         <div class="overflow-x-auto">
           <table class="min-w-full divide-y divide-(--surface-border-color) text-left text-sm">

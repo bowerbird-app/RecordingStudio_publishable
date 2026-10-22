@@ -1,9 +1,26 @@
-<turbo-stream action="replace" target="<%= RecordingStudioPublishable::QuickActions::Component.wrapper_id(@parent_recording) %>">
+<% presenter = @quick_actions_presenter %>
+<turbo-stream action="update" target="<%= presenter.alert_id %>">
   <template>
-    <%= render RecordingStudioPublishable::QuickActions::Component.new(
-      recording: @parent_recording,
-      alert: @transition_alert,
-      **@quick_actions_options
-    ) %>
+    <% if presenter.alert.present? %>
+      <%= render FlatPack::Alert::Component.new(description: presenter.alert, style: :danger, class: "mb-2") %>
+    <% end %>
   </template>
 </turbo-stream>
+<% if presenter.renderer == "list" %>
+  <turbo-stream action="update" target="<%= presenter.list_body_id %>">
+    <template>
+      <%= render RecordingStudioPublishable::QuickActions::ListBodyComponent.new(presenter: presenter) %>
+    </template>
+  </turbo-stream>
+<% else %>
+  <turbo-stream action="replace" target="<%= presenter.state_id %>">
+    <template>
+      <%= render RecordingStudioPublishable::QuickActions::StateComponent.new(presenter: presenter) %>
+    </template>
+  </turbo-stream>
+  <turbo-stream action="update" target="<%= presenter.menu_body_id %>">
+    <template>
+      <%= render RecordingStudioPublishable::QuickActions::RowsComponent.new(presenter: presenter) %>
+    </template>
+  </turbo-stream>
+<% end %>

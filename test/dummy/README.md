@@ -9,10 +9,11 @@ This Rails app validates `recording_studio_publishable` inside a host applicatio
 - opt-in `include RecordingStudio::Capabilities::Publishable.to(...)` on Page and Article. Both collect Title and Description
 - a parent `Page` recording with one publishable child recording
 - Recording Studio's default layout (`RecordingStudio::UsesDefaultLayout`) with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish screens hide those right slots. A language selector stays in the nav, to the left of the workspace switcher, and switches English/French
-- Flatpack's built-in `rounded` theme on `<html>` with `lang` (not custom CSS) on every dummy layout, including Devise and public pages. Dummy pins FlatPack `v0.1.243` so kit copy follows the locale
+- Flatpack's built-in `rounded` theme on `<html>` with `lang` (not custom CSS) on every dummy layout, including Devise and public pages. Dummy pins FlatPack `v0.1.296` so kit copy follows the locale
 - Flatpack CSS and JS loaded the way the [live kit](https://flatpack.bowerbird.io/) does: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then host Tailwind; stylesheets in `manifest.js`; Flatpack controllers lazy-loaded from `importmap.rb`
 - Publish settings is a hub. The list starts with Preview or View, then Schedule, SEO, and Social. On desktop the list stays left-aligned at a narrower width; the title and dropdown keep the full layout width
 - a host **publish dropdown** on the Pages table (`QuickActions`) so a page can go live or unpublish without opening that screen. Schedule, SEO, and Social in the dropdown open those screens. Draft and scheduled menus include Preview. Live menus include View
+- `/publishable/placements` shows that control in four places: on the page, registered by the layout with `register_page_nav`, as a flat list inside a dropdown, and in the TopNav slot that folds into the phone menu
 - the default public route at `/published/:uuid/:slug`
 - seeded published indexable, published hidden-from-search, scheduled, and draft pages so head tags, `indexable?`, and the three dropdown states can be checked
 
@@ -63,6 +64,7 @@ Authenticated pages include `RecordingStudio::UsesDefaultLayout` and `RecordingS
 ## Useful Routes
 
 - `/` - publishable demo home page
+- `/publishable/placements` - publish control on the page, in the page nav bar, in a menu, and in the phone menu
 - `/recordings/:recording_id/publishable/edit` - Publish settings hub
 - `/recordings/:recording_id/publishable/schedule` - schedule screen
 - `/recordings/:recording_id/publishable/search` - SEO screen
