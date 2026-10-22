@@ -326,6 +326,20 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     refute_match(/<turbo-stream[^>]*\starget="/, response.body)
     assert_includes CGI.unescapeHTML(response.body), "Published"
     document = Nokogiri::HTML(response.body)
+    list_stream = document.css("turbo-stream").find do |node|
+      node["targets"].to_s.include?("publishable-quick-actions-list")
+    end
+    alert_stream = document.css("turbo-stream").find do |node|
+      node["targets"].to_s.include?("publishable-quick-actions-alert")
+    end
+    list_html = list_stream.at_css("template").inner_html
+
+    assert_equal "update", list_stream["action"]
+    assert_equal "update", alert_stream["action"]
+    assert_includes list_html, "fp-menu-collapse__label"
+    assert_includes list_html, "Published"
+    assert_includes list_html, "check-circle"
+    refute_includes list_html, "publishable-quick-actions-alert"
     renderers = document.css("input[name='quick_actions_renderer']").map { |node| node["value"] }
     assert_includes renderers, "dropdown"
     assert_includes renderers, "list"

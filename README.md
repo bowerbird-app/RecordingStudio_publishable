@@ -162,7 +162,7 @@ The closed button names Draft, the scheduled date (for example `Jan 22`), or Pub
 
 Publish and unpublish submit a real form (`button_to`, PATCH). Schedule, Preview, View, SEO, and Social are links. A surrounding menu that closes on `a[href]` stays open for the form, and the request is a PATCH rather than a link with `data-turbo-method`.
 
-The outer wrapper stays in the document. Turbo updates the label and the rows in every quick-actions control for that recording, whatever its name or placement. Pass `name:` when one page shows the control more than once. The name is a short slug (`standalone`, `menu`) and becomes part of the wrapper id.
+The outer wrapper stays in the document. Turbo updates the label and the rows in every quick-actions control for that recording, whatever its name or placement. On the list, that update redraws the collapsed line, so the header shows the new state. The alert above the list updates on its own. Pass `name:` when one page shows the control more than once. The name is a short slug (`standalone`, `menu`) and becomes part of the wrapper id.
 
 ```erb
 <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: page_recording, name: "standalone") %>
@@ -180,7 +180,7 @@ Register the dropdown from the host layout, before the layout renders page nav. 
 
 ### Inside a host dropdown
 
-`ListComponent` is the publish rows without a second dropdown. Put it inside a host dropdown, next to the host's own items.
+`ListComponent` is the publish rows without a second dropdown. Put it inside a host dropdown, next to the host's own items. It is one collapsed line. The line shows the same label as the dropdown button (Draft, the scheduled date, or Published) and that state's icon. Open it for the rows.
 
 ```erb
 <%= render RecordingStudioPublishable::QuickActions::ListComponent.new(recording: page_recording, name: "menu") %>
@@ -215,7 +215,7 @@ end
 ) %>
 ```
 
-The dummy page at `/publishable/placements` shows the dropdown on the page and those rows inside a host dropdown named Menu.
+The dummy page at `/publishable/placements` shows the dropdown on the page and, inside a host dropdown named Menu, the same rows behind that collapsed line.
 
 ### Styling the dropdown
 
@@ -376,7 +376,7 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v4.6.0`, Accessible `v0.18.0` (Trashable `v0.10.0` query-only, `require: false`), API `v0.7.0`, Admin `v2.3.0`, Attachable `v0.15.0`, Metrics `v0.2.3` (`require: false`), Flatpack `v0.1.296`, dummy-only Root Switchable `v0.9.0` (with Cache `v0.5.0`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The publishable gemspec does not depend on them. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav, to the left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
+The dummy host at `test/dummy` pins Recording Studio `v4.6.0`, Accessible `v0.18.0` (Trashable `v0.10.0` query-only, `require: false`), API `v0.7.0`, Admin `v2.3.0`, Attachable `v0.15.0`, Metrics `v0.2.3` (`require: false`), Flatpack `v0.1.302`, dummy-only Root Switchable `v0.9.0` (with Cache `v0.5.0`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The gemspec requires Flatpack `>= 0.1.302`. It does not depend on those dummy-only gems. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav, to the left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 

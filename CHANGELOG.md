@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-22
+
+### Changed
+- `QuickActions::ListComponent` renders its rows inside `FlatPack::Menu::Collapse::Component`. The header is the current state and that state's icon. The old status line and the divider under it are gone. The dropdown variant is unchanged.
+- The gemspec requires `flat_pack` `>= 0.1.302`. Development and dummy Gemfiles pin Flatpack `v0.1.302`.
+
+### Upgrade Notes
+- Install Publishable `0.11.0`. No migration.
+- Flatpack must be `0.1.302` or newer. Reload Flatpack CSS and JavaScript. This Flatpack release does not need a Tailwind rebuild.
+- A host dropdown that renders the list now shows one collapsed line. Open it for the publish rows.
+- Turbo still updates every quick-actions control for that recording through the shared classes. The list stream updates `publishable-quick-actions-list`, and that node is the whole collapse, so the header shows the new state. The alert stream still updates `publishable-quick-actions-alert` and stays outside the collapse.
+
 ## [0.10.0] - 2026-10-22
 
 ### Added

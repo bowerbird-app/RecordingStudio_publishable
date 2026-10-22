@@ -326,7 +326,7 @@ class DocsController < ApplicationController
       },
       {
         title: "RecordingStudioPublishable::QuickActions::ListComponent",
-        subtitle: "Publish rows for a host's dropdown.",
+        subtitle: "A collapsed publish line for a host dropdown.",
         entrypoint: "app/components/recording_studio_publishable/quick_actions/list_component.rb",
         params: [
           {
