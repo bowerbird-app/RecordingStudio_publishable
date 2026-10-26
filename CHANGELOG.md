@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-26
+
+### Changed
+- `config.layout` defaults to `nil`. Assignments go through `RecordingStudio::Layout.accept`. `nil` uses `RecordingStudio.configuration.layout`, then `recording_studio/default_layout`. `false` renders no layout. A callable is invoked as `call(controller:)`.
+- Gem controllers call `recording_studio_layout`. They no longer set `layout` to a layout name.
+- Publish hub, job, and success screens set `content_for :title` and `content_for :subtitle`, and call `flat_pack_page_nav` for back and close. The default layout draws the single page title.
+- The publish hub list sits in a Flatpack card with `border: :default`. The rounded theme's own card border width is 0, so the default border is the 1px rule. The card body has no extra padding, so the list dividers meet that border.
+- The gemspec requires `recording_studio` `~> 6.1`, `>= 6.1.0`, `flat_pack` `>= 0.1.315`, and `view_component` `>= 4.14`, `< 5`. Development and dummy Gemfiles pin Recording Studio `v6.1.0`, Flatpack commit `1fcbafe94f8eb118f0a22182f63f5110fcc97a56` (`0.1.319`), and ViewComponent `4.19.0`.
+- Public pages set `content_for :document_title` from `publishable_document_title` (the SEO title when one is set). `content_for :title` stays the visible heading. The dummy layout and `recording_studio_publishable/application` read `:document_title` for the `<title>` element. Recording Studio's own default layout still uses `:title` for both.
+
+### Removed
+- `recording_studio_page_nav` and the empty `:page_nav_right` placeholder on publish screens.
+- The dummy no longer includes `RecordingStudio::UsesDefaultLayout` or hard-codes `layout "recording_studio/default_layout"`.
+
+### Upgrade Notes
+- Install Publishable `0.12.0`. No migration.
+- Recording Studio must be `6.1.0` or newer. Flatpack must be `0.1.315` or newer. ViewComponent must be `4.14` or newer and below `5`.
+- Leave `config.layout` nil unless a host layout should replace the Recording Studio layout. `recording_studio_publishable/application` is a bare document. It draws a `<title>` and no page heading, back control, or page nav. Publish screens no longer draw those themselves.
+- A host layout that replaces `recording_studio/default_layout` has to render `:title`, `:subtitle`, `flat_pack_page_nav_tag`, and `page_nav_button_group`. Read `:document_title` for the `<title>` element when it should differ from the heading. See Recording Studio's default layout doc.
+- Current releases of Accessible, Attachable, Cache, Metrics, Root Switchable, Trashable, API, Admin, and Internationalization still require `recording_studio` below 5. Bundler will not install Publishable 0.12.0 beside those releases. This repository widens that requirement while loading gemspecs. A host that needs both has to do the same until those gems allow 6.1.
+- Quick actions call Flatpack 0.1.319's trigger-button API and fall back to `Dropdown#button_attributes` on 0.1.315.
+- Root Switchable 0.9.0 still passes PageNav and Card keywords that Flatpack 0.1.319 rejects. The dummy patches those constructors so the host boots. A host that mounts that Root Switchable release with this Flatpack needs the same patch, or a newer Root Switchable.
+- Publish screens hide the host's right-hand nav when `publishable_hides_page_nav_right?` is true. Check that helper. The gem no longer writes a placeholder into `:page_nav_right`.
+- The dummy language selector uses that same helper. Home and placements keep it. Publish, success, preview, and public screens do not. A session locale still translates those screens.
+- Rebuild host Tailwind after the Flatpack bump.
+
 ## [0.11.0] - 2026-10-22
 
 ### Changed
@@ -270,7 +296,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.9.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.0...HEAD
+[0.12.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.11.0...v0.12.0
 [0.9.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.8.3...v0.9.0
 [0.8.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/bowerbird-app/recording_studio_publishable/releases/tag/v0.7.0

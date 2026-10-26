@@ -3,12 +3,6 @@
 <%= render "job_nav" %>
 
 <div class="flex w-full max-w-xl flex-col gap-6" data-publishable-character-count-template="<%= publishable_t("form.character_count", count: "__COUNT__", limit: "__LIMIT__") %>">
-  <%= render FlatPack::PageTitle::Component.new(
-    title: @job.title,
-    subtitle: @job.subtitle,
-    variant: :h1
-  ) %>
-
   <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, class: "space-y-4", html: { novalidate: true } do |_form| %>
     <%= hidden_field_tag :section, @job.key %>
 

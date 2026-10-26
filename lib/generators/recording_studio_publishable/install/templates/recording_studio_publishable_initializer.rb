@@ -13,7 +13,8 @@ RecordingStudioPublishable.configure do |config|
   # Use the host app's preferred default time zone for schedule editing.
   # config.default_time_zone = "UTC"
 
-  # Override the engine layout used by all gem-managed screens.
+  # nil uses RecordingStudio.configuration.layout, then recording_studio/default_layout.
+  # false renders no layout. A callable is invoked as call(controller:).
   # config.layout = "application"
 
   # Configure the PageNav close URL used on publishable edit/success screens.

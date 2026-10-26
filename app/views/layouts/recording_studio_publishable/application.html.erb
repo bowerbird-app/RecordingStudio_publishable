@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html <%= tag.attributes(publishable_document_attributes("data-theme" => "rounded", class: "h-full overflow-hidden overscroll-none")) %>>
   <head>
-    <title><%= content_for(:title) || publishable_t("layout.title", default: "Recording Studio Publishable") %></title>
+    <title>
+      <%= content_for(:document_title).presence || content_for(:title).presence || publishable_t("layout.title", default: "Recording Studio Publishable") %>
+    </title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="<%= publishable_t("layout.title", default: "Recording Studio Publishable") %>">

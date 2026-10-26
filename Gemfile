@@ -2,17 +2,20 @@
 
 source "https://rubygems.org"
 
+require_relative "test/support/widen_recording_studio_requirement"
+
 # Specify your gem's dependencies in recording_studio_publishable.gemspec
 gemspec
 
 # recording_studio is not published to RubyGems; resolve the gemspec pin from GitHub.
-gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v4.7.0"
+gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.1.0"
 
 gem "devise"
-gem "flat_pack", ">= 0.1.302", github: "bowerbird-app/flatpack", tag: "v0.1.302"
+gem "flat_pack", ">= 0.1.315", github: "bowerbird-app/flatpack", ref: "1fcbafe94f8eb118f0a22182f63f5110fcc97a56"
 gem "pg", "~> 1.1"
 gem "puma"
 gem "sprockets-rails"
+gem "view_component", "4.19.0"
 
 gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.18.0"
 gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"

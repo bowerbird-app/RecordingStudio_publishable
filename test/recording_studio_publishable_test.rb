@@ -35,8 +35,8 @@ class RecordingStudioPublishableTest < Minitest::Test
     ), "dummy_language_selector"
     assert_includes view_source, "dummy_page_nav"
     assert_includes view_source, "FlatPack::Table::Component"
-    assert_includes view_source, "text: \"Page\""
-    assert_includes view_source, "icon: \"plus\""
+    assert_includes view_source, 'register_page_nav "Page"'
+    assert_includes view_source, 'icon: "plus"'
     refute_includes view_source, "Add page"
     refute_includes view_source, "Dummy publishables"
     assert_includes layout_source, "dummy_document_attributes"

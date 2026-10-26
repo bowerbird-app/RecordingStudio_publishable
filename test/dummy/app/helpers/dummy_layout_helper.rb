@@ -2,6 +2,7 @@
 
 module DummyLayoutHelper
   def dummy_language_selector
+    return if respond_to?(:publishable_hides_page_nav_right?) && publishable_hides_page_nav_right?
     return unless respond_to?(:recording_studio_language_selector)
 
     recording_studio_language_selector(

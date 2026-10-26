@@ -23,12 +23,6 @@ end %>
   data-recording-studio-attachable--attachment-image-picker-multiple-selection-value="false"
   data-recording-studio-attachable--attachment-image-picker-modal-id-value="<%= social_image_modal_id %>">
 
-  <%= render FlatPack::PageTitle::Component.new(
-    title: @job.title,
-    subtitle: @job.subtitle,
-    variant: :h1
-  ) %>
-
   <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, class: "space-y-4", html: { novalidate: true } do |form| %>
     <%= hidden_field_tag :section, @job.key %>
 

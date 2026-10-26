@@ -72,7 +72,22 @@ module RecordingStudioPublishable
     end
 
     def public_layout
-      public_renderer.layout.presence || RecordingStudioPublishable.configuration.layout
+      resolve_public_layout
+    end
+
+    # Per-type public_layout wins, including false (no layout). Nil uses the
+    # gem layout, then RecordingStudio.configuration.layout, then the default.
+    def resolve_public_layout
+      explicit = public_renderer.layout
+      return explicit unless explicit.nil?
+
+      resolved = RecordingStudio::Layout.resolve(
+        RecordingStudioPublishable.configuration.layout,
+        controller: self
+      )
+      return resolved unless resolved.nil?
+
+      RecordingStudio.configuration.resolved_layout(controller: self)
     end
 
     def prepare_public_controller_context(renderer)

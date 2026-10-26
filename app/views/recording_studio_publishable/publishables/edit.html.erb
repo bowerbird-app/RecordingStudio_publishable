@@ -1,43 +1,34 @@
-<% if respond_to?(:recording_studio_page_nav) %>
-  <% recording_studio_page_nav(
-    title: publishable_t("hub.title"),
-    page_nav_back_url: (main_app.root_path if main_app.respond_to?(:root_path)),
-    page_nav_back_label: publishable_t("hub.back"),
-    page_nav_anchor_url: @management_close_url,
-    page_nav_anchor_label: publishable_t("hub.close")
-  ) %>
-<% end %>
-<%= render "recording_studio_publishable/publishables/clear_page_nav_right" %>
+<% publishable_management_nav(
+  title: publishable_t("hub.title"),
+  subtitle: @recordable_name,
+  back_href: (main_app.root_path if main_app.respond_to?(:root_path)),
+  back_tooltip: publishable_t("hub.back"),
+  anchor_href: @management_close_url,
+  anchor_tooltip: publishable_t("hub.close")
+) %>
 
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-  <%= render FlatPack::PageTitle::Component.new(
-    title: publishable_t("hub.title"),
-    subtitle: @recordable_name,
-    variant: :h1,
-    large_subtitle: true
-  ) do |page_title| %>
-    <% page_title.slot do %>
-      <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @parent_recording) %>
-    <% end %>
-  <% end %>
+  <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @parent_recording) %>
 
-  <div class="w-full max-w-xl">
-    <%= render FlatPack::List::Component.new(divider: true) do %>
-      <%= render FlatPack::List::Item.new(
-        icon: @page_link.icon,
-        href: @page_link.href,
-        hover: true,
-        link_arguments: { target: "_blank", rel: "noopener noreferrer", data: { turbo: false } }
-      ) do %>
-        <p class="font-medium text-(--surface-content-color)"><%= @page_link.text %></p>
-        <p class="text-sm text-(--surface-muted-content-color)"><%= @page_link.subtitle %></p>
-      <% end %>
-      <% @publish_jobs.each do |job| %>
-        <%= render FlatPack::List::Item.new(icon: job.icon, href: publish_job_path(job), hover: true) do %>
-          <p class="font-medium text-(--surface-content-color)"><%= job.title %></p>
-          <p class="text-sm text-(--surface-muted-content-color)"><%= job.subtitle %></p>
+  <%= render FlatPack::Card::Component.new(border: :default, class: "w-full max-w-xl") do |card| %>
+    <% card.body(padding: :none) do %>
+      <%= render FlatPack::List::Component.new(divider: true) do %>
+        <%= render FlatPack::List::Item.new(
+          icon: @page_link.icon,
+          href: @page_link.href,
+          hover: true,
+          link_arguments: { target: "_blank", rel: "noopener noreferrer", data: { turbo: false } }
+        ) do %>
+          <p class="font-medium text-(--surface-content-color)"><%= @page_link.text %></p>
+          <p class="text-sm text-(--surface-muted-content-color)"><%= @page_link.subtitle %></p>
+        <% end %>
+        <% @publish_jobs.each do |job| %>
+          <%= render FlatPack::List::Item.new(icon: job.icon, href: publish_job_path(job), hover: true) do %>
+            <p class="font-medium text-(--surface-content-color)"><%= job.title %></p>
+            <p class="text-sm text-(--surface-muted-content-color)"><%= job.subtitle %></p>
+          <% end %>
         <% end %>
       <% end %>
     <% end %>
-  </div>
+  <% end %>
 </div>

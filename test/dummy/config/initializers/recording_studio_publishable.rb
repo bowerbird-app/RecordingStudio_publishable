@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 RecordingStudioPublishable.configure do |config|
-  # Authenticated dummy screens use Recording Studio's default layout, not a
-  # custom sidebar or the engine's standalone publishable shell.
-  config.layout = "recording_studio/default_layout"
+  # nil falls through to RecordingStudio.configuration.layout, then
+  # recording_studio/default_layout. Do not hard-code that layout name.
+  config.layout = nil
 
   config.management_authorizer = lambda do |recording:, actor:, **|
     actor.present? &&

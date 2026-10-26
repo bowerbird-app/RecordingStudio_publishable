@@ -1,10 +1,5 @@
 <% dummy_page_nav(title: "Add page", back_url: root_path, back_label: "Home", close_url: root_path) %>
 
-<%= render FlatPack::PageTitle::Component.new(
-  title: "Add page",
-  variant: :h1
-) %>
-
 <%= form_with url: dummy_pages_path, method: :post, class: "space-y-4" do %>
   <%= render FlatPack::TextInput::Component.new(
     name: "title",

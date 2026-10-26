@@ -20,7 +20,7 @@ Trashable is optional. Publishable does not depend on it. Query SQL only mention
 
 Requires PostgreSQL 16+.
 
-Add the gems to your host app. This addon requires Recording Studio 4.2.0 or newer:
+Add the gems to your host app. This addon requires Recording Studio 6.1.0 or newer, Flatpack 0.1.315 or newer, and ViewComponent 4.14 or newer (below 5):
 
 ```ruby
 gem "recording_studio"
@@ -148,6 +148,30 @@ page_recording.publishable_child_recording
 page_recording.currently_published?
 page_recording.publishable_public_path
 ```
+
+## Layout
+
+`config.layout` defaults to `nil`. Controllers call `recording_studio_layout` and use the first value that is not `nil`:
+
+1. `RecordingStudioPublishable.configuration.layout`
+2. `RecordingStudio.configuration.layout`
+3. `"recording_studio/default_layout"`
+
+`false` renders no layout and does not fall through. A callable is invoked as `call(controller:)` and must return a String, `nil`, or `false`. A blank string, a positional callable, or any other value raises `ArgumentError`.
+
+```ruby
+RecordingStudioPublishable.configure do |config|
+  config.layout = "application"
+end
+```
+
+`recording_studio_publishable/application` is a bare document. It does not draw the heading or the page nav. Leave `config.layout` nil so the Recording Studio layout draws them.
+
+Per-type `public_layout` (from `Publishable.to` or `register_public_renderer`) is the layout for the public page and for preview. `nil` uses the chain above. `false` renders no layout.
+
+Public pages set `content_for :document_title` to the SEO title when one is saved, and `content_for :title` to the visible heading. The dummy layout reads `:document_title` for the `<title>` element. Recording Studio's default layout uses `:title` for both, so a host that does not override that layout shows the heading in the browser tab.
+
+Publish screens set `content_for :title`, `content_for :subtitle`, and `flat_pack_page_nav` for back and close. The default layout draws one `FlatPack::PageTitle`. Do not render a second page title in the view body.
 
 ## Host publish control
 
@@ -376,11 +400,11 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v4.6.0`, Accessible `v0.18.0` (Trashable `v0.10.0` query-only, `require: false`), API `v0.7.0`, Admin `v2.3.0`, Attachable `v0.15.0`, Metrics `v0.2.3` (`require: false`), Flatpack `v0.1.302`, dummy-only Root Switchable `v0.9.0` (with Cache `v0.5.0`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The gemspec requires Flatpack `>= 0.1.302`. It does not depend on those dummy-only gems. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav, to the left of the workspace switcher. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
+The dummy host at `test/dummy` pins Recording Studio `v6.1.0`, Accessible `v0.18.0` (Trashable `v0.11.0` query-only, `require: false`), API `v0.7.0`, Admin `v2.3.0`, Attachable `v0.15.0`, Metrics `v0.2.3` (`require: false`), Flatpack `0.1.319` (commit `1fcbafe94f8eb118f0a22182f63f5110fcc97a56`), dummy-only Root Switchable `v0.9.0` (with Cache `v0.5.0`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The gemspec requires Recording Studio `~> 6.1`, `>= 6.1.0`, Flatpack `>= 0.1.315`, and ViewComponent `>= 4.14`, `< 5`. It does not depend on those dummy-only gems. Those sibling gems still declare `recording_studio` below 5. No newer tag relaxes that. The Gemfiles load `test/support/widen_recording_studio_requirement.rb` so Bundler can resolve `6.1.0`. A host Gemfile that includes one of those gems has to widen the requirement the same way. The dummy also patches Flatpack PageNav and Card in `config/initializers/flatpack_removed_kwargs.rb` because Root Switchable `v0.9.0` still passes keywords Flatpack 0.1.319 rejects. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav on the dummy's own screens, to the left of the workspace switcher. Publish, success, preview, and public screens omit it. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 
-Authenticated dummy pages include `RecordingStudio::UsesDefaultLayout` and `RecordingStudio::RootSwitchable::ControllerSupport`. They render `recording_studio/default_layout` with PageNav back + close. Pages home keeps the workspace switcher and Sign out. Publish hub, Schedule, SEO, and Social keep back and close and hide the switcher and Sign out. The language selector stays in that nav. The hub list and those job forms use a narrower desktop width and stay left-aligned. Dummy layouts set Flatpack's built-in rounded theme on `<html>` with `lang` and Flatpack copy data (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that starts with Preview or View, then Schedule, SEO, and Social. Dummy Pages and Articles both collect Title and Description. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
+Authenticated dummy pages include `RecordingStudio::RootSwitchable::ControllerSupport` and call `recording_studio_layout`. Publishable `config.layout` is `nil`, so screens use `recording_studio/default_layout`. Pages home keeps the workspace switcher and Sign out. Publish hub, Schedule, SEO, Social, success, preview, and the public page keep back and close where those controls belong, and hide the switcher, Sign out, and the language selector. The host layout follows the Recording Studio 6.1 shell (`FlatPack::PageLayout`, round `flat_pack_page_nav`, and `page_nav_button_group`) and adds `lang` plus Flatpack copy data on `<html>`. The hub list sits in a card. That list and the job forms use a narrower desktop width and stay left-aligned. Dummy layouts set Flatpack's built-in rounded theme on `<html>` with `lang` and Flatpack copy data (not custom CSS) and load stylesheets in kit order: `flat_pack/variables`, `flat_pack/application`, `flat_pack/rich_text`, then Tailwind. The dummy importmap pins `@hotwired/turbo-rails` and Flatpack controllers with `preload: false`. `app/javascript/application.js` imports Turbo so the host publish dropdown can PATCH in place. `app/assets/config/manifest.js` links the Flatpack stylesheets. Home uses Flatpack Table. Publish settings is a Flatpack hub that starts with Preview or View, then Schedule, SEO, and Social. Dummy Pages and Articles both collect Title and Description. There is no custom sidebar or Dummy publishables landing. Devise keeps its own sign-in layout and the same html theme.
 
 Sign in with `admin@admin.com` / `Password`. `bin/rails db:seed` creates published, scheduled, and draft pages so screenshots are not empty lists.
 
