@@ -21,9 +21,14 @@ module RecordingStudioPublishable
       private
 
       # The trigger stays a raw button so the state span can be replaced in place.
-      # FlatPack::Button paints the classes and data-fp-style. Its label is not used.
+      # Flatpack 0.1.319 paints that button through Button and removed
+      # Dropdown#button_attributes. Flatpack 0.1.315 still has that method.
       def button_attributes
-        FlatPack::Button::Component.new(**trigger_button_arguments).send(:button_attributes)
+        if respond_to?(:trigger_button_arguments, true)
+          FlatPack::Button::Component.new(**trigger_button_arguments).send(:button_attributes)
+        else
+          super
+        end
       end
 
       def trigger_attributes_with_button_class(trigger_attributes, button_class)

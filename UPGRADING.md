@@ -6,17 +6,21 @@ Install `recording_studio_publishable` 0.12.0. No migration.
 
 Recording Studio must be `6.1.0` or newer. Flatpack must be `0.1.315` or newer. ViewComponent must be `4.14` or newer and below `5`. Rebuild host Tailwind after the Flatpack bump.
 
+Quick actions use Flatpack 0.1.319's trigger button. On Flatpack 0.1.315 they call `Dropdown#button_attributes` instead. Development pins Flatpack commit `1fcbafe94f8eb118f0a22182f63f5110fcc97a56` (`0.1.319`).
+
+Current releases of Accessible, Attachable, Cache, Metrics, Root Switchable, Trashable, API, Admin, and Internationalization still require `recording_studio` below 5. Bundler will not install this gem beside those releases. This repository's Gemfiles load `test/support/widen_recording_studio_requirement.rb` before the gemspec so the requirement becomes `>= 6.1.0`. A host that needs one of those gems today has to widen the requirement the same way. That file is not part of the installed gem.
+
+Root Switchable 0.9.0 still passes PageNav `anchor_url` and Card `style:`. Flatpack 0.1.319 rejects both. The dummy prepends a small patch in `test/dummy/config/initializers/flatpack_removed_kwargs.rb` so those screens boot. A host that mounts that Root Switchable release needs the same patch, or a newer Root Switchable.
+
 `config.layout` now defaults to `nil`. A `nil` setting uses `RecordingStudio.configuration.layout`, then `recording_studio/default_layout`. `false` renders no layout. A callable is invoked as `call(controller:)`. A blank string, a positional callable, or any other value raises `ArgumentError`.
 
-To keep the old blank engine shell, set it explicitly:
-
-```ruby
-config.layout = "recording_studio_publishable/application"
-```
+`recording_studio_publishable/application` is still available, and it is a bare document. It does not draw the page heading, back control, or page nav. Publish screens no longer draw those in the view body. Leave `config.layout` nil to keep them. Set that layout name only when the host renders the heading and nav itself.
 
 Do not hard-code `layout "recording_studio/default_layout"` on a controller. Call `recording_studio_layout` instead. `rake recording_studio:check_layouts` reports those hard-coded calls.
 
 Publish screens set the page title with `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. The default layout draws one heading. A host view that also renders `FlatPack::PageTitle` for that same heading will show two.
+
+Public pages also set `content_for :document_title` to `publishable_document_title`. That is the SEO title when one is saved, otherwise the parent title. The dummy layout and the bare engine layout use it for `<title>`. Recording Studio's default layout does not. A host layout that replaces the default layout should read `:document_title` for the `<title>` element and `:title` for the visible heading.
 
 `recording_studio_page_nav` is gone. `publishable_hides_page_nav_right?` is how a host layout skips its own right-hand controls on publish, preview, and public screens. The gem no longer fills `:page_nav_right` with a placeholder.
 

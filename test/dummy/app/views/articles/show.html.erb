@@ -3,6 +3,7 @@
 <% resolved_public_path = @article.respond_to?(:published_url) ? @article.published_url : nil %>
 <% resolved_public_url = resolved_public_path.present? ? "#{request.protocol}#{request.host_with_port}#{resolved_public_path}" : nil %>
 <% content_for :title, page_title %>
+<% content_for :document_title, publishable_document_title %>
 <% content_for :subtitle, @publishable.seo_description.presence || "Rendered through: #{public_renderer.controller}##{public_renderer.action} (layout: #{public_renderer.layout.presence || RecordingStudioPublishable.configuration.layout})" %>
 
 <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">

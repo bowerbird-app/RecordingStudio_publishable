@@ -1,4 +1,5 @@
 <% content_for :title, @page.title %>
+<% content_for :document_title, publishable_document_title %>
 <% content_for :subtitle, @publishable.seo_description.presence || "Rendered through the parent type's conventional public template." %>
 
 <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">

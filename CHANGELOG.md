@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Gem controllers call `recording_studio_layout`. They no longer set `layout` to a layout name.
 - Publish hub, job, and success screens set `content_for :title` and `content_for :subtitle`, and call `flat_pack_page_nav` for back and close. The default layout draws the single page title.
 - The gemspec requires `recording_studio` `~> 6.1`, `>= 6.1.0`, `flat_pack` `>= 0.1.315`, and `view_component` `>= 4.14`, `< 5`. Development and dummy Gemfiles pin Recording Studio `v6.1.0`, Flatpack commit `1fcbafe94f8eb118f0a22182f63f5110fcc97a56` (`0.1.319`), and ViewComponent `4.19.0`.
+- Public pages set `content_for :document_title` from `publishable_document_title` (the SEO title when one is set). `content_for :title` stays the visible heading. The dummy layout and `recording_studio_publishable/application` read `:document_title` for the `<title>` element. Recording Studio's own default layout still uses `:title` for both.
 
 ### Removed
 - `recording_studio_page_nav` and the empty `:page_nav_right` placeholder on publish screens.
@@ -22,8 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade Notes
 - Install Publishable `0.12.0`. No migration.
 - Recording Studio must be `6.1.0` or newer. Flatpack must be `0.1.315` or newer. ViewComponent must be `4.14` or newer and below `5`.
-- Hosts that relied on the blank engine layout `recording_studio_publishable/application` need `config.layout = "recording_studio_publishable/application"`. The new default follows the host's Recording Studio layout.
-- A host layout that replaces `recording_studio/default_layout` has to render `:title`, `:subtitle`, `flat_pack_page_nav_tag`, and `page_nav_button_group`. See Recording Studio's default layout doc.
+- Leave `config.layout` nil unless a host layout should replace the Recording Studio layout. `recording_studio_publishable/application` is a bare document. It draws a `<title>` and no page heading, back control, or page nav. Publish screens no longer draw those themselves.
+- A host layout that replaces `recording_studio/default_layout` has to render `:title`, `:subtitle`, `flat_pack_page_nav_tag`, and `page_nav_button_group`. Read `:document_title` for the `<title>` element when it should differ from the heading. See Recording Studio's default layout doc.
+- Current releases of Accessible, Attachable, Cache, Metrics, Root Switchable, Trashable, API, Admin, and Internationalization still require `recording_studio` below 5. Bundler will not install Publishable 0.12.0 beside those releases. This repository widens that requirement while loading gemspecs. A host that needs both has to do the same until those gems allow 6.1.
+- Quick actions call Flatpack 0.1.319's trigger-button API and fall back to `Dropdown#button_attributes` on 0.1.315.
+- Root Switchable 0.9.0 still passes PageNav and Card keywords that Flatpack 0.1.319 rejects. The dummy patches those constructors so the host boots. A host that mounts that Root Switchable release with this Flatpack needs the same patch, or a newer Root Switchable.
 - Publish screens hide the host's right-hand nav when `publishable_hides_page_nav_right?` is true. Check that helper. The gem no longer writes a placeholder into `:page_nav_right`.
 - Rebuild host Tailwind after the Flatpack bump.
 

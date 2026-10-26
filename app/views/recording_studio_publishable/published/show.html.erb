@@ -1,4 +1,5 @@
 <% content_for :title, @parent_recordable.respond_to?(:title) ? @parent_recordable.title : @parent_recording.recordable_type.to_s.demodulize.underscore.humanize %>
+<% content_for :document_title, publishable_document_title %>
 <% content_for :subtitle, @publishable.seo_description.presence || publishable_t("published.fallback_subtitle") %>
 
 <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">

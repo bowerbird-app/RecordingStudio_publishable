@@ -90,6 +90,7 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "recording_studio-publishable-layout"
     refute_includes response.body, "flat-pack-sidebar-layout"
+    assert_select "title", text: "Public page SEO"
   ensure
     RecordingStudioPublishable.configuration.layout = original_layout
   end
@@ -123,11 +124,32 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select "title", count: 1
     assert_select "title", text: "Public page"
+    assert_select "h1", text: "Public page"
     refute_includes response.body, "<title>Public page SEO</title>"
     assert_includes response.body, '<meta name="robots"'
     assert_includes response.body, "Rendered through the parent type&#39;s conventional public template."
     assert_includes response.body, "Page title:"
     assert_includes response.body, "Public page"
+  end
+
+  test "published page keeps the seo title in the document title" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"),
+                                                          parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: {
+        slug: "public-page",
+        status: "published",
+        seo_title: "Public page SEO"
+      }
+    ).value
+
+    get "/published/#{publishable_recording.id}/public-page"
+
+    assert_response :success
+    assert_select "title", count: 1, text: "Public page SEO"
+    assert_select "h1", count: 1, text: "Public page"
   end
 
   test "published page falls back to the gem template when the conventional template is missing" do
