@@ -1,25 +1,13 @@
-<% if respond_to?(:recording_studio_page_nav) %>
-  <% recording_studio_page_nav(
-    title: publishable_t("success.title"),
-    page_nav_back_url: (main_app.root_path if main_app.respond_to?(:root_path)),
-    page_nav_back_label: publishable_t("hub.back"),
-    page_nav_anchor_url: @management_close_url,
-    page_nav_anchor_label: publishable_t("hub.close")
-  ) %>
-<% end %>
-<%= render "recording_studio_publishable/publishables/clear_page_nav_right" %>
+<% publishable_management_nav(
+  title: publishable_t("success.title"),
+  subtitle: @recordable_name,
+  back_href: (main_app.root_path if main_app.respond_to?(:root_path)),
+  back_tooltip: publishable_t("hub.back"),
+  anchor_href: @management_close_url,
+  anchor_tooltip: publishable_t("hub.close")
+) %>
 
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
-
-  <div class="flex flex-wrap items-center justify-between gap-3">
-    <%= render FlatPack::PageTitle::Component.new(
-      title: publishable_t("success.title"),
-      subtitle: @recordable_name,
-      variant: :h1,
-      large_subtitle: true
-    ) %>
-  </div>
-
   <div class="flex max-w-md flex-col gap-3">
     <%= render FlatPack::Button::Component.new(
       text: publishable_t("success.copy_link"),

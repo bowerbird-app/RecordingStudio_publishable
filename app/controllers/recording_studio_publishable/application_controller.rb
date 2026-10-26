@@ -3,7 +3,7 @@
 module RecordingStudioPublishable
   class ApplicationController < (defined?(::ApplicationController) ? ::ApplicationController : ActionController::Base)
     helper RecordingStudioPublishable::ApplicationHelper
-    layout -> { RecordingStudioPublishable.configuration.layout }
+    recording_studio_layout { RecordingStudioPublishable.configuration.layout }
 
     private
 

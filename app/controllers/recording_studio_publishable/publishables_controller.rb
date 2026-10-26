@@ -7,8 +7,6 @@ module RecordingStudioPublishable
   class PublishablesController < ApplicationController
     include RendersPublicPage
 
-    layout :publishable_layout
-
     skip_before_action :authenticate_user!, only: :preview, raise: false
     before_action :load_parent_recording
     before_action -> { authorize_publishable_management!(@parent_recording) }, except: :preview
@@ -166,10 +164,6 @@ module RecordingStudioPublishable
       attributes.concat(%i[seo_title seo_description]) if seo_enabled_for_recordable?
 
       attributes
-    end
-
-    def publishable_layout
-      RecordingStudioPublishable.configuration.layout
     end
 
     def assign_publishable_hub_state

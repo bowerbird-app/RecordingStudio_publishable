@@ -18,23 +18,26 @@ module RecordingStudioPublishable
                   :management_authorizer,
                   :management_close_url_resolver,
                   :default_time_zone,
-                  :layout,
                   :canonical_redirect_status,
                   :quick_actions_button_class,
                   :quick_actions_menu_class
-    attr_reader :hooks, :public_path_configs, :public_renderer_configs, :quick_actions_states
+    attr_reader :hooks, :public_path_configs, :public_renderer_configs, :quick_actions_states, :layout
 
     def initialize
       @current_actor_resolver = method(:default_current_actor_resolver)
       @management_authorizer = method(:default_management_authorizer)
       @management_close_url_resolver = method(:default_management_close_url_resolver)
       @default_time_zone = default_rails_time_zone
-      @layout = "recording_studio_publishable/application"
+      @layout = nil
       @canonical_redirect_status = :found
       assign_quick_actions_defaults
       @public_path_configs = {}
       @public_renderer_configs = {}
       @hooks = Hooks.new
+    end
+
+    def layout=(value)
+      @layout = RecordingStudio::Layout.accept(value)
     end
 
     def to_h

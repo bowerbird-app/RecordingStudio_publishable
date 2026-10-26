@@ -83,8 +83,36 @@ class ConfigurationTest < Minitest::Test
     assert_includes error.message, ":uuid"
   end
 
-  def test_layout_defaults_to_the_blank_engine_layout
-    assert_equal "recording_studio_publishable/application", RecordingStudioPublishable.configuration.layout
+  def test_layout_defaults_to_nil
+    assert_nil RecordingStudioPublishable.configuration.layout
+  end
+
+  def test_layout_accepts_a_string_false_and_a_keyword_callable
+    RecordingStudioPublishable.configuration.layout = "admin"
+    assert_equal "admin", RecordingStudioPublishable.configuration.layout
+
+    RecordingStudioPublishable.configuration.layout = false
+    assert_equal false, RecordingStudioPublishable.configuration.layout
+
+    callable = ->(controller:) { controller }
+    RecordingStudioPublishable.configuration.layout = callable
+    assert_equal callable, RecordingStudioPublishable.configuration.layout
+  end
+
+  def test_layout_rejects_invalid_values_and_keeps_the_previous_setting
+    callable = ->(controller:) { controller }
+    RecordingStudioPublishable.configuration.layout = callable
+
+    assert_raises(ArgumentError) { RecordingStudioPublishable.configuration.layout = "  " }
+    assert_equal callable, RecordingStudioPublishable.configuration.layout
+    assert_raises(ArgumentError) { RecordingStudioPublishable.configuration.layout = ->(controller) { "admin" } }
+    assert_equal callable, RecordingStudioPublishable.configuration.layout
+    assert_raises(ArgumentError) { RecordingStudioPublishable.configuration.layout = 1 }
+    assert_equal callable, RecordingStudioPublishable.configuration.layout
+  end
+
+  def test_controllers_do_not_hardcode_a_recording_studio_layout
+    assert_empty RecordingStudio::Layout.hardcoded_layout_paths(RecordingStudioPublishable::Engine.root)
   end
 
   def test_layout_has_no_default_layout_alias

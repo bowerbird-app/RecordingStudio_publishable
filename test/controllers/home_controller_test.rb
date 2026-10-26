@@ -47,7 +47,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, ">Page<"
     assert_includes response.body, "icon-name-value=\"plus\""
     refute_includes response.body, "Add page"
-    assert_includes response.body, "page-title-actions"
+    assert_select "h1", text: "Pages"
     assert_includes response.body, "Sign out"
     assert_includes response.body, "Home page"
     assert_includes response.body, "Second page"

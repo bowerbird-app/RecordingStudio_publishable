@@ -11,8 +11,62 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     config = Struct.new(:layout).new("application")
 
     RecordingStudioPublishable.stub(:configuration, config) do
-      assert_equal "application", controller.send(:publishable_layout)
+      assert_equal "application", controller.send(:recording_studio_resolved_layout)
     end
+  end
+
+  test "nil layout falls through to recording studio then the default layout" do
+    controller = RecordingStudioPublishable::PublishablesController.new
+    original_gem_layout = RecordingStudioPublishable.configuration.layout
+    original_core_layout = RecordingStudio.configuration.layout
+
+    RecordingStudioPublishable.configuration.layout = nil
+    RecordingStudio.configuration.layout = nil
+    assert_equal "recording_studio/default_layout", controller.send(:recording_studio_resolved_layout)
+
+    RecordingStudio.configuration.layout = "host_shell"
+    assert_equal "host_shell", controller.send(:recording_studio_resolved_layout)
+
+    RecordingStudioPublishable.configuration.layout = "admin"
+    assert_equal "admin", controller.send(:recording_studio_resolved_layout)
+
+    RecordingStudioPublishable.configuration.layout = false
+    assert_equal false, controller.send(:recording_studio_resolved_layout)
+
+    RecordingStudioPublishable.configuration.layout = ->(controller:) { "from-#{controller.class.name}" }
+    assert_equal "from-RecordingStudioPublishable::PublishablesController",
+                 controller.send(:recording_studio_resolved_layout)
+  ensure
+    RecordingStudioPublishable.configuration.layout = original_gem_layout
+    RecordingStudio.configuration.layout = original_core_layout
+  end
+
+  test "public layout uses the per-type layout and falls through when that is nil" do
+    controller = RecordingStudioPublishable::PublishedController.new
+    renderers = RecordingStudioPublishable.configuration.public_renderer_configs
+    original_page = renderers["Page"]
+    original_gem_layout = RecordingStudioPublishable.configuration.layout
+    original_core_layout = RecordingStudio.configuration.layout
+    RecordingStudioPublishable.configuration.register_public_renderer("Page", layout: "pages")
+    controller.instance_variable_set(:@parent_recording, Struct.new(:recordable_type).new("Page"))
+
+    assert_equal "pages", controller.send(:resolve_public_layout)
+
+    RecordingStudioPublishable.configuration.register_public_renderer("Page", layout: false)
+    assert_equal false, controller.send(:resolve_public_layout)
+
+    RecordingStudioPublishable.configuration.register_public_renderer("Page")
+    RecordingStudioPublishable.configuration.layout = nil
+    RecordingStudio.configuration.layout = nil
+    assert_equal "recording_studio/default_layout", controller.send(:resolve_public_layout)
+  ensure
+    if original_page
+      renderers["Page"] = original_page
+    else
+      renderers.delete("Page")
+    end
+    RecordingStudioPublishable.configuration.layout = original_gem_layout
+    RecordingStudio.configuration.layout = original_core_layout
   end
 
   test "published routes use the blank engine layout when that layout is configured" do
@@ -85,8 +139,13 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
       attributes: { slug: "public-page", status: "published" }
     ).value
 
-    RecordingStudioPublishable::PublishedController.any_instance.stub(:public_template, "missing/template") do
+    controller = RecordingStudioPublishable::PublishedController
+    original = controller.instance_method(:public_template)
+    controller.define_method(:public_template) { "missing/template" }
+    begin
       get "/published/#{publishable_recording.id}/public-page"
+    ensure
+      controller.define_method(:public_template, original)
     end
 
     assert_response :success

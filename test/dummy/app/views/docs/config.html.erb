@@ -17,7 +17,8 @@
         code: <<~RUBY
           RecordingStudioPublishable.configure do |config|
             config.default_time_zone = "America/Los_Angeles"
-            config.layout = "recording_studio_publishable/application"
+            # nil uses RecordingStudio.configuration.layout, then recording_studio/default_layout.
+            # config.layout = "application"
             config.canonical_redirect_status = :found
 
             config.management_authorizer = lambda do |recording:, actor:, **|
@@ -39,7 +40,7 @@
 
       <div class="space-y-3 text-sm leading-7 text-(--surface-muted-content-color)">
         <p><strong>management_authorizer</strong> (optional override) decides whether a user may edit publishable content. Receives <code>recording:</code> and <code>actor:</code> keyword args. By default, the gem uses <code>RecordingStudioAccessible.authorized?(role: :edit)</code> when available.</p>
-        <p><strong>layout</strong> (optional) sets the layout for all gem-managed screens (default: <code>"recording_studio_publishable/application"</code>).</p>
+        <p><strong>layout</strong> (optional) is nil, false, a layout name, or a <code>-&gt;(controller:)</code> callable. Nil uses <code>RecordingStudio.configuration.layout</code>, then <code>recording_studio/default_layout</code>. False renders no layout.</p>
         <p><strong>default_time_zone</strong> (optional) sets the fallback time zone used for publish/unpublish scheduling.</p>
         <p><strong>canonical_redirect_status</strong> (optional) sets the status code for stale slug redirects (default: <code>:moved_permanently</code>).</p>
       </div>
@@ -56,7 +57,8 @@
         code: <<~RUBY
           RecordingStudioPublishable.configure do |config|
             config.default_time_zone = "America/Los_Angeles"
-            config.layout = "recording_studio_publishable/application"
+            # nil uses RecordingStudio.configuration.layout, then recording_studio/default_layout.
+            # config.layout = "application"
             config.canonical_redirect_status = :found
 
             config.management_authorizer = lambda do |recording:, actor:, **|

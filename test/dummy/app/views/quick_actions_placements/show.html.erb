@@ -1,7 +1,5 @@
-<%= render FlatPack::PageTitle::Component.new(
-  title: "Where it sits",
-  variant: :h1
-) %>
+<% content_for :title, "Where it sits" %>
+<% flat_pack_page_nav(round: true, style: :default, back_href: root_path, back_tooltip: "Home") %>
 
 <%= render FlatPack::SectionTitle::Component.new(title: "Publishable button") %>
 <%= render RecordingStudioPublishable::QuickActions::Component.new(recording: @recording, name: "standalone") %>

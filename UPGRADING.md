@@ -1,5 +1,27 @@
 # Upgrading
 
+## 0.12.0 — Recording Studio 6.1 layout
+
+Install `recording_studio_publishable` 0.12.0. No migration.
+
+Recording Studio must be `6.1.0` or newer. Flatpack must be `0.1.315` or newer. ViewComponent must be `4.14` or newer and below `5`. Rebuild host Tailwind after the Flatpack bump.
+
+`config.layout` now defaults to `nil`. A `nil` setting uses `RecordingStudio.configuration.layout`, then `recording_studio/default_layout`. `false` renders no layout. A callable is invoked as `call(controller:)`. A blank string, a positional callable, or any other value raises `ArgumentError`.
+
+To keep the old blank engine shell, set it explicitly:
+
+```ruby
+config.layout = "recording_studio_publishable/application"
+```
+
+Do not hard-code `layout "recording_studio/default_layout"` on a controller. Call `recording_studio_layout` instead. `rake recording_studio:check_layouts` reports those hard-coded calls.
+
+Publish screens set the page title with `content_for :title` and `content_for :subtitle`. Back and close use `flat_pack_page_nav`. The default layout draws one heading. A host view that also renders `FlatPack::PageTitle` for that same heading will show two.
+
+`recording_studio_page_nav` is gone. `publishable_hides_page_nav_right?` is how a host layout skips its own right-hand controls on publish, preview, and public screens. The gem no longer fills `:page_nav_right` with a placeholder.
+
+Per-type `public_layout` still wins for the public page and for preview. `nil` uses the same layout chain as the management screens. `false` renders no layout.
+
 ## 0.11.0 — collapsed publish rows
 
 Install `recording_studio_publishable` 0.11.0. No migration.

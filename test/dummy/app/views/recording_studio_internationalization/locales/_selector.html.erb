@@ -1,0 +1,21 @@
+<%# The default selector stacks a label, a field, and a button. That column is taller than the top nav. %>
+<% form_options = html_options.deep_dup %>
+<% form_options[:class] = ["inline-flex items-center gap-2", form_options[:class]].compact.join(" ") %>
+<% form_options[:data] = { turbo: false }.merge(form_options.fetch(:data, {})) %>
+<%= form_with url: recording_studio_internationalization.locale_path, method: :patch, **form_options do |form| %>
+  <%= form.hidden_field :return_to, value: request.fullpath %>
+  <%= render FlatPack::Select::Component.new(
+        name: "locale",
+        options: locales.map { |locale| [locale.name, locale.code.to_s] },
+        value: I18n.locale.to_s,
+        placeholder: nil,
+        aria: { label: t("recording_studio.internationalization.selector.label") },
+        class: "w-44"
+      ) %>
+  <%= render FlatPack::Button::Component.new(
+        text: t("recording_studio.internationalization.selector.submit"),
+        style: :secondary,
+        size: :sm,
+        type: "submit"
+      ) %>
+<% end %>

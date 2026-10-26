@@ -113,6 +113,22 @@ module RecordingStudioPublishable
       publishable_preview?
     end
 
+    def publishable_management_nav(title:, subtitle: nil, back_href: nil, back_tooltip: nil,
+                                   anchor_href: nil, anchor_tooltip: nil)
+      content_for(:title, title)
+      content_for(:subtitle, subtitle) if subtitle.present?
+      return unless respond_to?(:flat_pack_page_nav)
+
+      flat_pack_page_nav(
+        round: true,
+        style: :default,
+        back_href: back_href,
+        back_tooltip: back_tooltip,
+        anchor_href: anchor_href,
+        anchor_tooltip: anchor_tooltip
+      )
+    end
+
     def publishable_hides_page_nav_right?
       return true if publishable_hides_host_chrome?
       return false unless defined?(controller)

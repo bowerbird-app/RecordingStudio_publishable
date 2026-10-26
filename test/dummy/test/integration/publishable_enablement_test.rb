@@ -56,9 +56,9 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
   end
 
   test "dummy uses core default layout rather than a custom sidebar shell" do
-    assert_includes ApplicationController.ancestors, RecordingStudio::UsesDefaultLayout
     assert_includes ApplicationController.ancestors, RecordingStudio::RootSwitchable::ControllerSupport
-    assert_equal "recording_studio/default_layout", RecordingStudioPublishable.configuration.layout
+    assert_respond_to ApplicationController, :recording_studio_layout
+    assert_nil RecordingStudioPublishable.configuration.layout
 
     sign_in @user
     create_publishable_parent("Layout home page")
@@ -172,14 +172,14 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_flatpack_assets_loaded
   end
 
-  test "dummy gemfile pins recording studio 4.7 and dummy-only root switchable" do
+  test "dummy gemfile pins recording studio 6.1 and dummy-only root switchable" do
     gemfile = File.read(Rails.root.join("Gemfile"))
 
-    assert_includes gemfile, 'tag: "v4.7.0"'
+    assert_includes gemfile, 'tag: "v6.1.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.18.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
-    assert_includes gemfile, '">= 0.1.302"'
-    assert_includes gemfile, 'tag: "v0.1.302"'
+    assert_includes gemfile, '">= 0.1.315"'
+    assert_includes gemfile, 'ref: "1fcbafe94f8eb118f0a22182f63f5110fcc97a56"'
     assert_includes gemfile, 'tag: "v0.7.0"'
     assert_includes gemfile, 'tag: "v2.3.0"'
     assert_includes gemfile,

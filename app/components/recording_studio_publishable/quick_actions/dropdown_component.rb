@@ -10,22 +10,29 @@ module RecordingStudioPublishable
     class DropdownComponent < FlatPack::Button::Dropdown::Component
       MENU_HOOK_CLASS = "publishable-quick-actions-menu"
 
-      def initialize(button_class: nil, menu_class: nil, state_presenter: nil, **)
-        @button_class = button_class
+      def initialize(button_class: nil, menu_class: nil, state_presenter: nil, trigger_attributes: {}, **)
         @menu_class = menu_class
         @state_presenter = state_presenter
-        super(**)
+        super(trigger_attributes: trigger_attributes_with_button_class(trigger_attributes, button_class), **)
       end
 
       attr_reader :state_presenter
 
       private
 
+      # The trigger stays a raw button so the state span can be replaced in place.
+      # FlatPack::Button paints the classes and data-fp-style. Its label is not used.
       def button_attributes
-        attributes = super
-        return attributes if @button_class.blank?
+        FlatPack::Button::Component.new(**trigger_button_arguments).send(:button_attributes)
+      end
 
-        attributes.merge(class: ClassNames.merge(attributes[:class], @button_class))
+      def trigger_attributes_with_button_class(trigger_attributes, button_class)
+        attributes = trigger_attributes.dup
+        return attributes if button_class.blank?
+
+        attributes[:class] = ClassNames.merge(attributes[:class], attributes["class"], button_class)
+        attributes.delete("class")
+        attributes
       end
 
       def menu_classes

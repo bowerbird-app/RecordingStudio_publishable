@@ -94,8 +94,9 @@ class PublishableCapabilitiesTest < Minitest::Test
   def test_gemspec_depends_on_recording_studio_and_not_trashable
     gemspec = File.read(File.expand_path("../recording_studio_publishable.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 4.2"'
-    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.302"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 6.1", ">= 6.1.0"'
+    assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.315"'
+    assert_includes gemspec, 'spec.add_dependency "view_component", ">= 4.14", "< 5"'
     refute_includes gemspec, "recording_studio_trashable"
   end
 end
