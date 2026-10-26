@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `config.layout` defaults to `nil`. Assignments go through `RecordingStudio::Layout.accept`. `nil` uses `RecordingStudio.configuration.layout`, then `recording_studio/default_layout`. `false` renders no layout. A callable is invoked as `call(controller:)`.
 - Gem controllers call `recording_studio_layout`. They no longer set `layout` to a layout name.
 - Publish hub, job, and success screens set `content_for :title` and `content_for :subtitle`, and call `flat_pack_page_nav` for back and close. The default layout draws the single page title.
+- The publish hub list sits in a Flatpack card with `border: :default`. The rounded theme's own card border width is 0, so the default border is the 1px rule. The card body has no extra padding, so the list dividers meet that border.
 - The gemspec requires `recording_studio` `~> 6.1`, `>= 6.1.0`, `flat_pack` `>= 0.1.315`, and `view_component` `>= 4.14`, `< 5`. Development and dummy Gemfiles pin Recording Studio `v6.1.0`, Flatpack commit `1fcbafe94f8eb118f0a22182f63f5110fcc97a56` (`0.1.319`), and ViewComponent `4.19.0`.
 - Public pages set `content_for :document_title` from `publishable_document_title` (the SEO title when one is set). `content_for :title` stays the visible heading. The dummy layout and `recording_studio_publishable/application` read `:document_title` for the `<title>` element. Recording Studio's own default layout still uses `:title` for both.
 

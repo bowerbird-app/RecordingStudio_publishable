@@ -421,6 +421,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "publishable[social_title]"
     assert_includes response.body, "w-full max-w-xl"
     refute_includes response.body, "mx-auto flex w-full max-w-xl"
+    assert_select ".fp-card.border .flat-pack-list", count: 1
   end
 
   test "published hub lists View first at the live url" do
