@@ -58,6 +58,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Social"
     assert_includes response.body, "Launch Checklist"
     assert_includes response.body, "Publish now"
+    assert_no_language_selector
 
     get recording_studio_publishable.schedule_recording_publishable_path(recording_id: @recording.id)
 
@@ -65,6 +66,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Publish at"
     assert_includes response.body, "Time zone"
     assert_includes response.body, "Save"
+    assert_no_language_selector
 
     get recording_studio_publishable.search_recording_publishable_path(recording_id: @recording.id)
 
@@ -72,12 +74,19 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Leave blank to use the page name."
     assert_includes response.body, "Canonical URL"
     assert_includes response.body, "Advanced"
+    assert_no_language_selector
 
     get recording_studio_publishable.social_recording_publishable_path(recording_id: @recording.id)
 
     assert_response :success
     assert_includes response.body, "Social title"
     assert_includes response.body, "Upload Photo"
+    assert_no_language_selector
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: @recording.id)
+
+    assert_response :success
+    assert_no_language_selector
   end
 
   test "dummy French locale renders publish flow copy" do
@@ -96,6 +105,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "See it before it goes live."
     refute_includes response.body, "Pick when this goes live."
     assert_includes response.body, "Launch Checklist"
+    assert_no_language_selector
 
     get recording_studio_publishable.schedule_recording_publishable_path(recording_id: @recording.id)
 
@@ -104,6 +114,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Fuseau horaire"
     assert_includes response.body, "Enregistrer"
     refute_includes response.body, "Time zone"
+    assert_no_language_selector
 
     get recording_studio_publishable.search_recording_publishable_path(recording_id: @recording.id)
 
@@ -112,6 +123,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "URL canonique"
     assert_includes response.body, "Avancé"
     refute_includes response.body, "Canonical URL"
+    assert_no_language_selector
 
     get recording_studio_publishable.social_recording_publishable_path(recording_id: @recording.id)
 
@@ -119,6 +131,7 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Titre social"
     assert_includes response.body, "Envoyer une photo"
     refute_includes response.body, "Upload Photo"
+    assert_no_language_selector
   end
 
   test "edit button label override still wins over French locale" do
@@ -228,7 +241,44 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes html, "<strong>Social card:</strong>"
   end
 
+  test "publish success and the public page hide the language selector" do
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: @recording.id,
+      transition: "publish"
+    )
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "Published!"
+    assert_no_language_selector
+
+    get @recording.reload.publishable_public_path
+
+    assert_response :success
+    assert_select "html[lang='en']"
+    assert_no_language_selector
+  end
+
+  test "french locale still translates the publish hub without the language selector" do
+    switch_to_french
+
+    get recording_studio_publishable.edit_recording_publishable_path(recording_id: @recording.id)
+
+    assert_response :success
+    assert_select "html[lang='fr']"
+    assert_includes response.body, "Publier"
+    refute_includes response.body, "See it before it goes live."
+    assert_no_language_selector
+  end
+
   private
+
+  def assert_no_language_selector
+    assert_select "select[name=locale]", count: 0
+    assert_select "form[action='/recording_studio_internationalization/locale']", count: 0
+    refute_includes response.body, "Change language"
+    refute_includes response.body, "dummy-language-selector"
+  end
 
   def switch_to_french
     patch "/recording_studio_internationalization/locale", params: { locale: "fr", return_to: "/" }

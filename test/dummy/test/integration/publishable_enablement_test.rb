@@ -71,6 +71,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_select "nav[aria-label='Page navigation']"
     assert_match "Pages", response.body
     assert_match "Sign out", response.body
+    assert_select "select[name=locale]", count: 1
     assert_select "thead"
     assert_select "td"
     refute_match "Dummy publishables", response.body
@@ -91,6 +92,8 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_select "body[data-recording-studio-default-layout='true']"
     assert_select ".flat-pack-page-nav", 1
     refute_match "Sign out", response.body
+    assert_select "select[name=locale]", count: 0
+    refute_match "Change language", response.body
     refute_match "Studio Workspace", response.body
     assert_match "Publish", response.body
     assert_match "Preview", response.body

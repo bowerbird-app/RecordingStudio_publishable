@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quick actions call Flatpack 0.1.319's trigger-button API and fall back to `Dropdown#button_attributes` on 0.1.315.
 - Root Switchable 0.9.0 still passes PageNav and Card keywords that Flatpack 0.1.319 rejects. The dummy patches those constructors so the host boots. A host that mounts that Root Switchable release with this Flatpack needs the same patch, or a newer Root Switchable.
 - Publish screens hide the host's right-hand nav when `publishable_hides_page_nav_right?` is true. Check that helper. The gem no longer writes a placeholder into `:page_nav_right`.
+- The dummy language selector uses that same helper. Home and placements keep it. Publish, success, preview, and public screens do not. A session locale still translates those screens.
 - Rebuild host Tailwind after the Flatpack bump.
 
 ## [0.11.0] - 2026-10-22

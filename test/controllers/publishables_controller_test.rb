@@ -42,6 +42,8 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_includes response.body, "Published!"
     assert_includes response.body, "Spring Release Notes"
+    assert_select "select[name=locale]", count: 0
+    refute_includes response.body, "Change language"
     assert_includes response.body, "Copy link"
     assert_includes response.body, "View"
     assert_includes response.body, "/blogs/#{parent_recording.publishable_child_recording.id}/spring-release-notes"

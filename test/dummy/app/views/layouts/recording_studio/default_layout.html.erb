@@ -1,4 +1,4 @@
-<%# Host shell. Core's default layout has no lang or Flatpack copy data on html, and it reads page nav before the head partial. This file keeps that shell and adds the dummy language selector, workspace switcher, and sign out. %>
+<%# Host shell. Core's default layout has no lang or Flatpack copy data on html, and it reads page nav before the head partial. This file keeps that shell. Home keeps the language selector, workspace switcher, and sign out. Publish, success, preview, and public screens skip that selector. %>
 <% dummy_register_host_chrome %>
 <%
   rs_config = RecordingStudio.configuration
@@ -18,7 +18,8 @@
     collapse: :menu
   )
   page_nav_right = content_for(:page_nav_right).presence
-  nav_right = safe_join([dummy_language_selector, page_nav_right, page_buttons].compact)
+  language_selector = dummy_language_selector unless publishable_hides_page_nav_right?
+  nav_right = safe_join([language_selector, page_nav_right, page_buttons].compact)
 %>
 <!DOCTYPE html>
 <html <%= tag.attributes(dummy_document_attributes) %>>
