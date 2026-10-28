@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.12.2 — Housekeeping
+
+Install `recording_studio_publishable` 0.12.2. No migration.
+
+This release drops tracked SimpleCov output, leftover gem-template docs, a nested dummy GitHub workflow, and two stale notes files. Publishable behavior is unchanged.
+
 ## 0.12.1 — dummy Flatpack, Root Switchable, and Admin pins
 
 Install `recording_studio_publishable` 0.12.1. No migration.

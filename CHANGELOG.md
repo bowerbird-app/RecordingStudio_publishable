@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.2] - 2026-10-28
+
+### Changed
+- Copilot and rails-architect agent notes name this gem instead of the original template.
+
+### Removed
+- Tracked SimpleCov output under `coverage/` and `test/dummy/coverage/`. Both directories are gitignored.
+- Leftover `docs/gem_template/` notes. The README no longer points at that folder.
+- Unused nested dummy workflow at `test/dummy/.github/workflows/ci.yml`.
+- Stale `UPDATE_SUMMARY.md` and `MIGRATION_NOTES.md`.
+
+### Upgrade Notes
+- Install Publishable `0.12.2`. No migration. Hosts do not need a code change.
+
 ## [0.12.1] - 2026-10-28
 
 ### Changed
@@ -306,7 +320,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.1...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.2...HEAD
+[0.12.2]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.11.0...v0.12.0
 [0.9.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.8.3...v0.9.0
