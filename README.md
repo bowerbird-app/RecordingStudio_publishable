@@ -421,4 +421,4 @@ with Draft off to load a new pack. See
 
 ## Documentation
 
-Engine internals from the original gem template remain in `docs/gem_template/` as architectural reference. This README and the dummy app are the source of truth for Publishable.
+This README and the dummy app are the source of truth for Publishable.

@@ -5,6 +5,7 @@ module RecordingStudioPublishable
     # The label inside the trigger. Replaced on its own so the trigger node stays.
     class StateComponent < ViewComponent::Base
       def initialize(presenter:, identify: true)
+        super()
         @presenter = presenter
         @identify = identify
       end

@@ -1,7 +1,1 @@
-<% style =
-  if publishable.published_state?
-    :success
-  else
-    :info
-  end %>
-<%= render FlatPack::Badge::Component.new(text: (publishable.published_state? ? publishable_t("status.published") : publishable_t("status.draft")), style: style, size: :sm) %>
+<%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: publishable) %>

@@ -6,6 +6,7 @@ module RecordingStudioPublishable
       BUTTON_SIZES = %i[sm md lg].freeze
 
       def initialize(recording:, size: :md, alert: nil, name: nil, **options)
+        super()
         @recording = recording
         @size = self.class.normalize_size(size)
         @alert = alert

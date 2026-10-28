@@ -2,9 +2,20 @@
 
 module RecordingStudioPublishable
   class EditButtonComponent < ViewComponent::Base
-    BUTTON_BASE_CLASS = "inline-flex items-center justify-center rounded-[var(--button-border-radius)] border px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)] text-sm font-medium leading-none transition-opacity duration-base hover:opacity-90"
+    BUTTON_BASE_CLASS = [
+      "inline-flex items-center justify-center rounded-[var(--button-border-radius)] border",
+      "px-[var(--button-padding-x-md)] py-[var(--button-padding-y-md)]",
+      "text-sm font-medium leading-none transition-opacity duration-base hover:opacity-90"
+    ].join(" ")
+    TONE_CLASSES = {
+      primary: "border-[var(--button-primary-border-color)] bg-[var(--button-primary-background-color)] text-[var(--button-primary-text-color)]",
+      warning: "border-[var(--button-warning-border-color)] bg-[var(--button-warning-background-color)] text-[var(--button-warning-text-color)]",
+      default: "border-[var(--button-default-border-color)] bg-[var(--button-default-background-color)] text-[var(--button-default-text-color)]",
+      secondary: "border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]"
+    }.freeze
 
     def initialize(recording: nil, publishable: nil, label: Copy::UNSET, show_tooltip: false, **options)
+      super()
       @recording = recording || recording_for_publishable(publishable)
       @label = label
       @show_tooltip = show_tooltip
@@ -43,16 +54,7 @@ module RecordingStudioPublishable
     end
 
     def button_tone_class
-      case button_tone
-      when :primary
-        "border-[var(--button-primary-border-color)] bg-[var(--button-primary-background-color)] text-[var(--button-primary-text-color)]"
-      when :warning
-        "border-[var(--button-warning-border-color)] bg-[var(--button-warning-background-color)] text-[var(--button-warning-text-color)]"
-      when :default
-        "border-[var(--button-default-border-color)] bg-[var(--button-default-background-color)] text-[var(--button-default-text-color)]"
-      else
-        "border-[var(--button-secondary-border-color)] bg-[var(--button-secondary-background-color)] text-[var(--button-secondary-text-color)]"
-      end
+      TONE_CLASSES.fetch(button_tone, TONE_CLASSES[:secondary])
     end
 
     def button_tone
@@ -67,9 +69,8 @@ module RecordingStudioPublishable
     def button_text
       publishable = @recording.current_publishable
       return Copy.value(@label, "edit_button.label") unless publishable.present?
-      return Copy.t("status.scheduled") if publishable.scheduled_for_future?
 
-      publishable.published_state? ? Copy.t("status.published") : Copy.t("status.draft")
+      Status.label(publishable)
     end
 
     def edit_path

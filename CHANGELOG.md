@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.2] - 2026-10-28
+
+### Changed
+- Head tags and management chrome live in separate helpers. `publishable_head_tags` and the rest of the helper API are unchanged.
+- Draft, scheduled, and published labels come from `RecordingStudioPublishable::Status`. The status badge, edit button, and `_status_badge` partial all read that helper.
+
+### Removed
+- Tracked SimpleCov output under `coverage/` and `test/dummy/coverage/`.
+- Stale `UPDATE_SUMMARY.md`, `MIGRATION_NOTES.md`, leftover `docs/gem_template/` notes, and the unused dummy GitHub workflow.
+
+### Upgrade Notes
+- Install Publishable `0.12.2`. No migration.
+
 ## [0.12.0] - 2026-10-26
 
 ### Changed
@@ -296,7 +309,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.2...HEAD
+[0.12.2]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.0...v0.12.2
 [0.12.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.11.0...v0.12.0
 [0.9.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.8.3...v0.9.0
 [0.8.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.7.0...v0.8.0

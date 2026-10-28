@@ -105,7 +105,7 @@ class ConfigurationTest < Minitest::Test
 
     assert_raises(ArgumentError) { RecordingStudioPublishable.configuration.layout = "  " }
     assert_equal callable, RecordingStudioPublishable.configuration.layout
-    assert_raises(ArgumentError) { RecordingStudioPublishable.configuration.layout = ->(controller) { "admin" } }
+    assert_raises(ArgumentError) { RecordingStudioPublishable.configuration.layout = ->(_controller) { "admin" } }
     assert_equal callable, RecordingStudioPublishable.configuration.layout
     assert_raises(ArgumentError) { RecordingStudioPublishable.configuration.layout = 1 }
     assert_equal callable, RecordingStudioPublishable.configuration.layout
@@ -156,6 +156,38 @@ class ConfigurationTest < Minitest::Test
     assert_equal false, RecordingStudioPublishable.configuration.seo_enabled_for(klass)
   end
 
+  def test_seo_and_schedule_lookups_swallow_capability_errors
+    RecordingStudio.stub(:capability_options, ->(*) { raise "capability exploded" }) do
+      assert_equal true, RecordingStudioPublishable.configuration.seo_enabled_for("Page")
+      assert_equal true, RecordingStudioPublishable.configuration.schedule_enabled_for("Page")
+    end
+  end
+
+  def test_authorize_preview_swallows_accessible_errors
+    skip unless defined?(RecordingStudioAccessible) && RecordingStudioAccessible.respond_to?(:authorized?)
+
+    recording = Object.new
+    actor = Object.new
+    RecordingStudioAccessible.stub(:authorized?, ->(*) { raise "access exploded" }) do
+      refute RecordingStudioPublishable.configuration.authorize_preview?(recording: recording, actor: actor)
+    end
+  end
+
+  def test_management_close_url_falls_back_when_the_resolver_raises
+    RecordingStudioPublishable.configuration.management_close_url_resolver = lambda do |controller:, recording:|
+      _ = [controller, recording]
+      raise "close url exploded"
+    end
+    controller = Struct.new(:main_app).new(Struct.new(:root_path).new("/dashboard"))
+
+    result = RecordingStudioPublishable.configuration.management_close_url_for(
+      controller: controller,
+      recording: Object.new
+    )
+
+    assert_equal "/dashboard", result
+  end
+
   def test_merge_updates_known_attributes
     RecordingStudioPublishable.configuration.merge!(
       default_time_zone: "Pacific Time (US & Canada)",
@@ -191,7 +223,7 @@ class ConfigurationTest < Minitest::Test
   end
 
   def test_management_close_url_can_be_overridden
-    RecordingStudioPublishable.configuration.management_close_url_resolver = lambda do |controller:, recording:|
+    RecordingStudioPublishable.configuration.management_close_url_resolver = lambda do |recording:, **|
       "/workspace/#{recording.id}"
     end
 

@@ -76,6 +76,61 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
     assert_nil @article.current_publishable.publish_at
   end
 
+  test "engine registration is idempotent against the real RecordingStudioApi" do
+    first = RecordingStudioPublishable::Api.register_capability_action!
+    second = RecordingStudioPublishable::Api.register_capability_action!
+
+    assert_nil first
+    assert_nil second
+    assert publishable_capability_action(:publish)
+    assert publishable_capability_action(:unpublish)
+    assert publishable_capability_action(:update_publishable)
+  end
+
+  test "update contract strips route keys and rejects an unknown key" do
+    contract = action_input_contract(:update_publishable)
+    stripped = contract.call(
+      "slug" => "launch",
+      "api_key" => "public",
+      api_version: "v1",
+      member_action: { "slug" => "launch" }
+    )
+    unknown = contract.call(slug: "launch", api_key: "public", "api_version" => "v1", extra: true)
+
+    assert_operator contract.class, :<, RecordingStudioApi::ActionInputContract
+    assert_equal({ slug: "launch" }, stripped.value)
+    assert_equal ["Unknown parameters: extra"], unknown.errors
+  end
+
+  test "publish contract rejects status" do
+    publish_contract = action_input_contract(:publish)
+    result = publish_contract.call(status: "published")
+
+    assert_same publish_contract, action_input_contract(:unpublish)
+    assert_equal ["Unknown parameters: status"], result.errors
+  end
+
+  test "update contract accepts slug and scheduled status" do
+    contract = action_input_contract(:update_publishable)
+    accepted = contract.call(slug: "launch", status: "scheduled", api_key: "public", "api_version" => "v1")
+    blank = contract.call(status: "")
+    unknown = contract.call(slug: "launch", extra: "no")
+
+    assert_equal [], accepted.errors
+    assert_equal({ slug: "launch", status: "scheduled" }, accepted.value)
+    assert_equal ["status must be one of: draft, published, scheduled"], blank.errors
+    assert_equal ["Unknown parameters: extra"], unknown.errors
+  end
+
+  test "invalid input raises RecordingStudioApi::InvalidActionInputError" do
+    error = assert_raises(RecordingStudioApi::InvalidActionInputError) do
+      RecordingStudioPublishable::Api.invalid_input!("Social image is invalid", details: ["Social image is invalid"])
+    end
+
+    assert_equal "Social image is invalid", error.message
+    assert_equal ["Social image is invalid"], error.details
+  end
+
   test "patch update_publishable writes seo and social titles" do
     patch action_path(@article, "update_publishable"),
           params: { seo_title: "Launch", social_title: "Share launch" },
@@ -93,6 +148,42 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def action_input_contract(name)
+    action = publishable_capability_action(name)
+    contract = if action.respond_to?(:fetch)
+                 action.fetch(:input_contract)
+               elsif action.respond_to?(:input_contract)
+                 action.input_contract
+               elsif action.respond_to?(:[])
+                 action[:input_contract]
+               end
+    flunk("missing input_contract on #{name}") if contract.blank?
+    contract
+  end
+
+  def publishable_capability_action(name)
+    action = if named_api_registration?
+               found = nil
+               RecordingStudioApi.configuration.each_api do |definition|
+                 found = RecordingStudioApi.capability_action(name, api: definition.name)
+                 break if found
+               end
+               found
+             else
+               RecordingStudioApi.capability_action(name)
+             end
+    flunk("missing RecordingStudioApi capability action #{name}") if action.blank?
+    action
+  end
+
+  def named_api_registration?
+    RecordingStudioApi.respond_to?(:configuration) &&
+      RecordingStudioApi.configuration.respond_to?(:each_api) &&
+      RecordingStudioApi.method(:capability_action).parameters.any? do |type, parameter_name|
+        type == :keyrest || (parameter_name == :api && %i[key keyreq].include?(type))
+      end
+  end
 
   def register_article_api!
     RecordingStudioApi.register_recordable_type_api(

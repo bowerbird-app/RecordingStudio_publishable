@@ -6,6 +6,7 @@ module RecordingStudioPublishable
     # Publish and unpublish are real forms so a surrounding menu stays open.
     class RowsComponent < ViewComponent::Base
       def initialize(presenter:)
+        super()
         @presenter = presenter
       end
 

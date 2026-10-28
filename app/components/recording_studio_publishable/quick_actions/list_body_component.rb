@@ -5,6 +5,7 @@ module RecordingStudioPublishable
     # The collapsed publish section. Turbo replaces this whole piece, header included.
     class ListBodyComponent < ViewComponent::Base
       def initialize(presenter:)
+        super()
         @presenter = presenter
       end
 

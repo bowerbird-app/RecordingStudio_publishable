@@ -38,4 +38,40 @@ class EditButtonComponentTest < ActionDispatch::IntegrationTest
     assert_equal "Edit publish settings", link["title"]
     assert_includes link.text, "Draft"
   end
+
+  test "published recording renders published status copy" do
+    recording = RecordingStudio::Recording.create!(
+      recordable: Page.create!(title: "Published edit button"),
+      parent_recording: @root
+    )
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: recording,
+      attributes: { slug: "published-edit-button", status: "published" }
+    )
+
+    html = ApplicationController.render(
+      RecordingStudioPublishable::EditButtonComponent.new(recording: recording),
+      layout: false
+    )
+
+    assert_includes Nokogiri::HTML(html).at_css("a").text, "Published"
+  end
+
+  test "scheduled recording renders scheduled status copy" do
+    recording = RecordingStudio::Recording.create!(
+      recordable: Page.create!(title: "Scheduled edit button"),
+      parent_recording: @root
+    )
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: recording,
+      attributes: { slug: "scheduled-edit-button", status: "published", publish_at: 2.days.from_now }
+    )
+
+    html = ApplicationController.render(
+      RecordingStudioPublishable::EditButtonComponent.new(recording: recording),
+      layout: false
+    )
+
+    assert_includes Nokogiri::HTML(html).at_css("a").text, "Scheduled"
+  end
 end
