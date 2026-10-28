@@ -16,7 +16,7 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     get "/published/#{publishable_recording.id}/layout-default"
 
     assert_response :success
-    assert_includes response.body, "flat-pack-sidebar-layout"
+    assert_includes response.body, 'data-recording-studio-default-layout="true"'
   ensure
     RecordingStudioPublishable.configuration.layout = original_gem_layout
     RecordingStudio.configuration.layout = original_core_layout
@@ -49,7 +49,7 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_includes response.body, "Public page"
-    refute_includes response.body, "flat-pack-sidebar-layout"
+    refute_includes response.body, 'data-recording-studio-default-layout="true"'
     refute_includes response.body, "recording_studio-publishable-layout"
   ensure
     if original_page
@@ -262,7 +262,7 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     get "/blogs/#{publishable_recording.id}/prepared-show"
 
     assert_response :success
-    assert_includes response.body, "Prepared show"
+    assert_includes response.body, "Prepared Show"
   ensure
     if original_article
       renderers["Article"] = original_article
@@ -302,7 +302,7 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     get "/blogs/#{publishable_recording.id}/rescued-show"
 
     assert_response :success
-    assert_includes response.body, "Rescued show"
+    assert_includes response.body, "Rescued Show"
   ensure
     ArticlesController.define_method(:show, original)
   end

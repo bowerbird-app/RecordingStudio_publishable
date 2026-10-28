@@ -2,6 +2,10 @@
 
 module RecordingStudioPublishable
   module HeadTagsInternals
+    DEFAULT_SOCIAL_IMAGE_WIDTH = 1200
+    DEFAULT_SOCIAL_IMAGE_HEIGHT = 630
+    DEFAULT_SOCIAL_IMAGE_VARIANT = :social_share
+
     private
 
     def head_tag_rows(seo_enabled:, description:, canonical_url:, robots:, social_title:, social_description:,

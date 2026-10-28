@@ -1,6 +1,10 @@
 # Remaining excludes need a larger refactor (controllers, services, routing,
 # parent_recordable, head-tag helpers). Do not hide new work behind more paths.
 
+Layout/TrailingEmptyLines:
+  Exclude:
+    - 'db/migrate/20260515000100_add_social_image_attachment_recording_id_to_publishables.rb'
+
 Layout/LineLength:
   Exclude:
     - 'app/components/recording_studio_publishable/edit_button_component.rb'

@@ -6,10 +6,6 @@ module RecordingStudioPublishable
   module HeadTagsHelper
     include HeadTagsInternals
 
-    DEFAULT_SOCIAL_IMAGE_WIDTH = 1200
-    DEFAULT_SOCIAL_IMAGE_HEIGHT = 630
-    DEFAULT_SOCIAL_IMAGE_VARIANT = :social_share
-
     def publishable_head_tags(publishable_recording: nil, publishable: nil, parent_recordable: nil,
                               public_url: nil, description: nil, canonical_url: nil,
                               social_title: nil, social_description: nil, social_image_url: nil,
