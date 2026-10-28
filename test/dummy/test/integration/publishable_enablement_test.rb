@@ -179,20 +179,22 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     gemfile = File.read(Rails.root.join("Gemfile"))
 
     assert_includes gemfile, 'tag: "v6.1.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.18.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.21.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.1"'
     assert_includes gemfile, '">= 0.1.315"'
-    assert_includes gemfile, 'ref: "1fcbafe94f8eb118f0a22182f63f5110fcc97a56"'
+    assert_includes gemfile, 'tag: "v0.1.329"'
     assert_includes gemfile, 'tag: "v0.7.0"'
-    assert_includes gemfile, 'tag: "v2.3.0"'
+    assert_includes gemfile, 'tag: "v2.5.1"'
     assert_includes gemfile,
-                    'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.9.0"'
+                    'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.0"'
+    refute File.exist?(Rails.root.join("config/initializers/flatpack_removed_kwargs.rb"))
     assert_includes gemfile,
                     'github: "bowerbird-app/RecordingStudio_metrics",'
-    assert_includes gemfile, 'tag: "v0.2.3", require: false'
+    assert_includes gemfile, 'tag: "v0.6.1", require: false'
     assert_includes gemfile,
                     'github: "bowerbird-app/RecordingStudio_trashable",'
-    assert_includes gemfile, 'tag: "v0.11.0", require: false'
+    assert_includes gemfile, 'tag: "v0.11.3", require: false'
   end
 
   private
