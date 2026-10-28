@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.12.1] - 2026-10-28
+
+### Changed
+- Development and dummy pin Flatpack `v0.1.329`, Root Switchable `v0.11.0`, dummy Admin `v2.5.1`, Accessible `v0.21.0`, Cache `v0.5.1`, Metrics `v0.6.1`, and Trashable `v0.11.3`. The dummy no longer prepends PageNav or Card keyword shims. Dummy Root Switchable `config.layout` is `nil` (Recording Studio default layout), not the old `:application_layout` symbol. This alignment is development and dummy only; gemspec floors are unchanged.
+
+### Upgrade Notes
+- Install Publishable `0.12.1`. No migration.
+- Dummy-only. The gemspec still requires Flatpack `>= 0.1.315`. This gem does not pass `style:` to Card or the old PageNav keywords. Development and dummy sibling pins are aligned to the same wave as other Recording Studio addons (Accessible `v0.21.0`, Cache `v0.5.1`, Metrics `v0.6.1`, Trashable `v0.11.3`).
+- Hosts still on Root Switchable 0.9.0 or Admin 2.3.0 with Flatpack 0.1.319 or newer should upgrade those gems (Root Switchable 0.11.0, Admin 2.5.1). Do not shim PageNav or Card. Root Switchable 0.10.0 still calls Dropdown `button_attributes`, which Flatpack 0.1.329 removed.
+
 ## [0.12.0] - 2026-10-26
 
 ### Changed
@@ -296,7 +306,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.1...HEAD
+[0.12.1]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.11.0...v0.12.0
 [0.9.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.8.3...v0.9.0
 [0.8.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.7.0...v0.8.0
