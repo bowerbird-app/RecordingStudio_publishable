@@ -187,7 +187,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_includes gemfile, 'tag: "v0.7.0"'
     assert_includes gemfile, 'tag: "v2.5.1"'
     assert_includes gemfile,
-                    'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.10.0"'
+                    'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.0"'
     refute File.exist?(Rails.root.join("config/initializers/flatpack_removed_kwargs.rb"))
     assert_includes gemfile,
                     'github: "bowerbird-app/RecordingStudio_metrics",'

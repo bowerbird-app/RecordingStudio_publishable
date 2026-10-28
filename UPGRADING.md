@@ -4,9 +4,9 @@
 
 Install `recording_studio_publishable` 0.12.1. No migration.
 
-Development and dummy pin Flatpack `v0.1.329`, Root Switchable `v0.10.0`, dummy Admin `v2.5.1`, Accessible `v0.21.0`, Cache `v0.5.1`, Metrics `v0.6.1`, and Trashable `v0.11.3`. The dummy no longer patches PageNav or Card. Gemspec floors stay as they were (`flat_pack` `>= 0.1.315`).
+Development and dummy pin Flatpack `v0.1.329`, Root Switchable `v0.11.0`, dummy Admin `v2.5.1`, Accessible `v0.21.0`, Cache `v0.5.1`, Metrics `v0.6.1`, and Trashable `v0.11.3`. The dummy no longer patches PageNav or Card. Gemspec floors stay as they were (`flat_pack` `>= 0.1.315`).
 
-Hosts still on Root Switchable 0.9.0 or Admin 2.3.0 with Flatpack 0.1.319 or newer should upgrade those gems. Do not shim `anchor_url` / `anchor_label` or Card `style:`.
+Hosts still on Root Switchable 0.9.0 or Admin 2.3.0 with Flatpack 0.1.319 or newer should upgrade those gems (Root Switchable 0.11.0, Admin 2.5.1). Do not shim `anchor_url` / `anchor_label` or Card `style:`. Root Switchable 0.10.0 still calls Dropdown `button_attributes`, which Flatpack 0.1.329 removed.
 
 ## 0.12.0 — Recording Studio 6.1 layout
 
@@ -18,7 +18,7 @@ Quick actions use Flatpack 0.1.319's trigger button. On Flatpack 0.1.315 they ca
 
 Current releases of Accessible, Attachable, Cache, Metrics, Root Switchable, Trashable, API, Admin, and Internationalization still require `recording_studio` below 5. Bundler will not install this gem beside those releases. This repository's Gemfiles load `test/support/widen_recording_studio_requirement.rb` before the gemspec so the requirement becomes `>= 6.1.0`. A host that needs one of those gems today has to widen the requirement the same way. That file is not part of the installed gem.
 
-Root Switchable 0.9.0 and Admin 2.3.0 still pass PageNav `anchor_url` / `anchor_label` and Card `style:` that Flatpack 0.1.319 and newer reject. From 0.12.1 the dummy pins Root Switchable 0.10.0 and Admin 2.5.1 instead of patching those constructors.
+Root Switchable 0.9.0 and Admin 2.3.0 still pass PageNav `anchor_url` / `anchor_label` and Card `style:` that Flatpack 0.1.319 and newer reject. From 0.12.1 the dummy pins Root Switchable 0.11.0 and Admin 2.5.1 instead of patching those constructors.
 
 `config.layout` now defaults to `nil`. A `nil` setting uses `RecordingStudio.configuration.layout`, then `recording_studio/default_layout`. `false` renders no layout. A callable is invoked as `call(controller:)`. A blank string, a positional callable, or any other value raises `ArgumentError`.
 

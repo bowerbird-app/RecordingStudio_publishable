@@ -22,7 +22,7 @@ gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attach
 gem "recording_studio_cache", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.1"
 gem "recording_studio_metrics", github: "bowerbird-app/RecordingStudio_metrics",
                                 tag: "v0.6.1", require: false
-gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.10.0"
+gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.0"
 gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable",
                                   tag: "v0.11.3", require: false
 
