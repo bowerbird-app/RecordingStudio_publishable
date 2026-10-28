@@ -38,9 +38,10 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_select "html[data-theme=rounded]"
 
     language_at = response.body.index("dummy-language-selector")
-    switcher_at = response.body.index("recording-studio-root-switchable--root-switch-dropdown")
+    switcher_at = response.body.index("I18n Workspace")
     assert language_at, "expected a language selector in the nav"
     assert switcher_at, "expected a workspace switcher in the nav"
+    assert_includes response.body, "flat-pack--button-dropdown"
     assert language_at < switcher_at, "language selector should sit left of the workspace switcher"
   end
 
