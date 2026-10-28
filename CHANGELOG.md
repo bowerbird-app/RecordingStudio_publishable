@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.12.1] - 2026-10-28
 
 ### Changed
-- Development and dummy pin Flatpack `v0.1.329`, Root Switchable `v0.11.0`, dummy Admin `v2.5.1`, Accessible `v0.21.0`, Cache `v0.5.1`, Metrics `v0.6.1`, and Trashable `v0.11.3`. The dummy no longer prepends PageNav or Card keyword shims. This alignment is development and dummy only; gemspec floors are unchanged.
+- Development and dummy pin Flatpack `v0.1.329`, Root Switchable `v0.11.0`, dummy Admin `v2.5.1`, Accessible `v0.21.0`, Cache `v0.5.1`, Metrics `v0.6.1`, and Trashable `v0.11.3`. The dummy no longer prepends PageNav or Card keyword shims. Dummy Root Switchable `config.layout` is `nil` (Recording Studio default layout), not the old `:application_layout` symbol. This alignment is development and dummy only; gemspec floors are unchanged.
 
 ### Upgrade Notes
 - Install Publishable `0.12.1`. No migration.
