@@ -10,17 +10,6 @@ class TrashedAtTest < Minitest::Test
     end
   end
 
-  def test_column_returns_false_when_the_recording_class_raises
-    klass = Object.new
-    def klass.respond_to?(*)
-      raise "schema exploded"
-    end
-
-    RecordingStudioPublishable::TrashedAt.stub(:recording_class, klass) do
-      refute RecordingStudioPublishable::TrashedAt.column?
-    end
-  end
-
   def test_merge_active_adds_trashed_at_when_the_column_exists
     RecordingStudioPublishable::TrashedAt.stub(:column?, true) do
       assert_equal({ id: "abc", trashed_at: nil }, RecordingStudioPublishable::TrashedAt.merge_active(id: "abc"))

@@ -10,15 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.12.2] - 2026-10-28
 
 ### Changed
-- Head tags and management chrome live in separate helpers. `publishable_head_tags` and the rest of the helper API are unchanged.
-- Draft, scheduled, and published labels come from `RecordingStudioPublishable::Status`. The status badge, edit button, and `_status_badge` partial all read that helper.
+- Copilot and rails-architect agent notes name this gem instead of the original template.
 
 ### Removed
-- Tracked SimpleCov output under `coverage/` and `test/dummy/coverage/`.
-- Stale `UPDATE_SUMMARY.md`, `MIGRATION_NOTES.md`, leftover `docs/gem_template/` notes, and the unused dummy GitHub workflow.
+- Tracked SimpleCov output under `coverage/` and `test/dummy/coverage/`. Both directories are gitignored.
+- Leftover `docs/gem_template/` notes. The README no longer points at that folder.
+- Unused nested dummy workflow at `test/dummy/.github/workflows/ci.yml`.
+- Stale `UPDATE_SUMMARY.md` and `MIGRATION_NOTES.md`.
 
 ### Upgrade Notes
-- Install Publishable `0.12.2`. No migration.
+- Install Publishable `0.12.2`. No migration. Hosts do not need a code change.
 
 ## [0.12.0] - 2026-10-26
 

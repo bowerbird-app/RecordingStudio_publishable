@@ -3,8 +3,8 @@
 module RecordingStudio
   class RecordableTypesService
     def self.filtered_types
-      Array(RecordingStudio.configuration.recordable_types).select do |recordable_type|
-        valid_recordable_type?(recordable_type)
+      Array(RecordingStudio.configuration.recordable_types).filter_map do |recordable_type|
+        recordable_type if valid_recordable_type?(recordable_type)
       end
     end
 

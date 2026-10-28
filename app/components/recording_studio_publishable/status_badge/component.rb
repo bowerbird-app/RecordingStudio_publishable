@@ -4,18 +4,29 @@ module RecordingStudioPublishable
   module StatusBadge
     class Component < ViewComponent::Base
       def initialize(publishable:)
-        super()
         @publishable = publishable
       end
 
       attr_reader :publishable
 
       def badge_style
-        Status.badge_style(publishable)
+        if publishable.scheduled_for_future?
+          :warning
+        elsif publishable.published_state?
+          :success
+        else
+          :info
+        end
       end
 
       def badge_text
-        Status.label(publishable)
+        if publishable.scheduled_for_future?
+          Copy.t("status.scheduled")
+        elsif publishable.published_state?
+          Copy.t("status.published")
+        else
+          Copy.t("status.draft")
+        end
       end
     end
   end

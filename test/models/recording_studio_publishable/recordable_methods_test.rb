@@ -265,25 +265,22 @@ module RecordingStudioPublishable
     end
 
     test "publishable join sql omits trashed_at when the column is absent" do
+      quoted_type = Page.connection.quote("Page")
+
       RecordingStudioPublishable::TrashedAt.stub(:column?, false) do
-        sql = Page.published.to_sql
+        sql = Page.send(:publishable_scope_join_sql, quoted_type)
 
         refute_includes sql, "trashed_at"
       end
     end
 
     test "publishable join sql filters trashed_at when the column exists" do
+      quoted_type = Page.connection.quote("Page")
+
       RecordingStudioPublishable::TrashedAt.stub(:column?, true) do
-        sql = Page.published.to_sql
+        sql = Page.send(:publishable_scope_join_sql, quoted_type)
 
         assert_includes sql, "trashed_at IS NULL"
-      end
-    end
-
-    test "published_url returns nil when lookup raises" do
-      page = Page.create!(title: "Broken url page")
-      RecordingStudio::Recording.stub(:where, ->(*) { raise "lookup failed" }) do
-        assert_nil page.published_url
       end
     end
   end

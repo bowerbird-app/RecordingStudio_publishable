@@ -4,7 +4,7 @@
 
 Install `recording_studio_publishable` 0.12.2. No migration.
 
-Status labels still read `recording_studio.publishable.status.*`. Hosts that render the badge or edit button get the same Draft / Scheduled / Published words.
+This release drops tracked SimpleCov output, leftover gem-template docs, a nested dummy GitHub workflow, and two stale notes files. Publishable behavior is unchanged.
 
 ## 0.12.0 — Recording Studio 6.1 layout
 

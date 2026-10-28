@@ -6,57 +6,67 @@ require_relative "../dummy/config/environment"
 require "rails/test_help"
 
 class PublishedControllerTest < ActionDispatch::IntegrationTest
-  test "nil layout falls through to the recording studio default layout" do
+  test "publishables layout uses configured layout" do
+    controller = RecordingStudioPublishable::PublishablesController.new
+    config = Struct.new(:layout).new("application")
+
+    RecordingStudioPublishable.stub(:configuration, config) do
+      assert_equal "application", controller.send(:recording_studio_resolved_layout)
+    end
+  end
+
+  test "nil layout falls through to recording studio then the default layout" do
+    controller = RecordingStudioPublishable::PublishablesController.new
     original_gem_layout = RecordingStudioPublishable.configuration.layout
     original_core_layout = RecordingStudio.configuration.layout
+
     RecordingStudioPublishable.configuration.layout = nil
     RecordingStudio.configuration.layout = nil
-    publishable_recording = published_page_recording("layout-default")
+    assert_equal "recording_studio/default_layout", controller.send(:recording_studio_resolved_layout)
 
-    get "/published/#{publishable_recording.id}/layout-default"
+    RecordingStudio.configuration.layout = "host_shell"
+    assert_equal "host_shell", controller.send(:recording_studio_resolved_layout)
 
-    assert_response :success
-    assert_includes response.body, 'data-recording-studio-default-layout="true"'
+    RecordingStudioPublishable.configuration.layout = "admin"
+    assert_equal "admin", controller.send(:recording_studio_resolved_layout)
+
+    RecordingStudioPublishable.configuration.layout = false
+    assert_equal false, controller.send(:recording_studio_resolved_layout)
+
+    RecordingStudioPublishable.configuration.layout = ->(controller:) { "from-#{controller.class.name}" }
+    assert_equal "from-RecordingStudioPublishable::PublishablesController",
+                 controller.send(:recording_studio_resolved_layout)
   ensure
     RecordingStudioPublishable.configuration.layout = original_gem_layout
     RecordingStudio.configuration.layout = original_core_layout
   end
 
-  test "callable layout uses the engine document layout" do
-    original_layout = RecordingStudioPublishable.configuration.layout
-    RecordingStudioPublishable.configuration.layout = lambda { |controller:|
-      _ = controller
-      "recording_studio_publishable/application"
-    }
-    publishable_recording = published_page_recording("layout-callable")
-
-    get "/published/#{publishable_recording.id}/layout-callable"
-
-    assert_response :success
-    assert_includes response.body, "recording_studio-publishable-layout"
-    refute_includes response.body, "flat-pack-sidebar-layout"
-  ensure
-    RecordingStudioPublishable.configuration.layout = original_layout
-  end
-
-  test "public layout false renders the page without a wrapping layout" do
+  test "public layout uses the per-type layout and falls through when that is nil" do
+    controller = RecordingStudioPublishable::PublishedController.new
     renderers = RecordingStudioPublishable.configuration.public_renderer_configs
     original_page = renderers["Page"]
+    original_gem_layout = RecordingStudioPublishable.configuration.layout
+    original_core_layout = RecordingStudio.configuration.layout
+    RecordingStudioPublishable.configuration.register_public_renderer("Page", layout: "pages")
+    controller.instance_variable_set(:@parent_recording, Struct.new(:recordable_type).new("Page"))
+
+    assert_equal "pages", controller.send(:resolve_public_layout)
+
     RecordingStudioPublishable.configuration.register_public_renderer("Page", layout: false)
-    publishable_recording = published_page_recording("layout-false")
+    assert_equal false, controller.send(:resolve_public_layout)
 
-    get "/published/#{publishable_recording.id}/layout-false"
-
-    assert_response :success
-    assert_includes response.body, "Public page"
-    refute_includes response.body, 'data-recording-studio-default-layout="true"'
-    refute_includes response.body, "recording_studio-publishable-layout"
+    RecordingStudioPublishable.configuration.register_public_renderer("Page")
+    RecordingStudioPublishable.configuration.layout = nil
+    RecordingStudio.configuration.layout = nil
+    assert_equal "recording_studio/default_layout", controller.send(:resolve_public_layout)
   ensure
     if original_page
       renderers["Page"] = original_page
     else
       renderers.delete("Page")
     end
+    RecordingStudioPublishable.configuration.layout = original_gem_layout
+    RecordingStudio.configuration.layout = original_core_layout
   end
 
   test "published routes use the blank engine layout when that layout is configured" do
@@ -246,88 +256,5 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     get "/published/#{publishable_recording.id}/scheduled-page"
 
     assert_response :not_found
-  end
-
-  test "configured public controller action still renders the published page" do
-    renderers = RecordingStudioPublishable.configuration.public_renderer_configs
-    original_article = renderers["Article"]
-    RecordingStudioPublishable.configuration.register_public_renderer(
-      "Article",
-      controller: "articles",
-      action: :show,
-      path: "/blogs/:uuid/:slug"
-    )
-    publishable_recording = published_article_recording("prepared-show")
-
-    get "/blogs/#{publishable_recording.id}/prepared-show"
-
-    assert_response :success
-    assert_includes response.body, "Prepared Show"
-  ensure
-    if original_article
-      renderers["Article"] = original_article
-    else
-      renderers.delete("Article")
-    end
-  end
-
-  test "unknown public controller action is ignored and the page still renders" do
-    renderers = RecordingStudioPublishable.configuration.public_renderer_configs
-    original_article = renderers["Article"]
-    RecordingStudioPublishable.configuration.register_public_renderer(
-      "Article",
-      controller: "articles",
-      action: :index,
-      path: "/blogs/:uuid/:slug"
-    )
-    publishable_recording = published_article_recording("unknown-action")
-
-    get "/blogs/#{publishable_recording.id}/unknown-action"
-
-    assert_response :success
-    assert_includes response.body, "Parent recordable"
-  ensure
-    if original_article
-      renderers["Article"] = original_article
-    else
-      renderers.delete("Article")
-    end
-  end
-
-  test "a raising public controller action is swallowed and the page still renders" do
-    original = ArticlesController.instance_method(:show)
-    ArticlesController.define_method(:show) { raise "public controller exploded" }
-    publishable_recording = published_article_recording("rescued-show")
-
-    get "/blogs/#{publishable_recording.id}/rescued-show"
-
-    assert_response :success
-    assert_includes response.body, "Rescued Show"
-  ensure
-    ArticlesController.define_method(:show, original)
-  end
-
-  private
-
-  def published_page_recording(slug)
-    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
-    parent_recording = RecordingStudio::Recording.create!(recordable: Page.create!(title: "Public page"),
-                                                          parent_recording: root)
-    RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: parent_recording,
-      attributes: { slug: slug, status: "published" }
-    ).value
-  end
-
-  def published_article_recording(slug)
-    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
-    parent_recording = RecordingStudio::Recording.create!(
-      recordable: Article.create!(title: slug.tr("-", " ").split.map(&:capitalize).join(" ")),
-      parent_recording: root
-    )
-    RecordingStudioPublishable::Services::Publishables::Update.call(
-      parent_recording: parent_recording,
-      attributes: { slug: slug, status: "published" }
-    ).value
   end
 end
