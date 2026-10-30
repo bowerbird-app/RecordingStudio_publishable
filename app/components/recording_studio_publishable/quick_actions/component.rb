@@ -4,6 +4,7 @@ module RecordingStudioPublishable
   module QuickActions
     class Component < ViewComponent::Base
       BUTTON_SIZES = %i[sm md lg].freeze
+      MENU_HOOK_CLASS = "publishable-quick-actions-menu"
 
       def initialize(recording:, size: :md, alert: nil, name: nil, **options)
         @recording = recording
@@ -44,30 +45,35 @@ module RecordingStudioPublishable
         "dropdown"
       end
 
-      def dropdown
-        DropdownComponent.new(**dropdown_content, **dropdown_chrome)
-      end
-
-      def dropdown_content
-        state = presenter.state
+      def dropdown_kwargs
         {
           text: presenter.trigger_text,
-          style: state[:style],
+          style: presenter.style,
           size: size,
-          icon: state[:icon],
-          icon_variant: state[:icon_variant],
-          icon_style: state[:icon_style]
+          placement: (size.to_sym == :sm ? :bottom_left : :bottom_right),
+          menu_class: ClassNames.merge(MENU_HOOK_CLASS, appearance.menu_class),
+          menu_attributes: { id: presenter.menu_frame_id },
+          trigger_attributes: trigger_attributes
         }
       end
 
-      def dropdown_chrome
-        {
-          placement: (size.to_sym == :sm ? :bottom_left : :bottom_right),
-          button_class: appearance.button_class,
-          menu_class: appearance.menu_class,
-          trigger_attributes: appearance.html_attributes,
-          state_presenter: presenter
-        }
+      def menu_body
+        tag.div(
+          render(RowsComponent.new(presenter: presenter)),
+          id: presenter.menu_body_id,
+          class: presenter.target_classes(:menu_items)
+        )
+      end
+
+      private
+
+      def trigger_attributes
+        attributes = appearance.html_attributes.dup
+        return attributes if appearance.button_class.blank?
+
+        attributes[:class] = ClassNames.merge(attributes[:class], attributes["class"], appearance.button_class)
+        attributes.delete("class")
+        attributes
       end
     end
   end

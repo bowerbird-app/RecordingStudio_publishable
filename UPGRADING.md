@@ -1,5 +1,24 @@
 # Upgrading
 
+## 0.13.0 — Flatpack 0.1.331 dropdown hooks
+
+Install `recording_studio_publishable` 0.13.0. No migration.
+
+Flatpack must be `0.1.331` or newer. Reload Flatpack CSS and JavaScript. Rebuild host Tailwind so `ms-auto` exists if the host did not already use it.
+
+Quick actions no longer subclass Dropdown. The kit component takes `menu_class:`, `menu_attributes:`, and `with_trigger_label`. The live label is still replaced in place. Publish and unpublish forms keep a surrounding menu open with `data-flat-pack-dropdown-keep-open`.
+
+A host dropdown that copied this gem's old subclass, or that overrode `menu_classes` / `menu_attributes` / `button_attributes`, should call the kit component instead:
+
+```erb
+<%= render FlatPack::Button::Dropdown::Component.new(text: "Menu", style: :secondary) do |dropdown| %>
+  <% dropdown.menu_item(text: "Rename", icon: "pencil", type: "button") %>
+  <% dropdown.menu_html(render(publishable_quick_actions_list_for(page_recording, name: "menu"))) %>
+<% end %>
+```
+
+Do not put those action-row forms in `menu_form`. That panel is for a field plus submit, and it turns the menu into a dialog.
+
 ## 0.12.2 — Housekeeping
 
 Install `recording_studio_publishable` 0.12.2. No migration.

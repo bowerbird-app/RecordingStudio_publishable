@@ -20,7 +20,7 @@ Trashable is optional. Publishable does not depend on it. Query SQL only mention
 
 Requires PostgreSQL 16+.
 
-Add the gems to your host app. This addon requires Recording Studio 6.1.0 or newer, Flatpack 0.1.315 or newer, and ViewComponent 4.14 or newer (below 5):
+Add the gems to your host app. This addon requires Recording Studio 6.1.0 or newer, Flatpack 0.1.331 or newer, and ViewComponent 4.14 or newer (below 5):
 
 ```ruby
 gem "recording_studio"
@@ -211,32 +211,13 @@ Register the dropdown from the host layout, before the layout renders page nav. 
 <%= render_publishable_quick_actions_list(page_recording, name: "menu") %>
 ```
 
-FlatPack's dropdown slots are a link or a bare button. They cannot wrap this list. Render the list inside markup you control. A dropdown subclass that yields into its menu is enough:
-
-```ruby
-class PageMenu < FlatPack::Button::Dropdown::Component
-  def initialize(menu_html:, **)
-    @menu_html = menu_html
-    super(**)
-  end
-
-  def call
-    content_tag(:div, **wrapper_attributes) do
-      safe_join([
-        content_tag(:button, button_content, **button_attributes),
-        content_tag(:div, @menu_html, **menu_attributes)
-      ])
-    end
-  end
-end
-```
+Put the list in the host dropdown with `menu_html`. Host verbs use `menu_item`. Do not subclass Dropdown to override `menu_classes` or `menu_attributes`. Pass `menu_class:` and `menu_attributes:` when the menu needs extra classes or an id. Publish and unpublish forms set `data-flat-pack-dropdown-keep-open` so the menu stays open.
 
 ```erb
-<%= render PageMenu.new(
-  text: "Menu",
-  style: :secondary,
-  menu_html: render(publishable_quick_actions_list_for(page_recording, name: "menu"))
-) %>
+<%= render FlatPack::Button::Dropdown::Component.new(text: "Menu", style: :secondary) do |dropdown| %>
+  <% dropdown.menu_item(text: "Rename", icon: "pencil", type: "button") %>
+  <% dropdown.menu_html(render(publishable_quick_actions_list_for(page_recording, name: "menu"))) %>
+<% end %>
 ```
 
 The dummy page at `/publishable/placements` shows the dropdown on the page and, inside a host dropdown named Menu, the same rows behind that collapsed line.
@@ -400,7 +381,7 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v6.1.0`, Accessible `v0.21.0` (Trashable `v0.11.3` query-only, `require: false`), API `v0.7.0`, Admin `v2.5.1`, Attachable `v0.15.0`, Metrics `v0.6.1` (`require: false`), Flatpack `v0.1.329`, dummy-only Root Switchable `v0.11.0` (with Cache `v0.5.1`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The gemspec requires Recording Studio `~> 6.1`, `>= 6.1.0`, Flatpack `>= 0.1.315`, and ViewComponent `>= 4.14`, `< 5`. It does not depend on those dummy-only gems. Those sibling gems still declare `recording_studio` below 5. No newer tag relaxes that. The Gemfiles load `test/support/widen_recording_studio_requirement.rb` so Bundler can resolve `6.1.0`. A host Gemfile that includes one of those gems has to widen the requirement the same way. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav on the dummy's own screens, to the left of the workspace switcher. Publish, success, preview, and public screens omit it. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
+The dummy host at `test/dummy` pins Recording Studio `v6.1.0`, Accessible `v0.21.0` (Trashable `v0.11.3` query-only, `require: false`), API `v0.7.0`, Admin `v2.5.1`, Attachable `v0.15.0`, Metrics `v0.6.1` (`require: false`), Flatpack `v0.1.331`, dummy-only Root Switchable `v0.11.0` (with Cache `v0.5.1`), and dummy-only Recording Studio Internationalization `v0.1.2`. API, Admin, Trashable, and Internationalization are dummy-only. The gemspec requires Recording Studio `~> 6.1`, `>= 6.1.0`, Flatpack `>= 0.1.331`, and ViewComponent `>= 4.14`, `< 5`. It does not depend on those dummy-only gems. Those sibling gems still declare `recording_studio` below 5. No newer tag relaxes that. The Gemfiles load `test/support/widen_recording_studio_requirement.rb` so Bundler can resolve `6.1.0`. A host Gemfile that includes one of those gems has to widen the requirement the same way. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable includes the 0.6–0.12 migrations (`root_recording_id`, presentation fields, libraries, placements) and registers `Library` / `Placement` recordable types; 0.13–0.15 add no host migrations. Dummy offers English and French. The language selector sits in the top nav on the dummy's own screens, to the left of the workspace switcher. Publish, success, preview, and public screens omit it. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 

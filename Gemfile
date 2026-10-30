@@ -11,7 +11,7 @@ gemspec
 gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.1.0"
 
 gem "devise"
-gem "flat_pack", ">= 0.1.315", github: "bowerbird-app/flatpack", tag: "v0.1.329"
+gem "flat_pack", ">= 0.1.331", github: "bowerbird-app/flatpack", tag: "v0.1.331"
 gem "pg", "~> 1.1"
 gem "puma"
 gem "sprockets-rails"

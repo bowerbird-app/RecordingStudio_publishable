@@ -1,9 +1,14 @@
-<div id="<%= presenter.wrapper_id %>" class="publishable-quick-actions relative overflow-visible">
+<div id="<%= presenter.wrapper_id %>" class="publishable-quick-actions relative overflow-visible" data-controller="publishable-quick-actions">
   <div id="<%= presenter.alert_id %>" class="<%= presenter.target_classes(:alert) %>">
     <% if alert.present? %>
       <%= render FlatPack::Alert::Component.new(description: alert, style: :danger, class: "mb-2") %>
     <% end %>
   </div>
 
-  <%= render dropdown %>
+  <%= render FlatPack::Button::Dropdown::Component.new(**dropdown_kwargs) do |dropdown| %>
+    <% dropdown.with_trigger_label do %>
+      <%= render RecordingStudioPublishable::QuickActions::StateComponent.new(presenter: presenter) %>
+    <% end %>
+    <% dropdown.menu_html(menu_body) %>
+  <% end %>
 </div>

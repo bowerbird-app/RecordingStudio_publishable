@@ -3,7 +3,7 @@
 module RecordingStudioPublishable
   module QuickActions
     # Menu rows shared by the dropdown and the flat list.
-    # Publish and unpublish are real forms so a surrounding menu stays open.
+    # Publish and unpublish are real forms with keep-open so a surrounding menu stays open.
     class RowsComponent < ViewComponent::Base
       def initialize(presenter:)
         @presenter = presenter
