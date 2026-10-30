@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.0] - 2026-10-30
+
+### Changed
+- Quick actions use Flatpack 0.1.331 Dropdown hooks. The control is a kit `FlatPack::Button::Dropdown::Component`. It no longer subclasses Dropdown to override `menu_classes`, `menu_attributes`, or the trigger markup. Host classes still go on the trigger. `menu_class:` and the `publishable-quick-actions-menu` hook go through `menu_class:`. The menu id goes through `menu_attributes:`. The live label is `with_trigger_label`. Publish and unpublish forms set `data-flat-pack-dropdown-keep-open`.
+- The gemspec requires `flat_pack` `>= 0.1.331`. Development and dummy pin Flatpack `v0.1.331`.
+
+### Upgrade Notes
+- Install Publishable `0.13.0`. No migration. Flatpack must be `0.1.331` or newer.
+- Reload Flatpack CSS and JavaScript. Rebuild host Tailwind so `ms-auto` exists if the host did not already use it.
+- Stop subclassing Dropdown to override `menu_classes`, `menu_attributes`, or the trigger button. Pass `menu_class:` and `menu_attributes:`. Swap trigger copy with `with_trigger_label`. Put extra rows in `menu_html`. A form in that HTML needs `data-flat-pack-dropdown-keep-open` or the menu closes. `menu_form` is for a field panel, not these action rows.
+
 ## [0.12.2] - 2026-10-28
 
 ### Changed
@@ -320,7 +331,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.2...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.13.0...HEAD
+[0.13.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.2...v0.13.0
 [0.12.2]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.0...v0.12.1
 [0.12.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.11.0...v0.12.0

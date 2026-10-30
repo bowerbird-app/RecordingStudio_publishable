@@ -145,6 +145,23 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "dropdown uses kit trigger_label menu_class and keep-open forms" do
+    recording = draft_recording("Kit hooks page", "kit-hooks")
+    html = render_quick_actions(recording, menu_class: "host-publish-menu")
+    document = Nokogiri::HTML(html)
+    trigger = document.at_css("[data-flat-pack--button-dropdown-target='trigger']")
+    menu = document.at_css("[role='menu']")
+    form = document.css("form").find { |node| node.at_css("button")&.text&.include?("Publish now") }
+
+    refute RecordingStudioPublishable::QuickActions.const_defined?(:DropdownComponent)
+    assert_includes trigger["class"], "fp-button-dropdown__trigger"
+    assert trigger.at_css("[data-publishable-quick-actions-target='state']")
+    assert_includes menu["class"], "publishable-quick-actions-menu"
+    assert_includes menu["class"], "host-publish-menu"
+    assert_equal "#{RecordingStudioPublishable::QuickActions::Component.wrapper_id(recording)}_menu", menu["id"]
+    assert_equal "true", form["data-flat-pack-dropdown-keep-open"]
+  end
+
   test "host classes attributes and state overrides merge onto the dropdown" do
     recording = draft_recording("Styled dropdown page", "styled-dropdown")
 
@@ -389,6 +406,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     form = Nokogiri::HTML(section).css("form").find { |node| node.at_css("button")&.text&.include?("Publish now") }
     assert form
     assert_equal "true", form["data-turbo-stream"]
+    assert_equal "true", form["data-flat-pack-dropdown-keep-open"]
     assert_equal "post", form["method"]
     assert_equal "patch", form.at_css("input[name='_method']")["value"]
     assert_equal "1", form.at_css("input[name='inline']")["value"]

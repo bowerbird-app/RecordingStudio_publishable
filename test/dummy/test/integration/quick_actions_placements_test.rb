@@ -139,6 +139,7 @@ class QuickActionsPlacementsTest < ActionDispatch::IntegrationTest
     form = node.css("form").find { |candidate| candidate.at_css("button")&.text&.include?("Publish now") }
     assert form
     assert_equal "true", form["data-turbo-stream"]
+    assert_equal "true", form["data-flat-pack-dropdown-keep-open"]
     assert_equal "patch", form.at_css("input[name='_method']")["value"]
   end
 end

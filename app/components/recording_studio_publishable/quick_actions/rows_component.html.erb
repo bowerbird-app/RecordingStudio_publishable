@@ -5,7 +5,7 @@
     <%= button_to row.href,
       method: :patch,
       params: presenter.form_params,
-      form: { class: "w-full", data: { turbo_stream: true } },
+      form: { class: "w-full", data: { turbo_stream: true, flat_pack_dropdown_keep_open: true } },
       class: item_classes,
       role: "menuitem" do %>
       <%= icon_for(row) %>
