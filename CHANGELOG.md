@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.1] - 2026-11-02
+
+### Changed
+- Social and SEO title fields use Flatpack `TextInput` `character_count:` and `max_characters:`. The hand-rolled title counter markup, data attributes, and inline counter script are gone. `maxlength` stays on those inputs as the hard limit.
+- Title counter copy is Flatpack's English `text.characters_with_limit` (`%{count}/%{limit} characters`). Hosts that need another language add that Flatpack key themselves.
+
+### Notes
+- `form.character_count` remains in the English copy table and dummy French locale. Nothing reads it.
+
+### Upgrade Notes
+- Install Publishable `0.13.1`. No migration.
+- Reload Flatpack CSS and JavaScript so `TextInput` counters update as people type.
+- Hosts that overrode the social or SEO templates should drop the custom title counter and pass `character_count: true` plus `max_characters:` (70 on social, 60 on SEO). Keep `maxlength:` if the hard limit should stay.
+- `form.character_count` is unused. It is still shipped so removing it stays a later public i18n change.
+
 ## [0.13.0] - 2026-10-30
 
 ### Changed
@@ -331,7 +346,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.13.0...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.13.1...HEAD
+[0.13.1]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.13.0...v0.13.1
 [0.13.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.2...v0.13.0
 [0.12.2]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.1...v0.12.2
 [0.12.1]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.12.0...v0.12.1

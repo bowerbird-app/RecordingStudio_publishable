@@ -130,6 +130,7 @@ class LocalesTest < Minitest::Test
         assert_equal "Unknown publishable transition", Copy.t("errors.unknown_transition")
         assert_equal "Social title", Copy.attribute_name(:social_title)
         assert_equal "Social title is invalid", Copy.attribute_invalid(:social_title)
+        assert_equal Copy::ENGLISH.fetch("form.character_count"), Copy.t("form.character_count")
         assert_equal(
           "Recording Studio Publishable",
           Copy.t("layout.title", default: "Recording Studio Publishable")

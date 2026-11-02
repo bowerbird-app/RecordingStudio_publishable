@@ -154,6 +154,9 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "publishable[seo_description]"
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "Sign out"
+    refute_includes response.body, "data-publishable-title-counter"
+    assert_includes response.body, "0/60 characters"
+    assert_includes response.body, 'maxlength="60"'
   end
 
   test "social page renders preview fields" do
@@ -164,6 +167,9 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Select social image"
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "Sign out"
+    refute_includes response.body, "data-publishable-title-counter"
+    assert_includes response.body, "0/70 characters"
+    assert_includes response.body, 'maxlength="70"'
   end
 
   test "edit page accepts a publishable child recording id without nesting another publishable" do
