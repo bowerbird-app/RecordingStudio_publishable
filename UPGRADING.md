@@ -1,5 +1,17 @@
 # Upgrading
 
+## 0.13.1 — Flatpack title character counts
+
+Install `recording_studio_publishable` 0.13.1. No migration.
+
+Social title and SEO title use Flatpack `TextInput` with `character_count: true` and `max_characters:` (70 and 60). `maxlength` stays on the input. The gem no longer draws its own counter paragraph or runs the inline title-counter script. The social image picker script is unchanged.
+
+Counter text comes from Flatpack (`%{count}/%{limit} characters`). Flatpack ships English. A host that needs another language adds `flat_pack.text.characters_with_limit`.
+
+`form.character_count` is still in this gem's locale files. Nothing uses it.
+
+A host that copied the old counter markup should delete it and pass the Flatpack kwargs instead.
+
 ## 0.13.0 — Flatpack 0.1.331 dropdown hooks
 
 Install `recording_studio_publishable` 0.13.0. No migration.

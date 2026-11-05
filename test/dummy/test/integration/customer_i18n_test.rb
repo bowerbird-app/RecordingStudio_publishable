@@ -124,6 +124,8 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "URL canonique"
     assert_includes response.body, "Avancé"
     refute_includes response.body, "Canonical URL"
+    assert_includes response.body, "0/60 characters"
+    refute_includes response.body, "0 / 60 caractères"
     assert_no_language_selector
 
     get recording_studio_publishable.social_recording_publishable_path(recording_id: @recording.id)
@@ -132,6 +134,8 @@ class CustomerI18nTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Titre social"
     assert_includes response.body, "Envoyer une photo"
     refute_includes response.body, "Upload Photo"
+    assert_includes response.body, "0/70 characters"
+    refute_includes response.body, "0 / 70 caractères"
     assert_no_language_selector
   end
 

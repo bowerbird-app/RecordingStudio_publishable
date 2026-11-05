@@ -140,6 +140,8 @@ page.published_url
 
 Canonical URL is an optional override on the SEO screen, under Advanced. Leave it blank to use the public URL. Fill it only when another address should be the preferred URL. noindex is on that same Advanced panel. It asks search engines not to index the page. The page stays live. The SEO screen and the Update service both accept those fields, including when SEO tags are turned off for that type.
 
+SEO title is capped at 60 characters and social title at 70. Both fields use Flatpack `TextInput` with a live character count and `maxlength` as the hard stop. The description fields already counted that way. Counter copy is Flatpack English (`12/60 characters`). Hosts add the Flatpack locale key if they need another language.
+
 Recording instance helpers work on the parent recording after the capability is enabled:
 
 ```ruby

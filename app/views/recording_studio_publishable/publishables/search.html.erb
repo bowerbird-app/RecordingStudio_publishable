@@ -2,23 +2,21 @@
 
 <%= render "job_nav" %>
 
-<div class="flex w-full max-w-xl flex-col gap-6" data-publishable-character-count-template="<%= publishable_t("form.character_count", count: "__COUNT__", limit: "__LIMIT__") %>">
+<div class="flex w-full max-w-xl flex-col gap-6">
   <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, class: "space-y-4", html: { novalidate: true } do |_form| %>
     <%= hidden_field_tag :section, @job.key %>
 
     <% if @seo_enabled != false %>
-      <div class="space-y-1">
-        <%= render FlatPack::TextInput::Component.new(
-          name: "publishable[seo_title]",
-          id: "publishable-seo-title-input",
-          label: publishable_t("form.title"),
-          value: @publishable.seo_title,
-          maxlength: seo_title_max_characters,
-          help_text: publishable_t("form.title_help"),
-          data: { publishable_title_counter_input: true, publishable_title_counter_target: "seo-title", publishable_title_counter_limit: seo_title_max_characters }
-        ) %>
-        <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="seo-title"></p>
-      </div>
+      <%= render FlatPack::TextInput::Component.new(
+        name: "publishable[seo_title]",
+        id: "publishable-seo-title-input",
+        label: publishable_t("form.title"),
+        value: @publishable.seo_title,
+        character_count: true,
+        max_characters: seo_title_max_characters,
+        maxlength: seo_title_max_characters,
+        help_text: publishable_t("form.title_help")
+      ) %>
     <% end %>
 
     <%= render FlatPack::TextInput::Component.new(name: "publishable[slug]", label: publishable_t("form.slug"), value: @publishable.slug, required: true) %>
@@ -64,39 +62,3 @@
     <%= render FlatPack::Button::Component.new(text: publishable_t("form.save"), style: :primary, size: :md, type: "submit") %>
   <% end %>
 </div>
-
-<script>
-  function initializePublishableTitleCounters() {
-    document.querySelectorAll("[data-publishable-title-counter-input]").forEach(function(input) {
-      if (input.dataset.publishableTitleCounterInitialized === "true") {
-        return;
-      }
-
-      input.dataset.publishableTitleCounterInitialized = "true";
-
-      var targetKey = input.dataset.publishableTitleCounterTarget;
-      var limit = parseInt(input.dataset.publishableTitleCounterLimit || "0", 10);
-      if (!targetKey || !limit) {
-        return;
-      }
-
-      var counter = document.querySelector('[data-publishable-title-counter="' + targetKey + '"]');
-      if (!counter) {
-        return;
-      }
-
-      function updateCounter() {
-        var host = input.closest("[data-publishable-character-count-template]");
-        var template = (host && host.dataset.publishableCharacterCountTemplate) || "%{count} / %{limit} characters";
-        counter.textContent = template.replace("__COUNT__", String(input.value || "").length).replace("__LIMIT__", String(limit));
-      }
-
-      input.addEventListener("input", updateCounter);
-      input.addEventListener("change", updateCounter);
-      updateCounter();
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", initializePublishableTitleCounters);
-  document.addEventListener("turbo:load", initializePublishableTitleCounters);
-</script>

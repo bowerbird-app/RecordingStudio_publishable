@@ -520,6 +520,19 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "data-publishable-social-image-picker"
     refute_includes response.body, "Select social image"
     refute_includes response.body, "Show this page in search"
+    refute_includes response.body, "data-publishable-title-counter"
+    refute_includes response.body, "data-publishable-character-count-template"
+    refute_includes response.body, "initializePublishableTitleCounters"
+    assert_includes response.body, 'id="publishable-seo-title-input"'
+    assert_includes response.body, 'maxlength="60"'
+    assert_includes response.body, "0/60 characters"
+    html = Nokogiri::HTML(response.body)
+    title_input = html.at_css("#publishable-seo-title-input")
+    assert title_input
+    wrapper = title_input.ancestors.find { |node| node["data-controller"].to_s.include?("flat-pack--text-input") }
+    assert wrapper
+    assert_equal "true", wrapper["data-flat-pack--text-input-character-count-enabled-value"]
+    assert_equal "60", wrapper["data-flat-pack--text-input-max-characters-value"]
   end
 
   test "search page opens advanced when canonical url is set" do
@@ -570,6 +583,58 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "data-publishable-social-image-picker"
     assert_includes response.body, "Select social image"
     refute_includes response.body, "datetime-local"
+    refute_includes response.body, "data-publishable-title-counter"
+    refute_includes response.body, "data-publishable-character-count-template"
+    refute_includes response.body, "initializePublishableTitleCounters"
+    assert_includes response.body, "recording-studio-attachable--attachment-image-picker:selected"
+    assert_includes response.body, 'id="publishable-social-title-input"'
+    assert_includes response.body, 'maxlength="70"'
+    assert_includes response.body, "0/70 characters"
+    html = Nokogiri::HTML(response.body)
+    title_input = html.at_css("#publishable-social-title-input")
+    assert title_input
+    wrapper = title_input.ancestors.find { |node| node["data-controller"].to_s.include?("flat-pack--text-input") }
+    assert wrapper
+    assert_equal "true", wrapper["data-flat-pack--text-input-character-count-enabled-value"]
+    assert_equal "70", wrapper["data-flat-pack--text-input-max-characters-value"]
+  end
+
+  test "search title counter shows a stored value past the limit" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    over_limit = "x" * 73
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "spring-release-notes", seo_title: over_limit }
+    ).value!
+
+    get recording_studio_publishable.search_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "73/60 characters"
+    refute_includes response.body, "73 / 60 characters"
+    input = Nokogiri::HTML(response.body).at_css("#publishable-seo-title-input")
+    assert_equal over_limit, input["value"]
+    assert_equal "60", input["maxlength"]
+  end
+
+  test "social title counter shows a stored value past the limit" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    over_limit = "y" * 83
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "spring-release-notes", social_title: over_limit }
+    ).value!
+
+    get recording_studio_publishable.social_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, "83/70 characters"
+    refute_includes response.body, "83 / 70 characters"
+    input = Nokogiri::HTML(response.body).at_css("#publishable-social-title-input")
+    assert_equal over_limit, input["value"]
+    assert_equal "70", input["maxlength"]
   end
 
   test "schedule save redirects to schedule and persists publish_at" do

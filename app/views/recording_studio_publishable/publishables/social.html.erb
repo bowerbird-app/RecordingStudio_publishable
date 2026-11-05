@@ -8,7 +8,6 @@ end %>
 
 <div
   class="flex w-full max-w-xl flex-col gap-6"
-  data-publishable-character-count-template="<%= publishable_t("form.character_count", count: "__COUNT__", limit: "__LIMIT__") %>"
   data-publishable-selected-image-label="<%= publishable_t("form.selected_image") %>"
   data-publishable-replace-image-label="<%= publishable_t("form.replace_image") %>"
   data-controller="recording-studio-attachable--attachment-image-picker"
@@ -26,17 +25,15 @@ end %>
   <%= form_with model: @publishable, url: publishable_path(recording_id: @parent_recording.id), method: :patch, class: "space-y-4", html: { novalidate: true } do |form| %>
     <%= hidden_field_tag :section, @job.key %>
 
-    <div class="space-y-1">
-      <%= render FlatPack::TextInput::Component.new(
-        name: "publishable[social_title]",
-        id: "publishable-social-title-input",
-        label: publishable_t("form.social_title"),
-        value: @publishable.social_title,
-        maxlength: social_title_max_characters,
-        data: { publishable_title_counter_input: true, publishable_title_counter_target: "social-title", publishable_title_counter_limit: social_title_max_characters }
-      ) %>
-      <p class="text-xs text-(--surface-muted-content-color)" data-publishable-title-counter="social-title"></p>
-    </div>
+    <%= render FlatPack::TextInput::Component.new(
+      name: "publishable[social_title]",
+      id: "publishable-social-title-input",
+      label: publishable_t("form.social_title"),
+      value: @publishable.social_title,
+      character_count: true,
+      max_characters: social_title_max_characters,
+      maxlength: social_title_max_characters
+    ) %>
 
     <%= render FlatPack::TextArea::Component.new(
       name: "publishable[social_description]",
@@ -89,40 +86,6 @@ end %>
 </style>
 
 <script>
-  function initializePublishableTitleCounters() {
-    document.querySelectorAll("[data-publishable-title-counter-input]").forEach(function(input) {
-      if (input.dataset.publishableTitleCounterInitialized === "true") {
-        return;
-      }
-
-      input.dataset.publishableTitleCounterInitialized = "true";
-
-      var targetKey = input.dataset.publishableTitleCounterTarget;
-      var limit = parseInt(input.dataset.publishableTitleCounterLimit || "0", 10);
-      if (!targetKey || !limit) {
-        return;
-      }
-
-      var counter = document.querySelector('[data-publishable-title-counter="' + targetKey + '"]');
-      if (!counter) {
-        return;
-      }
-
-      function updateCounter() {
-        var host = input.closest("[data-publishable-character-count-template]");
-        var template = (host && host.dataset.publishableCharacterCountTemplate) || "%{count} / %{limit} characters";
-        counter.textContent = template.replace("__COUNT__", String(input.value || "").length).replace("__LIMIT__", String(limit));
-      }
-
-      input.addEventListener("input", updateCounter);
-      input.addEventListener("change", updateCounter);
-      updateCounter();
-    });
-  }
-
-  document.addEventListener("DOMContentLoaded", initializePublishableTitleCounters);
-  document.addEventListener("turbo:load", initializePublishableTitleCounters);
-
   document.addEventListener("recording-studio-attachable--attachment-image-picker:selected", function(event) {
     var host = document.querySelector("[data-publishable-social-image-picker]");
     if (!host) {
