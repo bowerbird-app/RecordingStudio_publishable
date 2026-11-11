@@ -9,7 +9,8 @@ require "stringio"
 module RecordingStudioPublishable
   module Api
     class ActionsTest < ActiveSupport::TestCase
-      ActionContext = Struct.new(:recording, :api_client, :params, keyword_init: true)
+      ActionContext = Struct.new(:recording, :api_client, :params, :access_grant, keyword_init: true)
+      TEST_PASSWORD = "PublishableApiActionsPassword!2026"
 
       setup do
         @root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Workspace"))
@@ -106,6 +107,40 @@ module RecordingStudioPublishable
         assert_equal [@parent_recording.id.to_s, "scheduled"], snapshot_id_and_status(outcome)
       end
 
+      test "grant actor with edit access can publish and unpublish when the api client has none" do
+        editor = create_user("editor")
+        grant_edit!(editor)
+        client_without_access = create_user("client")
+        with_accessible_authorize_write do
+          publish_outcome = perform(
+            :publish,
+            api_client: client_without_access,
+            access_grant: grant_for(editor)
+          )
+          unpublish_outcome = perform(
+            :unpublish,
+            api_client: client_without_access,
+            access_grant: grant_for(editor)
+          )
+
+          assert_equal "published", publish_outcome.publishable.status
+          assert_equal "draft", unpublish_outcome.publishable.status
+        end
+      end
+
+      test "grant actor without access is denied as AuthorizationError" do
+        stranger = create_user("stranger")
+        client_without_access = create_user("client")
+        with_accessible_authorize_write do
+          error = assert_raises(RecordingStudio::AuthorizationError) do
+            perform(:publish, api_client: client_without_access, access_grant: grant_for(stranger))
+          end
+
+          assert_equal "RecordingStudio write was denied by config.authorize_write", error.message
+          assert_nil @parent_recording.reload.current_publishable
+        end
+      end
+
       test "performer rejects a publishable child recording" do
         child = perform(:publish).child_recording
         count = RecordingStudioPublishable::Publishable.count
@@ -119,8 +154,49 @@ module RecordingStudioPublishable
 
       private
 
-      def perform(action_name, recording: @parent_recording, params: {})
-        Perform::Bound.new(action_name).call(ActionContext.new(recording: recording, api_client: nil, params: params))
+      def perform(action_name, recording: @parent_recording, params: {}, api_client: nil, access_grant: nil)
+        Perform::Bound.new(action_name).call(
+          ActionContext.new(
+            recording: recording,
+            api_client: api_client,
+            params: params,
+            access_grant: access_grant
+          )
+        )
+      end
+
+      def create_user(label)
+        User.create!(
+          email: "publishable-api-#{label}-#{SecureRandom.hex(4)}@example.com",
+          password: TEST_PASSWORD,
+          password_confirmation: TEST_PASSWORD
+        )
+      end
+
+      def grant_edit!(actor)
+        result = RecordingStudioAccessible.bootstrap_owner_access!(recording: @root, actor: actor)
+        result.respond_to?(:value!) ? result.value! : result
+      end
+
+      def grant_for(actor)
+        Struct.new(:actor).new(actor)
+      end
+
+      def persisted_write_target(recording, parent_recording)
+        [recording, parent_recording].find { |candidate| candidate.respond_to?(:id) && candidate.id.present? }
+      end
+
+      def with_accessible_authorize_write
+        previous = RecordingStudio.configuration.authorize_write
+        RecordingStudio.configuration.authorize_write = lambda { |actor:, recording: nil, parent_recording: nil, **|
+          target = persisted_write_target(recording, parent_recording)
+          actor.present? &&
+            target.present? &&
+            RecordingStudioAccessible.authorized?(actor: actor, recording: target, role: :edit)
+        }
+        yield
+      ensure
+        RecordingStudio.configuration.authorize_write = previous
       end
 
       def snapshot_id_and_status(outcome)

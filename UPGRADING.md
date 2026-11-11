@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.13.3 — API publish writes as the grant actor
+
+Install `recording_studio_publishable` 0.13.3. No migration.
+
+`publish`, `unpublish`, and `update_publishable` pass `context.access_grant.actor` into the same Update/Transition services the UI uses. Host `authorize_write` hooks that call Accessible on that actor see the grant subject, not the API client. A denied write raises `RecordingStudio::AuthorizationError`. Invalid publishable fields still raise `InvalidActionInputError`.
+
 ## 0.13.1 — Flatpack title character counts
 
 Install `recording_studio_publishable` 0.13.1. No migration.
