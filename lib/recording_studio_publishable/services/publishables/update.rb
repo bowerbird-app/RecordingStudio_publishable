@@ -37,8 +37,6 @@ module RecordingStudioPublishable
           emit_lifecycle_notifications!(previous)
 
           success(updated_recording)
-        rescue RecordingStudio::AuthorizationError
-          raise
         rescue StandardError => e
           failure(e)
         end

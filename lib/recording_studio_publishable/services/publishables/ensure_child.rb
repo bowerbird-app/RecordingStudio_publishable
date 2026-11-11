@@ -35,8 +35,6 @@ module RecordingStudioPublishable
           success(publishable_recording)
         rescue ActiveRecord::RecordNotUnique
           success(parent_recording.reload.publishable_child_recording)
-        rescue RecordingStudio::AuthorizationError
-          raise
         rescue StandardError => e
           failure(e)
         end

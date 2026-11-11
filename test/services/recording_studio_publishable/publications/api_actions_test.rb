@@ -128,17 +128,61 @@ module RecordingStudioPublishable
         end
       end
 
-      test "grant actor without access is denied as AuthorizationError" do
+      test "grant actor with edit access can update_publishable when the api client has none" do
+        editor = create_user("editor")
+        grant_edit!(editor)
+        client_without_access = create_user("client")
+        with_accessible_authorize_write do
+          outcome = perform(
+            :update_publishable,
+            api_client: client_without_access,
+            access_grant: grant_for(editor),
+            params: { slug: "from-editor" }
+          )
+
+          assert_equal "from-editor", outcome.publishable.slug
+        end
+      end
+
+      test "grant actor without access is denied as InvalidActionInputError" do
         stranger = create_user("stranger")
         client_without_access = create_user("client")
         with_accessible_authorize_write do
-          error = assert_raises(RecordingStudio::AuthorizationError) do
+          error = assert_raises(invalid_input_error) do
             perform(:publish, api_client: client_without_access, access_grant: grant_for(stranger))
           end
 
           assert_equal "RecordingStudio write was denied by config.authorize_write", error.message
           assert_nil @parent_recording.reload.current_publishable
         end
+      end
+
+      test "a grant with no actor is denied as InvalidActionInputError" do
+        with_accessible_authorize_write do
+          error = assert_raises(invalid_input_error) do
+            perform(:publish, access_grant: grant_for(nil))
+          end
+
+          assert_equal "RecordingStudio write was denied by config.authorize_write", error.message
+          assert_nil @parent_recording.reload.current_publishable
+        end
+      end
+
+      test "RS_API denies a grant with no actor before the handler runs" do
+        grant = RecordingStudioApi::AccessGrant.new(
+          api_client: RecordingStudioApi::ApiClient.new(name: "No actor", api_key: "public"),
+          credential: nil,
+          access_recording: @root,
+          root_recording: @root
+        )
+
+        assert_nil grant.actor
+        assert_not grant.authorized?(recording: @parent_recording, role: :edit)
+        error = assert_raises(RecordingStudioApi::AuthorizationError) do
+          grant.authorize!(recording: @parent_recording, role: :edit)
+        end
+
+        assert_equal "API access grant is not authorized for this capability", error.message
       end
 
       test "performer rejects a publishable child recording" do
@@ -174,8 +218,19 @@ module RecordingStudioPublishable
       end
 
       def grant_edit!(actor)
-        result = RecordingStudioAccessible.bootstrap_owner_access!(recording: @root, actor: actor)
+        owner = create_user("owner")
+        RecordingStudioAccessible.bootstrap_owner_access!(recording: @root, actor: owner)
+        result = RecordingStudioAccessible.grant_access(
+          recording: @root,
+          actor: actor,
+          role: :edit,
+          manager_actor: owner
+        )
         result.respond_to?(:value!) ? result.value! : result
+      end
+
+      def invalid_input_error
+        RecordingStudioApi::InvalidActionInputError
       end
 
       def grant_for(actor)
