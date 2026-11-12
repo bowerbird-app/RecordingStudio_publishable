@@ -1,5 +1,28 @@
 # Upgrading
 
+## 0.14.0 — Public share button
+
+Install `recording_studio_publishable` 0.14.0. No migration.
+
+`publishable_share_button(recording)` is available in every view. It renders a Flatpack copy button only while `recording.currently_published?` is true, and only when an absolute public URL can be built. The copied value is that public page URL. It is not the current request URL, an embed URL, or a preview URL.
+
+```erb
+<%= publishable_share_button(recording) %>
+<%= publishable_share_button(recording, icon_only: false, style: :primary, label: "Copy link") %>
+```
+
+A host that copied presskits' private share button should delete that copy and call this helper. The presskits fallback to the current request URL is not part of this button.
+
+App-wide defaults:
+
+```ruby
+RecordingStudioPublishable.configure do |config|
+  config.share_button = { style: :primary, icon: "link", icon_only: false }
+end
+```
+
+Per-call arguments win over `config.share_button`. Built-in defaults are icon-only, secondary, md, icon `arrow-up-tray`, label `recording_studio.publishable.share.label` ("Share"). The success text after a copy is Flatpack's clipboard copy.
+
 ## 0.13.3 — API publish writes as the grant actor
 
 Install `recording_studio_publishable` 0.13.3. No migration.

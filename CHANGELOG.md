@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-12
+
+### Added
+- `publishable_share_button(recording, **overrides)` renders a Flatpack copy button for a recording that is live right now. The button copies the absolute public page URL from `publishable_public_path` / `publishable_public_url`, using the request base URL or the configured host. Drafts, future `publish_at`, expired `unpublish_at`, trashed children, recordings that are not publishable, and recordings with no public URL render nothing. The default look is icon-only, secondary, md, with the `arrow-up-tray` icon and the translated "Share" label. Per-call arguments win over `config.share_button`, which wins over those defaults.
+
+### Upgrade Notes
+- Install Publishable `0.14.0`. No migration.
+- Call `publishable_share_button(recording)` on a public page or inside an embed. It is mixed into every view. Replace a private share button (presskits `share_button`) with this helper. Do not point it at the current page, an embed URL, or a preview URL.
+- App-wide defaults go in `config.share_button` (`style`, `icon`, `size`, `icon_only`, `label`, `class`). A per-call argument still wins. The copied string is Flatpack's clipboard "Copied" text.
+
 ## [0.13.3] - 2026-11-11
 
 ### Fixed
