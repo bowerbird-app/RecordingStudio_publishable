@@ -19,14 +19,14 @@ module RecordingStudioPublishable
         FlatPack::Modal::Component.new(
           id: @sheet.modal_id,
           title: Copy.t("share.modal_title"),
-          size: :md
+          size: @sheet.modal_size
         ).tap do |sheet|
           sheet.body { content }
         end
       end
 
       def sheet_body
-        content_tag(:div, class: "flex flex-col gap-5", **controller_attributes) do
+        render(FlatPack::Stack::Component.new(gap: :md, **controller_attributes)) do
           safe_join([preview, actions].compact)
         end
       end
@@ -45,7 +45,7 @@ module RecordingStudioPublishable
       def preview
         return if @sheet.title.blank? && @sheet.description.blank?
 
-        content_tag(:div, class: "min-w-0") do
+        render(FlatPack::Stack::Component.new(gap: :sm)) do
           safe_join([title_tag, description_tag].compact)
         end
       end
@@ -53,13 +53,13 @@ module RecordingStudioPublishable
       def title_tag
         return if @sheet.title.blank?
 
-        content_tag(:p, @sheet.title, class: "text-base font-semibold")
+        render(FlatPack::Heading::Component.new(text: @sheet.title, level: :h3, size: :base, weight: :semibold))
       end
 
       def description_tag
         return if @sheet.description.blank?
 
-        content_tag(:p, @sheet.description, class: "mt-1 text-sm")
+        render(FlatPack::Text::Component.new(text: @sheet.description, size: :sm))
       end
 
       def actions

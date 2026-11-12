@@ -9,7 +9,7 @@ module RecordingStudioPublishable
       end
 
       def call
-        content_tag(:div, class: "mt-6 flex flex-col gap-2", aria: { label: Copy.t("share.destinations_label") }) do
+        render(FlatPack::Stack::Component.new(gap: :sm, aria: { label: Copy.t("share.destinations_label") })) do
           safe_join(@sheet.destinations.filter_map { |name| action_for(name) })
         end
       end
@@ -24,36 +24,36 @@ module RecordingStudioPublishable
       end
 
       def copy_button
-        content_tag(:div, class: "w-full [&>span]:w-full [&>span>button]:w-full") do
-          render FlatPack::CopyButton::Component.new(
-            text: @sheet.url,
-            label: Copy.t("share.copy_link"),
-            style: :primary,
-            size: :md
-          )
-        end
+        render FlatPack::CopyButton::Component.new(
+          text: @sheet.url,
+          label: Copy.t("share.copy_link"),
+          style: :primary,
+          size: :md,
+          class: "w-full"
+        )
       end
 
       def native_button
-        content_tag(:div, hidden: true, class: "hidden w-full", data: { publishable_share_target: "native" }) do
-          render FlatPack::Button::Component.new(
-            text: Copy.t("share.native"),
-            style: :secondary,
-            size: :md,
-            class: "w-full",
-            aria: { label: Copy.t("share.native") },
-            data: { action: "click->publishable-share#native" }
-          )
-        end
+        render FlatPack::Button::Component.new(**native_options)
+      end
+
+      def native_options
+        {
+          text: Copy.t("share.native"),
+          style: :secondary,
+          size: :md,
+          class: "hidden w-full",
+          hidden: true,
+          aria: { label: Copy.t("share.native") },
+          data: { action: "click->publishable-share#native", publishable_share_target: "native" }
+        }
       end
 
       def link_button(name)
         href = ShareDestinations.hrefs(url: @sheet.url, title: @sheet.title, destinations: [name]).dig(0, 1)
         return if href.blank?
 
-        content_tag(:div, class: "w-full") do
-          render FlatPack::Button::Component.new(**link_options(name, href))
-        end
+        render FlatPack::Button::Component.new(**link_options(name, href))
       end
 
       def link_options(name, href)

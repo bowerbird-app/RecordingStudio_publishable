@@ -5,14 +5,15 @@ require_relative "share_destinations"
 
 module RecordingStudioPublishable
   class ShareButtonSettings
-    KEYS = %i[style icon size icon_only label class mode destinations].freeze
+    KEYS = %i[style icon size icon_only label class mode destinations modal_size].freeze
     DEFAULTS = {
       style: :secondary,
       icon: "arrow-up-tray",
       size: :md,
       icon_only: true,
       mode: :copy,
-      destinations: ShareDestinations::NAMES
+      destinations: ShareDestinations::NAMES,
+      modal_size: :sm
     }.freeze
 
     class << self

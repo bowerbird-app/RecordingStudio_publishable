@@ -182,6 +182,7 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
 
     assert_includes request.original_url, "/embeds/"
     assert_includes html, 'role="dialog"'
+    assert_includes html, "max-w-sm"
     assert_includes html, "Night &amp; Market"
     assert_includes html, "Come by"
     refute_includes html, "SEO title"
@@ -234,11 +235,12 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
 
   test "per-call mode beats the configured mode" do
     recording = publish_page("Mode share", slug: "mode-share")
-    RecordingStudioPublishable.configuration.share_button = { mode: :modal, destinations: [:facebook] }
+    RecordingStudioPublishable.configuration.share_button = { mode: :modal, destinations: [:facebook], modal_size: :lg }
 
     configured = share_html(recording)
     assert_includes configured, 'role="dialog"'
     assert_includes configured, "facebook.com"
+    assert_includes configured, "max-w-2xl"
 
     copy_html = share_html(recording, mode: :copy)
     refute_includes copy_html, 'role="dialog"'
@@ -247,6 +249,7 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     modal_html = share_html(
       recording,
       mode: :modal,
+      modal_size: :sm,
       destinations: [:x],
       style: :danger,
       icon: "paper-airplane",
@@ -255,6 +258,8 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     )
     assert_includes modal_html, "twitter.com"
     refute_includes modal_html, "facebook.com"
+    assert_includes modal_html, "max-w-sm"
+    refute_includes modal_html, "max-w-2xl"
     assert_includes modal_html, 'data-fp-style="danger"'
     assert_includes modal_html, 'data-flat-pack--icon-name-value="paper-airplane"'
     assert_includes modal_html, 'aria-label="Pass it on"'

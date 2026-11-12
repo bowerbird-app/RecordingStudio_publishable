@@ -22,7 +22,7 @@ module RecordingStudioPublishable
     end
 
     def modal_share_button(recording, face, url)
-      sheet = ShareSheet.for(recording, url: url, destinations: face.destinations)
+      sheet = ShareSheet.for(recording, url: url, destinations: face.destinations, modal_size: face.modal_size)
       safe_join([modal_trigger(face, sheet.modal_id), render(ShareModal::Component.new(sheet: sheet))])
     end
 

@@ -4,7 +4,7 @@ require_relative "share_button_settings"
 
 module RecordingStudioPublishable
   module ShareButton
-    Face = Data.define(:style, :icon, :size, :icon_only, :label, :html, :mode, :destinations) do
+    Face = Data.define(:style, :icon, :size, :icon_only, :label, :html, :mode, :destinations, :modal_size) do
       def component_arguments
         html.merge(label: label, icon: icon, icon_only: icon_only, style: style, size: size)
       end
@@ -44,7 +44,8 @@ module RecordingStudioPublishable
           size: merged.fetch(:size),
           icon_only: merged.fetch(:icon_only),
           mode: merged.fetch(:mode),
-          destinations: merged.fetch(:destinations)
+          destinations: merged.fetch(:destinations),
+          modal_size: merged.fetch(:modal_size)
         }
       end
 

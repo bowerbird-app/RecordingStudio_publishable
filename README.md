@@ -372,11 +372,11 @@ The URL comes from `publishable_public_path` / `publishable_public_url`. A path 
 
 The built-in look matches an icon-only secondary md button with the `arrow-up-tray` icon. The label is `recording_studio.publishable.share.label` ("Share"). Icon-only, that label is the accessible name and the tooltip. After a click, Flatpack's clipboard copy shows its own "Copied" text.
 
-Per-call arguments win over `config.share_button`, which wins over the built-in look. Arguments are `mode`, `destinations`, `style` (or `variant`), `size`, `icon`, `label` (or `text`), `icon_only`, `class`, and other HTML options passed through to the trigger. `text:` sets the visible label. It does not change the copied URL. Style, icon, and label apply to the trigger in both modes.
+Per-call arguments win over `config.share_button`, which wins over the built-in look. Arguments are `mode`, `modal_size`, `destinations`, `style` (or `variant`), `size`, `icon`, `label` (or `text`), `icon_only`, `class`, and other HTML options passed through to the trigger. `text:` sets the visible label. It does not change the copied URL. Style, icon, and label apply to the trigger in both modes.
 
 `mode: :copy` is the default. The trigger is a copy button.
 
-`mode: :modal` opens a sheet. The preview title is the publishable social title, then the SEO title, then the recordable title. The preview description is the social description, then the SEO description. The sheet then shows, in the configured order, a full-width primary "Copy link" button, a device share button (hidden until the browser supports `navigator.share`), and secondary full-width LinkedIn, X, Facebook, and Email buttons. Those links use the standard share endpoints with `URI.encode_www_form`. The default destination list is `copy`, `native`, `linkedin`, `x`, `facebook`, `email`. Pass `destinations:` to narrow or reorder it.
+`mode: :modal` opens a `FlatPack::Modal` at `size: :sm`. Pass `modal_size:` (`sm`, `md`, `lg`, `xl`, or `2xl`) per call or in `config.share_button` to use another Flatpack modal size. The trigger, tooltip, copy button, destination buttons, preview heading, and preview text are Flatpack components. The preview title is the publishable social title, then the SEO title, then the recordable title. The preview description is the social description, then the SEO description. The sheet then shows, in the configured order, a full-width primary "Copy link" button, a device share button (hidden until the browser supports `navigator.share`), and secondary full-width LinkedIn, X, Facebook, and Email buttons. Those links use the standard share endpoints with `URI.encode_www_form`. The default destination list is `copy`, `native`, `linkedin`, `x`, `facebook`, `email`. Pass `destinations:` to narrow or reorder it.
 
 ```erb
 <%= publishable_share_button(recording) %>
@@ -392,6 +392,7 @@ RecordingStudioPublishable.configure do |config|
     icon_only: false,
     label: "Copy link",
     mode: :modal,
+    modal_size: :sm,
     destinations: [:copy, :linkedin, :email]
   }
 end

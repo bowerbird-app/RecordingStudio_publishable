@@ -6,6 +6,7 @@ module RecordingStudioPublishable
   module ShareButtonCast
     SIZES = %i[sm md lg].freeze
     MODES = %i[copy modal].freeze
+    MODAL_SIZES = %i[sm md lg xl 2xl].freeze
     LABEL_LIMIT = 80
     NAME_PATTERN = /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/
 
@@ -63,6 +64,13 @@ module RecordingStudioPublishable
         raise ArgumentError, "mode must be copy or modal"
       end
 
+      def modal_size(raw)
+        value = raw.to_s.to_sym
+        return value if modal_sizes.include?(value)
+
+        raise ArgumentError, "modal_size must be sm, md, lg, xl, or 2xl"
+      end
+
       def destinations(raw)
         raise ArgumentError, "destinations must be a list" unless raw.is_a?(Array)
 
@@ -80,6 +88,12 @@ module RecordingStudioPublishable
 
       def named?(raw, text)
         (raw.is_a?(String) || raw.is_a?(Symbol)) && text.match?(NAME_PATTERN)
+      end
+
+      def modal_sizes
+        return MODAL_SIZES unless defined?(FlatPack::Modal::Component)
+
+        FlatPack::Modal::Component::SIZES.keys
       end
 
       def destination_name(item)
