@@ -274,7 +274,7 @@ A change from this control stays on the host page. With Turbo, the wrapper stays
 
 `recording_studio_api` is optional. This gem does not depend on it.
 
-Publishable registers capability actions only when `RecordingStudioApi` is available. The actions are `publish`, `unpublish`, and `update_publishable`. Loading this gem does not enable them on a parent type. You opt in with `capability_actions`.
+Publishable registers capability actions only when `RecordingStudioApi` is available. The actions are `publish`, `unpublish`, and `update_publishable`. Loading this gem does not enable them on a parent type. You opt in with `capability_actions`. The handlers write as `access_grant.actor`, the Accessible actor on the token's grant. Host `authorize_write` policies that check that actor see the person (or client) with the grant. A write that policy denies raises `InvalidActionInputError`. Recording Studio API rejects a token whose grant has no actor before the handler runs.
 
 ```ruby
 RecordingStudioApi.register_recordable_type_api(

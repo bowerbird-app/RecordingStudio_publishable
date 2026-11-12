@@ -40,7 +40,7 @@ module RecordingStudioPublishable
           RecordingStudioPublishable::Services::Publishables::Transition.call(
             parent_recording: context.recording,
             transition: spec.fetch(:transition),
-            actor: context.api_client
+            actor: context.access_grant&.actor
           )
         end
 
@@ -48,7 +48,7 @@ module RecordingStudioPublishable
           RecordingStudioPublishable::Services::Publishables::Update.call(
             parent_recording: context.recording,
             attributes: context.params,
-            actor: context.api_client
+            actor: context.access_grant&.actor
           )
         end
 

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.13.3] - 2026-11-11
+
+### Fixed
+- API and MCP `publish`, `unpublish`, and `update_publishable` write as `access_grant.actor` (the Accessible actor on the grant). Host `authorize_write` policies that check that actor see the person with edit access, not the API client credential. A write `authorize_write` denies still surfaces as `InvalidActionInputError`, the same as other Update/Transition service failures. Recording Studio API rejects a token whose grant has no actor before the handler runs.
+
+### Upgrade Notes
+- Install Publishable `0.13.3`. No migration.
+- OAuth user tokens that already had edit access can publish and unpublish when `config.authorize_write` calls Accessible on the write actor. Tokens whose grant actor has no edit access are still denied.
+
 ## [0.13.2] - 2026-11-06
 
 ### Security
