@@ -364,7 +364,7 @@ Trash is not a Publishable write. If Trashable hides a published parent, listen 
 
 ## Share button
 
-`publishable_share_button(recording, **overrides)` renders a Flatpack copy button. The copied value is the recording's absolute public page URL. The helper is mixed into every view, so a public page and an embed can both call it.
+`publishable_share_button(recording, **overrides)` renders a Flatpack share control. The copied value, and every link in the share sheet, is the recording's absolute public page URL. The helper is mixed into every view, so a public page and an embed can both call it.
 
 The button renders only when `recording.currently_published?` is true. That means an active, untrashed publishable child whose status is published, whose `publish_at` is blank or already due, and whose `unpublish_at` is blank or still ahead. A draft, a future `publish_at`, an expired `unpublish_at`, a trashed child, a recording that is not publishable, or a recording with no public URL renders nothing.
 
@@ -372,16 +372,28 @@ The URL comes from `publishable_public_path` / `publishable_public_url`. A path 
 
 The built-in look matches an icon-only secondary md button with the `arrow-up-tray` icon. The label is `recording_studio.publishable.share.label` ("Share"). Icon-only, that label is the accessible name and the tooltip. After a click, Flatpack's clipboard copy shows its own "Copied" text.
 
-Per-call arguments win over `config.share_button`, which wins over the built-in look. Arguments are `style` (or `variant`), `size`, `icon`, `label` (or `text`), `icon_only`, `class`, and other HTML options passed through to the copy button. `text:` sets the visible label. It does not change the copied URL.
+Per-call arguments win over `config.share_button`, which wins over the built-in look. Arguments are `mode`, `destinations`, `style` (or `variant`), `size`, `icon`, `label` (or `text`), `icon_only`, `class`, and other HTML options passed through to the trigger. `text:` sets the visible label. It does not change the copied URL. Style, icon, and label apply to the trigger in both modes.
+
+`mode: :copy` is the default. The trigger is a copy button.
+
+`mode: :modal` opens a sheet. The preview title is the publishable social title, then the SEO title, then the recordable title. The preview description is the social description, then the SEO description. The sheet then shows, in the configured order, a full-width primary "Copy link" button, a device share button (hidden until the browser supports `navigator.share`), and secondary full-width LinkedIn, X, Facebook, and Email buttons. Those links use the standard share endpoints with `URI.encode_www_form`. The default destination list is `copy`, `native`, `linkedin`, `x`, `facebook`, `email`. Pass `destinations:` to narrow or reorder it.
 
 ```erb
 <%= publishable_share_button(recording) %>
 <%= publishable_share_button(recording, icon_only: false, style: :primary, label: "Copy link", class: "ms-auto") %>
+<%= publishable_share_button(recording, mode: :modal) %>
 ```
 
 ```ruby
 RecordingStudioPublishable.configure do |config|
-  config.share_button = { style: :primary, icon: "link", icon_only: false, label: "Copy link" }
+  config.share_button = {
+    style: :primary,
+    icon: "link",
+    icon_only: false,
+    label: "Copy link",
+    mode: :modal,
+    destinations: [:copy, :linkedin, :email]
+  }
 end
 ```
 
@@ -399,7 +411,7 @@ t("recording_studio.publishable.flashes.save_failed")
 
 Hosts own other languages. Copy `recording_studio.publishable.*` into `config/locales/<locale>.yml` and list that locale in `config.i18n.available_locales`. Do not add `RecordingStudio_Internationalization` as a dependency of this gem — it is optional on the host (the dummy uses it to switch English/French).
 
-Arguments still win. `EditButtonComponent`'s `label:`, `publishable_share_button`'s `label:`, `publishable_head_tags` keyword arguments, and any other passed-in copy override the locale default. The share label is `recording_studio.publishable.share.label`.
+Arguments still win. `EditButtonComponent`'s `label:`, `publishable_share_button`'s `label:`, `publishable_head_tags` keyword arguments, and any other passed-in copy override the locale default. The share label is `recording_studio.publishable.share.label`. Modal strings live under `recording_studio.publishable.share.*`.
 
 Stored publish state stays data: slugs, titles, descriptions, canonical URLs, and social card fields are not translated.
 

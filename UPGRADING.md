@@ -9,7 +9,10 @@ Install `recording_studio_publishable` 0.14.0. No migration.
 ```erb
 <%= publishable_share_button(recording) %>
 <%= publishable_share_button(recording, icon_only: false, style: :primary, label: "Copy link") %>
+<%= publishable_share_button(recording, mode: :modal) %>
 ```
+
+`mode: :copy` is the default and copies the public URL directly. `mode: :modal` opens a sheet. The sheet preview uses social title, then SEO title, then the recordable title, and social description, then SEO description. Its links are the same absolute public URL. `destinations` narrows or reorders `copy`, `native`, `linkedin`, `x`, `facebook`, and `email`. Style, icon, and label overrides still apply to the trigger in both modes.
 
 A host that copied presskits' private share button should delete that copy and call this helper. The presskits fallback to the current request URL is not part of this button.
 
@@ -17,7 +20,7 @@ App-wide defaults:
 
 ```ruby
 RecordingStudioPublishable.configure do |config|
-  config.share_button = { style: :primary, icon: "link", icon_only: false }
+  config.share_button = { style: :primary, icon: "link", icon_only: false, mode: :modal }
 end
 ```
 

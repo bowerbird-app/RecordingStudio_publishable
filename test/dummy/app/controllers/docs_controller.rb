@@ -208,10 +208,11 @@ class DocsController < ApplicationController
       },
       {
         title: "publishable_share_button(recording)",
-        subtitle: "Copies the absolute public page URL. Renders nothing unless the recording is live.",
+        subtitle: "Copies the absolute public page URL, or opens a share sheet. Renders nothing unless the recording is live.",
         code: <<~ERB
           <%= publishable_share_button(recording) %>
           <%= publishable_share_button(recording, icon_only: false, style: :primary, label: "Copy link") %>
+          <%= publishable_share_button(recording, mode: :modal) %>
         ERB
       }
     ]

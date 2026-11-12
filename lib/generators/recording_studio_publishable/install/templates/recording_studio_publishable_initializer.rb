@@ -42,5 +42,5 @@ RecordingStudioPublishable.configure do |config|
 
   # Share button on a live public page. Copies the absolute public URL.
   # Per-call arguments still win. Defaults are icon-only, secondary, md, arrow-up-tray.
-  # config.share_button = { style: :primary, icon: "link", icon_only: false }
+  # config.share_button = { style: :primary, icon: "link", icon_only: false, mode: :modal }
 end
