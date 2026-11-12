@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../../app/helpers/recording_studio_publishable/copy_helper"
+require_relative "../../app/helpers/recording_studio_publishable/share_helper"
 
 module RecordingStudioPublishable
   class Engine < ::Rails::Engine
@@ -10,6 +11,7 @@ module RecordingStudioPublishable
     initializer "recording_studio_publishable.view_helpers" do
       ActiveSupport.on_load(:action_view) do
         include RecordingStudioPublishable::CopyHelper
+        include RecordingStudioPublishable::ShareHelper
       end
     end
 

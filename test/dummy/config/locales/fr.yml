@@ -107,6 +107,8 @@ fr:
         social_card: Carte sociale
       edit_button:
         label: Modifier
+      share:
+        label: Partager
       form:
         save: Enregistrer
         publish_at: Publier le

@@ -55,6 +55,7 @@ module RecordingStudioPublishable
       "published.canonical_url" => "Canonical URL",
       "published.social_card" => "Social card",
       "edit_button.label" => "Edit",
+      "share.label" => "Share",
       "form.save" => "Save",
       "form.publish_at" => "Publish at",
       "form.unpublish_at" => "Unpublish at",

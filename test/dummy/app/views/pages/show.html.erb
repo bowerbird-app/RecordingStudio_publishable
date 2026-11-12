@@ -6,8 +6,10 @@
   <% resolved_public_path = @page.respond_to?(:published_url) ? @page.published_url : nil %>
   <% resolved_public_url = resolved_public_path.present? ? "#{request.protocol}#{request.host_with_port}#{resolved_public_path}" : nil %>
 
-  <div class="flex flex-wrap gap-2">
+  <div class="flex flex-wrap items-center gap-2">
     <%= publishable_preview_badge %>
+    <%= publishable_share_button(@recording) %>
+    <%= publishable_share_button(@recording, icon_only: false, style: :primary, label: "Copy link") %>
     <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
     <%= render FlatPack::Badge::Component.new(
       text: (@page.respond_to?(:indexable?) && @page.indexable?) ? "Indexable" : "noindex",
