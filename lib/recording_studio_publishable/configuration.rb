@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "hooks"
+require_relative "share_button"
 
 module RecordingStudioPublishable
   class Configuration
@@ -21,7 +22,7 @@ module RecordingStudioPublishable
                   :canonical_redirect_status,
                   :quick_actions_button_class,
                   :quick_actions_menu_class
-    attr_reader :hooks, :public_path_configs, :public_renderer_configs, :quick_actions_states, :layout
+    attr_reader :hooks, :public_path_configs, :public_renderer_configs, :quick_actions_states, :layout, :share_button
 
     def initialize
       @current_actor_resolver = method(:default_current_actor_resolver)
@@ -30,7 +31,7 @@ module RecordingStudioPublishable
       @default_time_zone = default_rails_time_zone
       @layout = nil
       @canonical_redirect_status = :found
-      assign_quick_actions_defaults
+      assign_view_defaults
       @public_path_configs = {}
       @public_renderer_configs = {}
       @hooks = Hooks.new
@@ -41,15 +42,7 @@ module RecordingStudioPublishable
     end
 
     def to_h
-      {
-        default_time_zone: default_time_zone,
-        layout: layout,
-        canonical_redirect_status: canonical_redirect_status,
-        management_close_url_resolver: management_close_url_resolver.class.name,
-        public_path_configs: public_path_configs.dup,
-        public_renderer_configs: public_renderer_configs.transform_values(&:to_h),
-        hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
-      }.merge(quick_actions_settings)
+      core_settings.merge(quick_actions_settings, share_button_setting)
     end
 
     def quick_actions_settings
@@ -106,6 +99,10 @@ module RecordingStudioPublishable
 
     def public_layout_for(recordable_type)
       public_renderer_for(recordable_type).layout
+    end
+
+    def share_button=(value)
+      @share_button = ShareButton.parse(value).freeze
     end
 
     def quick_actions_states=(value)
@@ -179,10 +176,31 @@ module RecordingStudioPublishable
 
     private
 
+    def assign_view_defaults
+      assign_quick_actions_defaults
+      @share_button = {}.freeze
+    end
+
     def assign_quick_actions_defaults
       @quick_actions_button_class = nil
       @quick_actions_menu_class = nil
       @quick_actions_states = {}
+    end
+
+    def core_settings
+      {
+        default_time_zone: default_time_zone,
+        layout: layout,
+        canonical_redirect_status: canonical_redirect_status,
+        management_close_url_resolver: management_close_url_resolver.class.name,
+        public_path_configs: public_path_configs.dup,
+        public_renderer_configs: public_renderer_configs.transform_values(&:to_h),
+        hooks_registered: hooks.instance_variable_get(:@registry).transform_values(&:size)
+      }
+    end
+
+    def share_button_setting
+      { share_button: share_button.dup }
     end
 
     def default_current_actor_resolver(controller: nil)

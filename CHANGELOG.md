@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-11-12
+
+### Added
+- `publishable_share_button(recording, **overrides)` renders a Flatpack share control for a recording that is live right now. `mode: :copy` (the default) copies the absolute public page URL. `mode: :modal` opens a share sheet with a title and description preview, a primary "Copy link" button, a device share action when `navigator.share` exists, and LinkedIn, X, Facebook, and Email links. Every copied value and destination uses `publishable_public_path` / `publishable_public_url` plus the request base URL or the configured host. Drafts, future `publish_at`, expired `unpublish_at`, trashed children, recordings that are not publishable, and recordings with no public URL render nothing. The trigger defaults to icon-only, secondary, md, with the `arrow-up-tray` icon and the translated "Share" label. Per-call arguments win over `config.share_button`, which wins over those defaults. `config.share_button` accepts `mode`, `modal_size` (Flatpack modal size, default `sm`), and `destinations` (`copy`, `native`, `linkedin`, `x`, `facebook`, `email`).
+
+### Upgrade Notes
+- Install Publishable `0.14.0`. No migration.
+- Call `publishable_share_button(recording)` on a public page or inside an embed. It is mixed into every view. Replace a private share button (presskits `share_button`) with this helper. Do not point it at the current page, an embed URL, or a preview URL.
+- App-wide defaults go in `config.share_button` (`style`, `icon`, `size`, `icon_only`, `label`, `class`, `mode`, `modal_size`, `destinations`). The share sheet uses `FlatPack::Modal` at `sm` unless `modal_size` overrides it. A per-call argument still wins. `mode: :copy` stays the default, so existing calls keep the plain copy button. The copied string is Flatpack's clipboard "Copied" text. Publishable does not depend on Shareable.
+
 ## [0.13.3] - 2026-11-11
 
 ### Fixed

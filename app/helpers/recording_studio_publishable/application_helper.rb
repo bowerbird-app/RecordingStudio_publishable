@@ -3,6 +3,7 @@
 module RecordingStudioPublishable
   module ApplicationHelper # rubocop:disable Metrics/ModuleLength
     include CopyHelper
+    include ShareHelper
 
     DEFAULT_SOCIAL_IMAGE_WIDTH = 1200
     DEFAULT_SOCIAL_IMAGE_HEIGHT = 630

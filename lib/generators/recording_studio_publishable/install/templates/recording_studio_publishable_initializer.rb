@@ -39,4 +39,8 @@ RecordingStudioPublishable.configure do |config|
   #   scheduled: { style: :warning, icon: "clock" },
   #   published: { icon_variant: :solid, icon_style: :success }
   # }
+
+  # Share button on a live public page. Copies the absolute public URL.
+  # Per-call arguments still win. Defaults are icon-only, secondary, md, arrow-up-tray.
+  # config.share_button = { style: :primary, icon: "link", icon_only: false, mode: :modal }
 end

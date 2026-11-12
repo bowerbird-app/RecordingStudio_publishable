@@ -9,8 +9,9 @@
     </div>
   <% end %>
 
-  <div class="flex flex-wrap gap-2">
+  <div class="flex flex-wrap items-center gap-2">
     <%= publishable_preview_badge %>
+    <%= publishable_share_button(@recording) %>
     <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
     <%= render FlatPack::Badge::Component.new(text: "#{@publishable_recording.id}", style: :info, size: :sm) %>
   </div>
