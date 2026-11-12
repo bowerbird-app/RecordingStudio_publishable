@@ -168,6 +168,117 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     assert_equal "http://press.example#{recording.publishable_public_path}", clipboard_text(html)
   end
 
+  test "modal mode copies the public url and links each destination to that url" do
+    recording = publish_page("Modal share", slug: "modal-share")
+    publish_page_on(
+      recording,
+      social_title: "Night & Market",
+      seo_title: "SEO title",
+      social_description: nil,
+      seo_description: "Come by"
+    )
+    html, request = render_share(recording, mode: :modal, path: "/embeds/#{recording.id}")
+    public_url = "http://press.example#{recording.reload.publishable_public_path}"
+
+    assert_includes request.original_url, "/embeds/"
+    assert_includes html, 'role="dialog"'
+    assert_includes html, "Night &amp; Market"
+    assert_includes html, "Come by"
+    refute_includes html, "SEO title"
+    assert_equal public_url, clipboard_text(html)
+    refute_includes html, "/embeds/"
+    title = "Night & Market"
+    assert_includes html, escaped_url("https://www.linkedin.com/sharing/share-offsite/?#{form_params(url: public_url)}")
+    assert_includes html, escaped_url("https://twitter.com/intent/tweet?#{form_params(url: public_url, text: title)}")
+    assert_includes html, escaped_url("https://www.facebook.com/sharer/sharer.php?#{form_params(u: public_url)}")
+    mailto = "mailto:?#{form_params(subject: title, body: "#{title}\n#{public_url}")}"
+    assert_includes html, escaped_url(mailto)
+    assert_includes html, 'data-publishable-share-target="native"'
+    assert_includes html, 'data-fp-style="primary"'
+    assert_includes html, ">Copy link<"
+  end
+
+  test "modal links keep the configured public host when the request is an embed" do
+    Rails.application.routes.default_url_options = { host: "public.test", protocol: "https" }
+    recording = publish_page("Modal host", slug: "modal-host")
+    forget_public_url(recording)
+
+    html, = render_share(
+      recording,
+      mode: :modal,
+      destinations: [:linkedin],
+      host: "press.example",
+      path: "/embeds/#{recording.id}"
+    )
+    public_url = recording.reload.publishable_public_path
+
+    assert_match %r{\Ahttps://public\.test/}, public_url
+    assert_includes html, ERB::Util.html_escape(public_url)
+    refute_includes html, "press.example"
+    refute_includes html, "/embeds/"
+  end
+
+  test "destinations config narrows the modal list" do
+    recording = publish_page("Narrow share", slug: "narrow-share")
+    RecordingStudioPublishable.configuration.share_button = { destinations: [:linkedin] }
+    html = share_html(recording, mode: :modal)
+    public_url = "http://press.example#{recording.publishable_public_path}"
+
+    assert_includes html, escaped_url("https://www.linkedin.com/sharing/share-offsite/?#{form_params(url: public_url)}")
+    refute_includes html, "twitter.com"
+    refute_includes html, "facebook.com"
+    refute_includes html, "mailto:"
+    refute_includes html, "publishable-share-target"
+    refute_includes html, "clipboard-text-value"
+  end
+
+  test "per-call mode beats the configured mode" do
+    recording = publish_page("Mode share", slug: "mode-share")
+    RecordingStudioPublishable.configuration.share_button = { mode: :modal, destinations: [:facebook] }
+
+    configured = share_html(recording)
+    assert_includes configured, 'role="dialog"'
+    assert_includes configured, "facebook.com"
+
+    copy_html = share_html(recording, mode: :copy)
+    refute_includes copy_html, 'role="dialog"'
+    assert_includes copy_html, "clipboard-text-value"
+
+    modal_html = share_html(
+      recording,
+      mode: :modal,
+      destinations: [:x],
+      style: :danger,
+      icon: "paper-airplane",
+      label: "Pass it on",
+      icon_only: true
+    )
+    assert_includes modal_html, "twitter.com"
+    refute_includes modal_html, "facebook.com"
+    assert_includes modal_html, 'data-fp-style="danger"'
+    assert_includes modal_html, 'data-flat-pack--icon-name-value="paper-airplane"'
+    assert_includes modal_html, 'aria-label="Pass it on"'
+    assert_includes modal_html, "data-modal-id="
+  end
+
+  test "modal mode renders nothing for draft, future, expired, and trashed recordings" do
+    draft = publish_page("Draft modal", slug: "draft-modal", status: "draft")
+    future = publish_page("Future modal", slug: "future-modal", status: "published", publish_at: 1.hour.from_now)
+    expired = publish_page(
+      "Expired modal",
+      slug: "expired-modal",
+      status: "published",
+      publish_at: 1.hour.ago,
+      unpublish_at: Time.current
+    )
+    trashed = publish_page("Trashed modal", slug: "trashed-modal")
+    RecordingStudio::Recording.where(id: trashed.publishable_child_recording.id).update_all(trashed_at: Time.current)
+
+    [draft, future, expired, trashed.reload].each do |recording|
+      assert_empty share_html(recording, mode: :modal)
+    end
+  end
+
   test "uses the translated share label" do
     recording = publish_page("French share", slug: "french-share")
 
@@ -176,6 +287,17 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
 
       assert_includes html, 'aria-label="Partager"'
       assert_includes html, ">Partager<"
+    end
+  end
+
+  test "translates the modal copy label" do
+    recording = publish_page("French modal", slug: "french-modal")
+
+    I18n.with_locale(:fr) do
+      html = share_html(recording, mode: :modal, icon_only: false)
+
+      assert_includes html, "Copier le lien"
+      assert_includes html, 'aria-label="Partager"'
     end
   end
 
@@ -238,5 +360,13 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
 
   def clipboard_text(html)
     html.to_s[/data-flat-pack--clipboard-text-value="([^"]*)"/, 1].to_s
+  end
+
+  def form_params(params)
+    URI.encode_www_form(params)
+  end
+
+  def escaped_url(url)
+    ERB::Util.html_escape(url)
   end
 end

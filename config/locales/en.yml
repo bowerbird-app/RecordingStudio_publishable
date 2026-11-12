@@ -69,6 +69,16 @@ en:
         label: Edit
       share:
         label: Share
+        modal_title: Share
+        copy_link: Copy link
+        native: Share
+        destinations_label: Share destinations
+        linkedin: LinkedIn
+        x: X
+        facebook: Facebook
+        email: Email
+        share_on: Share on %{name}
+        share_by_email: Share by email
       form:
         save: Save
         publish_at: Publish at

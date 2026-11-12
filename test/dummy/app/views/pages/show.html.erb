@@ -9,7 +9,7 @@
   <div class="flex flex-wrap items-center gap-2">
     <%= publishable_preview_badge %>
     <%= publishable_share_button(@recording) %>
-    <%= publishable_share_button(@recording, icon_only: false, style: :primary, label: "Copy link") %>
+    <%= publishable_share_button(@recording, mode: :modal, icon_only: false) %>
     <%= render RecordingStudioPublishable::StatusBadge::Component.new(publishable: @publishable) %>
     <%= render FlatPack::Badge::Component.new(
       text: (@page.respond_to?(:indexable?) && @page.indexable?) ? "Indexable" : "noindex",

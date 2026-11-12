@@ -109,6 +109,16 @@ fr:
         label: Modifier
       share:
         label: Partager
+        modal_title: Partager
+        copy_link: Copier le lien
+        native: Partager
+        destinations_label: Destinations de partage
+        linkedin: LinkedIn
+        x: X
+        facebook: Facebook
+        email: E-mail
+        share_on: Partager sur %{name}
+        share_by_email: Partager par e-mail
       form:
         save: Enregistrer
         publish_at: Publier le
