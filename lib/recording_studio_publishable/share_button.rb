@@ -3,7 +3,6 @@
 require_relative "share_button_settings"
 
 module RecordingStudioPublishable
-  # One share-button face. Per-call overrides win, then config, then the built-in look.
   module ShareButton
     Face = Data.define(:style, :icon, :size, :icon_only, :label, :html) do
       def component_arguments
