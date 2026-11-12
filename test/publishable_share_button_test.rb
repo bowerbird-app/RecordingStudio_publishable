@@ -183,6 +183,8 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     assert_includes request.original_url, "/embeds/"
     assert_includes html, 'role="dialog"'
     assert_includes html, "max-w-sm"
+    assert_includes copy_host_class(html), "w-full"
+    assert_includes copy_host_class(html), "flex-col"
     assert_includes html, "Night &amp; Market"
     assert_includes html, "Come by"
     refute_includes html, "SEO title"
@@ -365,6 +367,10 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
 
   def clipboard_text(html)
     html.to_s[/data-flat-pack--clipboard-text-value="([^"]*)"/, 1].to_s
+  end
+
+  def copy_host_class(html)
+    html.to_s[/class="([^"]*)"[^>]*data-flat-pack--clipboard-text-value=/, 1].to_s
   end
 
   def form_params(params)

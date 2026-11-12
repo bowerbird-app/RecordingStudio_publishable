@@ -29,7 +29,9 @@ module RecordingStudioPublishable
           label: Copy.t("share.copy_link"),
           style: :primary,
           size: :md,
-          class: "w-full"
+          # CopyButton applies class to its inline-flex host. A column
+          # stretches the inner button across that full width.
+          class: "w-full flex-col"
         )
       end
 
