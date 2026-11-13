@@ -277,6 +277,21 @@ A change from this control stays on the host page. With Turbo, the wrapper stays
 
 Publishable registers capability actions only when `RecordingStudioApi` is available. The actions are `publish`, `unpublish`, and `update_publishable`. Loading this gem does not enable them on a parent type. You opt in with `capability_actions`. The handlers write as `access_grant.actor`, the Accessible actor on the token's grant. Host `authorize_write` policies that check that actor see the person (or client) with the grant. A write that policy denies raises `InvalidActionInputError`. Recording Studio API rejects a token whose grant has no actor before the handler runs.
 
+`publish` on an already live parent succeeds and leaves `publish_at` and `unpublish_at` unchanged. `unpublish` on an already draft, unscheduled parent succeeds with no write. It does not create a publishable child when none exists. A scheduled parent still unpublished to draft. `update_publishable` still saves when the payload is empty or unchanged.
+
+A host can override OpenAPI title and description for one recordable type without changing other types or the shared `ACTIONS` copy:
+
+```ruby
+RecordingStudioPublishable::Api.override_openapi(
+  type: "PressKit",
+  action: :publish,
+  title: "Press Kit - Publish",
+  description: "Publishes this press kit so visitors can see the live page."
+)
+```
+
+`Api.openapi_for(action: :publish, type: "PressKit")` is the merged document for that type. The 200 body is still `PublishableSnapshot`.
+
 ```ruby
 RecordingStudioApi.register_recordable_type_api(
   "PressKit",
@@ -317,7 +332,7 @@ The social image id must be an image attachment recording that is a direct child
 - `social_description`
 - `social_image_attachment_recording_id`
 
-`status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
+`status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. Field wording for these inputs lives in `PublishableSnapshot::FIELDS`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
 
 ## Lifecycle notifications
 

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "recording_studio_publishable/api/openapi_overrides"
 require "recording_studio_publishable/api/perform"
 require "recording_studio_publishable/api/publishable_snapshot"
 
@@ -28,6 +29,22 @@ module RecordingStudioPublishable
 
     def self.register_capability_action!
       Registration.register!
+    end
+
+    def self.override_openapi(type:, action:, title: nil, description: nil)
+      name = action.to_sym
+      ACTIONS.fetch(name)
+
+      OpenapiOverrides.write(type: type, action: name, title: title, description: description)
+      nil
+    end
+
+    def self.openapi_for(action:, type: nil)
+      name = action.to_sym
+      openapi = Contracts.openapi_for(ACTIONS.fetch(name))
+      return openapi if type.nil?
+
+      OpenapiOverrides.merge(openapi, type: type, action: name)
     end
 
     def self.invalid_input!(message, details:)

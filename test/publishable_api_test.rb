@@ -164,6 +164,50 @@ class PublishableApiTest < Minitest::Test
     assert_equal "recording_studio_api.after_initialize", initializer.before
   end
 
+  def test_override_openapi_changes_one_type_and_leaves_generic_copy
+    with_fake_recording_studio_api do |api|
+      RecordingStudioPublishable::Api.register_capability_action!
+      RecordingStudioPublishable::Api.override_openapi(
+        type: "Article",
+        action: :publish,
+        title: "Article - Publish",
+        description: "Publishes this article now."
+      )
+
+      article = RecordingStudioPublishable::Api.openapi_for(action: :publish, type: "Article")
+      page = RecordingStudioPublishable::Api.openapi_for(action: :publish, type: "Page")
+      registered = registration(api, :publish).fetch(:openapi)
+
+      assert_equal "Article - Publish", article.fetch(:title)
+      assert_equal "Publishes this article now.", article.fetch(:description)
+      assert_equal DESCRIPTIONS.fetch(:publish), page.fetch(:description)
+      refute page.key?(:title)
+      assert_equal DESCRIPTIONS.fetch(:publish), registered.fetch(:description)
+      refute registered.key?(:title)
+      assert_equal SUMMARIES.fetch(:publish), registered.fetch(:summary)
+    end
+  ensure
+    RecordingStudioPublishable::Api.override_openapi(type: "Article", action: :publish)
+  end
+
+  def test_update_contract_carries_approved_field_wording
+    with_fake_recording_studio_api do |api|
+      RecordingStudioPublishable::Api.register_capability_action!
+      fields = registration(api, :update_publishable).fetch(:input_contract).fields
+
+      assert_equal(
+        RecordingStudioPublishable::Api::PublishableSnapshot::FIELDS.dig(:status, :description),
+        fields.dig(:status, :description)
+      )
+      assert_equal(
+        RecordingStudioPublishable::Api::PublishableSnapshot::FIELDS.dig(
+          :social_image_attachment_recording_id, :description
+        ),
+        fields.dig(:social_image_attachment_recording_id, :description)
+      )
+    end
+  end
+
   private
 
   def assert_registered_action(api, name, verb)
@@ -187,10 +231,7 @@ class PublishableApiTest < Minitest::Test
     assert_equal "API access does not have the edit role.", openapi.dig(:responses, "403", :description)
     assert_equal "Publishable input is invalid.", openapi.dig(:responses, "422", :description)
     refute schema.key?(:$ref)
-    %i[
-      id type parent_id root_id created_at updated_at
-      publishable_recording_id status slug seo_title social_title publish_at
-    ].each do |key|
+    RecordingStudioPublishable::Api::PublishableSnapshot.schema_properties.each_key do |key|
       assert properties.key?(key), "OpenAPI 200 schema is missing #{key}"
     end
     assert_equal "string", properties.dig(:id, :type)
@@ -199,7 +240,7 @@ class PublishableApiTest < Minitest::Test
     assert_equal({ type: "string" }, properties.fetch(:publishable_recording_id))
     assert_equal %w[draft published scheduled], properties.dig(:status, :enum)
     assert_equal(
-      "draft, published, or scheduled. scheduled is stored as published and does not itself set publish_at.",
+      RecordingStudioPublishable::Api::PublishableSnapshot::FIELDS.dig(:status, :description),
       properties.dig(:status, :description)
     )
   end
@@ -276,6 +317,7 @@ class PublishableApiTest < Minitest::Test
         @fields = normalized.fetch(:fields)
         @reject_unknown = normalized.fetch(:reject_unknown, true)
       end
+      attr_reader :fields
 
       define_method(:call) do |raw_params|
         evaluator.call(@fields, @reject_unknown, raw_params, result_class)
