@@ -40,8 +40,10 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
 
     assert_includes registered, "RecordingStudioPublishable::Publishable"
     assert_includes registered, "RecordingStudioAttachable::Attachment"
-    assert_includes registered, "RecordingStudioAttachable::Library"
-    assert_includes registered, "RecordingStudioAttachable::Placement"
+    refute_includes registered, "RecordingStudioAttachable::Library"
+    refute_includes registered, "RecordingStudioAttachable::Placement"
+    assert RecordingStudio.configuration.allow_unauthorized_writes
+    refute RecordingStudio.configuration.require_actor
   end
 
   test "admin api recordable is registered without an admin root" do
@@ -175,26 +177,46 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_flatpack_assets_loaded
   end
 
-  test "dummy gemfile pins recording studio 6.1 and dummy-only root switchable" do
+  test "dummy gemfile pins recording studio 6.7 and dummy-only root switchable" do
     gemfile = File.read(Rails.root.join("Gemfile"))
+    root_gemfile = File.read(Rails.root.join("../../Gemfile"))
 
-    assert_includes gemfile, 'tag: "v6.1.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.21.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.1"'
-    assert_includes gemfile, '">= 0.1.341"'
-    assert_includes gemfile, 'tag: "v0.1.341"'
+    assert_includes gemfile, 'tag: "v6.7.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.31.0"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.22.4"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"'
+    assert_includes gemfile, '">= 0.1.331"'
+    assert_includes gemfile, 'tag: "v0.1.356"'
     assert_includes gemfile, 'tag: "v0.23.0"'
-    assert_includes gemfile, 'tag: "v2.5.1"'
+    assert_includes gemfile, 'tag: "v2.13.0"'
+    assert_includes gemfile, 'tag: "v0.2.2"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.4"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.1"'
+    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1"'
     assert_includes gemfile,
-                    'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.0"'
+                    'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.15.0"'
     refute File.exist?(Rails.root.join("config/initializers/flatpack_removed_kwargs.rb"))
+    refute File.exist?(Rails.root.join("../support/widen_recording_studio_requirement.rb"))
+    refute_includes gemfile, "widen_recording_studio_requirement"
     assert_includes gemfile,
                     'github: "bowerbird-app/RecordingStudio_metrics",'
-    assert_includes gemfile, 'tag: "v0.6.1", require: false'
+    assert_includes gemfile, 'tag: "v0.8.0", require: false'
     assert_includes gemfile,
                     'github: "bowerbird-app/RecordingStudio_trashable",'
-    assert_includes gemfile, 'tag: "v0.11.3", require: false'
+    assert_includes gemfile, 'tag: "v0.14.0", require: false'
+    assert_includes root_gemfile, 'tag: "v6.7.0"'
+    assert_includes root_gemfile, 'tag: "v0.23.0"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.7.4"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v4.1.1"'
+    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1"'
+    assert_includes root_gemfile, 'tag: "v0.1.356"'
+    assert_includes root_gemfile, 'tag: "v0.31.0"'
+    assert_includes root_gemfile, 'tag: "v0.22.4"'
+    assert_includes root_gemfile, 'tag: "v0.6.3"'
+    assert_includes root_gemfile, 'tag: "v0.8.0", require: false'
+    assert_includes root_gemfile, 'tag: "v0.15.0"'
+    assert_includes root_gemfile, 'tag: "v0.14.0", require: false'
+    refute_includes root_gemfile, "widen_recording_studio_requirement"
   end
 
   private

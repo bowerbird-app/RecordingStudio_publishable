@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Development and dummy Gemfiles pin Recording Studio `v6.7.0`, Flatpack `v0.1.356`, Accessible `v0.31.0`, Attachable `v0.22.4`, Cache `v0.6.3`, Metrics `v0.8.0`, Root Switchable `v0.15.0`, and Trashable `v0.14.0`. Development also pins API `v0.23.0`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1` so Bundler can resolve the gemspec's `recording_studio_api` `~> 0.23`. The dummy also pins API `v0.23.0`, Admin `v2.13.0`, Internationalization `v0.2.2`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`.
+- Removed `test/support/widen_recording_studio_requirement.rb`. These pins accept Recording Studio 6.x. Internationalization `v0.1.2` still required `recording_studio` `~> 4.2`, so the dummy pins `v0.2.2` (`>= 6.1`, `< 7`). Gemspec floors are unchanged except Recording Studio API `~> 0.23`.
+- The dummy no longer registers `RecordingStudioAttachable::Library` or `Placement`. Attachable 0.18.0 moved those types out of the gem.
+- The dummy sets `config.allow_unauthorized_writes` so Recording Studio 6.5 still accepts the test host's open writes.
+
 ## [0.15.0] - 2026-11-13
 
 ### Added
