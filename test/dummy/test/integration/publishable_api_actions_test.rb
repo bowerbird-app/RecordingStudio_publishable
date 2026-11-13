@@ -87,6 +87,27 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "openapi document uses per-type publish copy when overridden" do
+    register_page_api!
+    RecordingStudioPublishable::Api.override_openapi(
+      type: "Article",
+      action: :publish,
+      title: "Article - Publish",
+      description: "Publishes this article now."
+    )
+
+    article = openapi_operation(PUBLISH_PATH, "post")
+    page = openapi_operation("/recording_studio_api/api/v1/pages/{id}/actions/publish", "post")
+
+    assert_equal "Article - Publish", article[:title] || article["title"]
+    assert_equal "Publishes this article now.", article[:description] || article["description"]
+    assert_equal "Publish", page[:summary] || page["summary"]
+    assert_equal "Publish the parent recording now.", page[:description] || page["description"]
+    assert_nil page[:title] || page["title"]
+  ensure
+    RecordingStudioPublishable::Api.override_openapi(type: "Article", action: :publish)
+  end
+
   test "update_publishable openapi fields use the approved wording" do
     properties = openapi_request_properties(
       "/recording_studio_api/api/v1/articles/{id}/actions/update_publishable",
@@ -207,6 +228,13 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
   def register_article_api!
     RecordingStudioApi.register_recordable_type_api(
       "Article",
+      capability_actions: %i[publish unpublish update_publishable]
+    )
+  end
+
+  def register_page_api!
+    RecordingStudioApi.register_recordable_type_api(
+      "Page",
       capability_actions: %i[publish unpublish update_publishable]
     )
   end

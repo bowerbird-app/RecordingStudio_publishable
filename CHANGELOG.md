@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.15.0] - 2026-11-13
 
 ### Added
-- `RecordingStudioPublishable::Api.override_openapi(type:, action:, title:, description:)` sets OpenAPI title and description for one recordable type without changing Publishable's shared `ACTIONS` copy or other types. `Api.openapi_for(action:, type:)` returns the merged document for that type.
+- `RecordingStudioPublishable::Api.override_openapi(type:, action:, title:, description:)` sets OpenAPI title and description for one recordable type without changing Publishable's shared `ACTIONS` copy or other types. `Api.openapi_for(action:, type:)` returns the merged document for that type. Capability actions pass that lookup as `openapi_for:` so Recording Studio API 0.23+ OpenAPI and MCP catalogs use the per-type copy.
 
 ### Changed
 - `publish` on a parent that is already live returns the existing publishable child and leaves `publish_at` and `unpublish_at` unchanged.
@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade Notes
 - Install Publishable `0.15.0`. No migration.
 - Repeat `publish` on a live recording is now a no-op. Repeat `unpublish` on an unpublished recording is now a no-op, including when there is no publishable child. `update_publishable` still revises on an empty or unchanged call.
-- Hosts that need type-specific OpenAPI title and description call `RecordingStudioPublishable::Api.override_openapi` after the gem registers its actions. Shared `ACTIONS` copy stays generic.
+- Hosts that need type-specific OpenAPI title and description call `RecordingStudioPublishable::Api.override_openapi` after the gem registers its actions. Shared `ACTIONS` copy stays generic. Recording Studio API must be `~> 0.23` so OpenAPI and the MCP catalog merge that overlay.
 
 ## [0.14.0] - 2026-11-12
 

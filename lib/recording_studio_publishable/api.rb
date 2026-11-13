@@ -128,7 +128,8 @@ module RecordingStudioPublishable
             handler: Perform::Bound.new(action_name),
             serializer: PublishableSnapshot,
             input_contract: contracts.fetch(spec.fetch(:contract)),
-            openapi: Contracts.openapi_for(spec)
+            openapi: Contracts.openapi_for(spec),
+            openapi_for: ->(type:, action:) { Api.openapi_for(action: action, type: type) }
           )
         end
 

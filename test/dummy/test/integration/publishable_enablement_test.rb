@@ -182,9 +182,9 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.21.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.15.0"'
     assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.5.1"'
-    assert_includes gemfile, '">= 0.1.331"'
-    assert_includes gemfile, 'tag: "v0.1.331"'
-    assert_includes gemfile, 'tag: "v0.7.0"'
+    assert_includes gemfile, '">= 0.1.341"'
+    assert_includes gemfile, 'tag: "v0.1.341"'
+    assert_includes gemfile, 'tag: "v0.23.0"'
     assert_includes gemfile, 'tag: "v2.5.1"'
     assert_includes gemfile,
                     'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.11.0"'

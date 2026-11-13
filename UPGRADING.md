@@ -2,7 +2,7 @@
 
 ## 0.15.0 — Publishable OpenAPI overrides and transition no-ops
 
-Install `recording_studio_publishable` 0.15.0. No migration.
+Install `recording_studio_publishable` 0.15.0 and Recording Studio API `~> 0.23`. No migration.
 
 `publish` on a recording that is already live returns the existing child and does not restamp `publish_at` or clear `unpublish_at`. `unpublish` on a recording that is already draft and not scheduled does not write, does not bump `updated_at`, and does not create a publishable child. A scheduled recording still unpublished to draft with both times cleared. `update_publishable` is unchanged: an empty or identical payload still saves.
 
@@ -17,7 +17,7 @@ RecordingStudioPublishable::Api.override_openapi(
 )
 ```
 
-`Api.openapi_for(action: :publish, type: "PressKit")` returns that type's document. Other types keep the generic Publishable strings. The 200 response stays `PublishableSnapshot`.
+`Api.openapi_for(action: :publish, type: "PressKit")` returns that type's document. Other types keep the generic Publishable strings. The 200 response stays `PublishableSnapshot`. Recording Studio API `~> 0.23` merges that overlay into OpenAPI and the MCP catalog.
 
 ## 0.14.0 — Public share button
 
