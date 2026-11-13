@@ -8,9 +8,7 @@ recordable_types = [
   "Page",
   "Article",
   "RecordingStudioPublishable::Publishable",
-  "RecordingStudioAttachable::Attachment",
-  "RecordingStudioAttachable::Library",
-  "RecordingStudioAttachable::Placement"
+  "RecordingStudioAttachable::Attachment"
 ]
 if defined?(RecordingStudioApi::Engine)
   recordable_types << RecordingStudioApi::Engine::ADMIN_API_RECORDABLE_TYPE_NAME
@@ -19,6 +17,9 @@ end
 RecordingStudio.configure do |config|
   config.recordable_types = recordable_types
   config.require_recordable_declarations = true
+  # Recording Studio 6.5 denies writes unless authorize_write is set.
+  # The dummy keeps the previous open writes used by the test host.
+  config.allow_unauthorized_writes = true
   config.app_name = "Publishable Demo" if config.respond_to?(:app_name=)
   config.actor = -> { Current.actor }
   config.impersonator = -> { Current.impersonator }
