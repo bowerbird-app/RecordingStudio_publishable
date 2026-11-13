@@ -21,7 +21,7 @@ Trashable is optional. Publishable does not depend on it. Query SQL only mention
 
 Requires PostgreSQL 16+.
 
-Add the gems to your host app. This addon requires Recording Studio 6.1.0 or newer, Flatpack 0.1.331 or newer, and ViewComponent 4.14 or newer (below 5):
+Add the gems to your host app. This addon requires Recording Studio 6.1.0 or newer, Recording Studio API 0.23 or newer, Flatpack 0.1.331 or newer, and ViewComponent 4.14 or newer (below 5):
 
 ```ruby
 gem "recording_studio"
@@ -273,9 +273,24 @@ A change from this control stays on the host page. With Turbo, the wrapper stays
 
 ## Recording Studio API
 
-`recording_studio_api` is optional. This gem does not depend on it.
+`recording_studio_api` `~> 0.23` is required so per-type OpenAPI copy reaches OpenAPI and the MCP catalog. Publishable still only registers the actions when `RecordingStudioApi` is loaded.
 
 Publishable registers capability actions only when `RecordingStudioApi` is available. The actions are `publish`, `unpublish`, and `update_publishable`. Loading this gem does not enable them on a parent type. You opt in with `capability_actions`. The handlers write as `access_grant.actor`, the Accessible actor on the token's grant. Host `authorize_write` policies that check that actor see the person (or client) with the grant. A write that policy denies raises `InvalidActionInputError`. Recording Studio API rejects a token whose grant has no actor before the handler runs.
+
+`publish` on an already live parent succeeds and leaves `publish_at` and `unpublish_at` unchanged. `unpublish` on an already draft, unscheduled parent succeeds with no write. It does not create a publishable child when none exists. A scheduled parent still unpublished to draft. `update_publishable` still saves when the payload is empty or unchanged.
+
+A host can override OpenAPI title and description for one recordable type without changing other types or the shared `ACTIONS` copy:
+
+```ruby
+RecordingStudioPublishable::Api.override_openapi(
+  type: "PressKit",
+  action: :publish,
+  title: "Press Kit - Publish",
+  description: "Publishes this press kit so visitors can see the live page."
+)
+```
+
+`Api.openapi_for(action: :publish, type: "PressKit")` is the merged document for that type. The capability actions pass that lookup to Recording Studio API as `openapi_for:`. The 200 body is still `PublishableSnapshot`.
 
 ```ruby
 RecordingStudioApi.register_recordable_type_api(
@@ -317,7 +332,7 @@ The social image id must be an image attachment recording that is a direct child
 - `social_description`
 - `social_image_attachment_recording_id`
 
-`status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
+`status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. Field wording for these inputs lives in `PublishableSnapshot::FIELDS`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
 
 ## Lifecycle notifications
 
@@ -422,7 +437,7 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v6.7.0`, Accessible `v0.31.0` (Trashable `v0.14.0` query-only, `require: false`), API `v0.22.1`, Admin `v2.13.0`, Attachable `v0.22.4`, Metrics `v0.8.0` (`require: false`), Flatpack `v0.1.356`, dummy-only Root Switchable `v0.15.0` (with Cache `v0.6.3`), and dummy-only Recording Studio Internationalization `v0.2.2`. API and Admin also need Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`. Those three are not on RubyGems, so the dummy Gemfile names their GitHub tags. API, Admin, Trashable, and Internationalization are dummy-only. The gemspec requires Recording Studio `~> 6.1`, `>= 6.1.0`, Flatpack `>= 0.1.331`, and ViewComponent `>= 4.14`, `< 5`. It does not depend on those dummy-only gems. These pins accept Recording Studio 6.x, including `v6.7.0`, so the Gemfiles do not widen that requirement. Recording Studio 6.5 denies a write unless `config.authorize_write` is set. The dummy sets `config.allow_unauthorized_writes` so the test host keeps the previous open writes. Internationalization `v0.1.2` required `recording_studio` `~> 4.2`. Dummy tests still switch English and French, so the dummy pins `v0.2.2` (`>= 6.1`, `< 7`) instead. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable `v0.22.4` keeps attachment migrations through presentation fields and `root_recording_id`. Image libraries and placements left Attachable in 0.18.0, so the dummy does not register `Library` or `Placement`. Dummy offers English and French. The language selector sits in the top nav on the dummy's own screens, to the left of the workspace switcher. Publish, success, preview, and public screens omit it. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
+The dummy host at `test/dummy` pins Recording Studio `v6.7.0`, Accessible `v0.31.0` (Trashable `v0.14.0` query-only, `require: false`), API `v0.23.0`, Admin `v2.13.0`, Attachable `v0.22.4`, Metrics `v0.8.0` (`require: false`), Flatpack `v0.1.356`, dummy-only Root Switchable `v0.15.0` (with Cache `v0.6.3`), and dummy-only Recording Studio Internationalization `v0.2.2`. API and Admin also need Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`. Those three are not on RubyGems, so the dummy Gemfile names their GitHub tags. Admin, Trashable, and Internationalization are dummy-only. The gemspec requires Recording Studio `~> 6.1`, `>= 6.1.0`, Recording Studio API `~> 0.23`, Flatpack `>= 0.1.331`, and ViewComponent `>= 4.14`, `< 5`. It does not depend on those dummy-only gems. These pins accept Recording Studio 6.x, including `v6.7.0`, so the Gemfiles do not widen that requirement. Recording Studio 6.5 denies a write unless `config.authorize_write` is set. The dummy sets `config.allow_unauthorized_writes` so the test host keeps the previous open writes. Internationalization `v0.1.2` required `recording_studio` `~> 4.2`. Dummy tests still switch English and French, so the dummy pins `v0.2.2` (`>= 6.1`, `< 7`) instead. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable `v0.22.4` keeps attachment migrations through presentation fields and `root_recording_id`. Image libraries and placements left Attachable in 0.18.0, so the dummy does not register `Library` or `Placement`. Dummy offers English and French. The language selector sits in the top nav on the dummy's own screens, to the left of the workspace switcher. Publish, success, preview, and public screens omit it. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 

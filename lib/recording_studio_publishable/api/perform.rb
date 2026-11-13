@@ -54,7 +54,7 @@ module RecordingStudioPublishable
 
         def success_outcome(context, result)
           child = result.value
-          Outcome.new(parent: context.recording, child_recording: child, publishable: child.recordable)
+          Outcome.new(parent: context.recording, child_recording: child, publishable: child&.recordable)
         end
 
         def failure_details(result, message)

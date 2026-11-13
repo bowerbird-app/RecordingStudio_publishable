@@ -7,7 +7,7 @@ gem "recording_studio_publishable", path: "../.."
 gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.7.0"
 gem "view_component", "4.19.0"
 gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.31.0"
-gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v0.22.1"
+gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v0.23.0"
 gem "recording_studio_admin", github: "bowerbird-app/RecordingStudio_admin", tag: "v2.13.0"
 gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable",
                                   tag: "v0.14.0", require: false

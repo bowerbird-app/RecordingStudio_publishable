@@ -185,6 +185,85 @@ module RecordingStudioPublishable
         assert_equal "API access grant is not authorized for this capability", error.message
       end
 
+      test "a second publish on a live parent leaves publish times unchanged" do
+        freeze_time do
+          perform(:publish)
+          perform(:update_publishable, params: { unpublish_at: 1.day.from_now.iso8601, time_zone: "UTC" })
+          publishable = @parent_recording.reload.current_publishable
+          publish_at = publishable.publish_at
+          unpublish_at = publishable.unpublish_at
+          updated_at = publishable.updated_at
+
+          travel 1.minute
+          outcome = perform(:publish)
+
+          assert_equal publish_at, outcome.publishable.publish_at
+          assert_equal unpublish_at, outcome.publishable.unpublish_at
+          assert_equal updated_at, outcome.publishable.updated_at
+          assert outcome.publishable.currently_published?
+        end
+      end
+
+      test "a second unpublish on a draft parent leaves the child unchanged" do
+        freeze_time do
+          perform(:update_publishable, params: { slug: "held" })
+          publishable = @parent_recording.reload.current_publishable
+          updated_at = publishable.updated_at
+          child_id = @parent_recording.publishable_child_recording.id
+
+          travel 1.minute
+          outcome = perform(:unpublish)
+
+          assert_equal "draft", outcome.publishable.status
+          assert_nil outcome.publishable.publish_at
+          assert_nil outcome.publishable.unpublish_at
+          assert_equal updated_at, outcome.publishable.updated_at
+          assert_equal child_id, outcome.child_recording.id
+        end
+      end
+
+      test "unpublish on a parent with no publishable child does not create one" do
+        count = RecordingStudioPublishable::Publishable.count
+
+        outcome = perform(:unpublish)
+
+        assert_nil outcome.child_recording
+        assert_nil outcome.publishable
+        assert_nil @parent_recording.reload.current_publishable
+        assert_equal count, RecordingStudioPublishable::Publishable.count
+        assert_equal [@parent_recording.id.to_s, "draft"], snapshot_id_and_status(outcome)
+        assert_nil PublishableSnapshot.call(outcome).fetch(:publishable_recording_id)
+      end
+
+      test "unpublish of a scheduled parent clears status and times" do
+        perform(:update_publishable, params: {
+                  slug: "later",
+                  status: "scheduled",
+                  publish_at: "2099-12-01T15:00",
+                  time_zone: "UTC"
+                })
+
+        outcome = perform(:unpublish)
+
+        assert_equal "draft", outcome.publishable.status
+        assert_nil outcome.publishable.publish_at
+        assert_nil outcome.publishable.unpublish_at
+        assert_equal [@parent_recording.id.to_s, "draft"], snapshot_id_and_status(outcome)
+      end
+
+      test "an empty update_publishable still saves" do
+        freeze_time do
+          perform(:update_publishable, params: { slug: "held" })
+          updated_at = @parent_recording.reload.current_publishable.updated_at
+
+          travel 1.minute
+          outcome = perform(:update_publishable, params: {})
+
+          assert_equal "held", outcome.publishable.slug
+          assert_operator outcome.publishable.updated_at, :>, updated_at
+        end
+      end
+
       test "performer rejects a publishable child recording" do
         child = perform(:publish).child_recording
         count = RecordingStudioPublishable::Publishable.count

@@ -76,6 +76,137 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
     assert_nil @article.current_publishable.publish_at
   end
 
+  test "openapi unpublish and update_publishable 200 schemas include the snapshot keys" do
+    unpublish = openapi_properties("/recording_studio_api/api/v1/articles/{id}/actions/unpublish", "post")
+    update = openapi_properties("/recording_studio_api/api/v1/articles/{id}/actions/update_publishable", "patch")
+    keys = RecordingStudioPublishable::Api::PublishableSnapshot.schema_properties.keys.map(&:to_s)
+
+    keys.each do |key|
+      assert unpublish.key?(key), "OpenAPI unpublish response is missing #{key}"
+      assert update.key?(key), "OpenAPI update_publishable response is missing #{key}"
+    end
+  end
+
+  test "openapi document uses per-type publish copy when overridden" do
+    register_page_api!
+    RecordingStudioPublishable::Api.override_openapi(
+      type: "Article",
+      action: :publish,
+      title: "Article - Publish",
+      description: "Publishes this article now."
+    )
+
+    article = openapi_operation(PUBLISH_PATH, "post")
+    page = openapi_operation("/recording_studio_api/api/v1/pages/{id}/actions/publish", "post")
+
+    assert_equal "Article - Publish", article[:title] || article["title"]
+    assert_equal "Publishes this article now.", article[:description] || article["description"]
+    assert_equal "Publish", page[:summary] || page["summary"]
+    assert_equal "Publish the parent recording now.", page[:description] || page["description"]
+    assert_nil page[:title] || page["title"]
+  ensure
+    RecordingStudioPublishable::Api.override_openapi(type: "Article", action: :publish)
+  end
+
+  test "update_publishable openapi fields use the approved wording" do
+    properties = openapi_request_properties(
+      "/recording_studio_api/api/v1/articles/{id}/actions/update_publishable",
+      "patch"
+    )
+
+    assert_equal(
+      RecordingStudioPublishable::Api::PublishableSnapshot::FIELDS.dig(:status, :description),
+      properties.dig("status", "description") || properties.dig("status", :description)
+    )
+    assert_equal(
+      RecordingStudioPublishable::Api::PublishableSnapshot::FIELDS.dig(
+        :social_image_attachment_recording_id, :description
+      ),
+      properties.dig("social_image_attachment_recording_id", "description") ||
+        properties.dig("social_image_attachment_recording_id", :description)
+    )
+  end
+
+  test "a second publish on a live article leaves publish times unchanged" do
+    freeze_time do
+      post action_path(@article, "publish"), headers: bearer_headers, as: :json
+      assert_response :success
+      patch action_path(@article, "update_publishable"),
+            params: { unpublish_at: 1.day.from_now.iso8601, time_zone: "UTC" },
+            headers: bearer_headers,
+            as: :json
+      assert_response :success
+      publishable = @article.reload.current_publishable
+      publish_at = publishable.publish_at
+      unpublish_at = publishable.unpublish_at
+
+      travel 1.minute
+      post action_path(@article, "publish"), headers: bearer_headers, as: :json
+
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal "published", body.fetch("status")
+      assert_equal publish_at.to_i, Time.iso8601(body.fetch("publish_at")).to_i
+      assert_equal unpublish_at.to_i, Time.iso8601(body.fetch("unpublish_at")).to_i
+      assert_equal publish_at, @article.reload.current_publishable.publish_at
+      assert_equal unpublish_at, @article.current_publishable.unpublish_at
+    end
+  end
+
+  test "a second unpublish on a draft article does not write" do
+    freeze_time do
+      patch action_path(@article, "update_publishable"),
+            params: { slug: "held" },
+            headers: bearer_headers,
+            as: :json
+      assert_response :success
+      publishable = @article.reload.current_publishable
+      updated_at = publishable.updated_at
+      child_id = @article.publishable_child_recording.id
+
+      travel 1.minute
+      post action_path(@article, "unpublish"), headers: bearer_headers, as: :json
+
+      assert_response :success
+      body = JSON.parse(response.body)
+      assert_equal "draft", body.fetch("status")
+      assert_nil body.fetch("publish_at")
+      assert_equal updated_at, @article.reload.current_publishable.updated_at
+      assert_equal child_id, @article.publishable_child_recording.id
+    end
+  end
+
+  test "unpublish without a publishable child does not create one" do
+    count = RecordingStudioPublishable::Publishable.count
+
+    post action_path(@article, "unpublish"), headers: bearer_headers, as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal @article.id, body.fetch("id")
+    assert_equal "draft", body.fetch("status")
+    assert_nil body.fetch("publishable_recording_id")
+    assert_nil @article.reload.current_publishable
+    assert_equal count, RecordingStudioPublishable::Publishable.count
+  end
+
+  test "an empty update_publishable still saves" do
+    freeze_time do
+      patch action_path(@article, "update_publishable"),
+            params: { slug: "held" },
+            headers: bearer_headers,
+            as: :json
+      assert_response :success
+      updated_at = @article.reload.current_publishable.updated_at
+
+      travel 1.minute
+      patch action_path(@article, "update_publishable"), params: {}, headers: bearer_headers, as: :json
+
+      assert_response :success
+      assert_operator @article.reload.current_publishable.updated_at, :>, updated_at
+    end
+  end
+
   test "patch update_publishable writes seo and social titles" do
     patch action_path(@article, "update_publishable"),
           params: { seo_title: "Launch", social_title: "Share launch" },
@@ -101,6 +232,13 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
     )
   end
 
+  def register_page_api!
+    RecordingStudioApi.register_recordable_type_api(
+      "Page",
+      capability_actions: %i[publish unpublish update_publishable]
+    )
+  end
+
   def action_path(recording, action_name)
     path = recording_studio_api.api_v1_resource_action_path("articles", recording.id, action_name)
     assert_equal "/recording_studio_api/api/v1/articles/#{recording.id}/actions/#{action_name}", path
@@ -112,14 +250,26 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
   end
 
   def openapi_properties(path, verb)
+    openapi_operation(path, verb).dig(:responses, "200", "content", "application/json", "schema", "properties")
+  end
+
+  def openapi_request_properties(path, verb)
+    openapi_operation(path, verb).dig(
+      :requestBody, :content, "application/json", :schema, :properties
+    ) || openapi_operation(path, verb).dig(
+      "requestBody", "content", "application/json", "schema", "properties"
+    )
+  end
+
+  def openapi_operation(path, verb)
     document = RecordingStudioApi.openapi_document
-    operation = document.dig(:paths, path, verb)
+    operation = document.dig(:paths, path, verb) || document.dig(:paths, path, verb.to_sym)
     if operation.nil?
       known = document.fetch(:paths).keys.grep(/publish/)
       flunk("missing OpenAPI operation #{verb} #{path}. publish paths: #{known.join(', ')}")
     end
 
-    operation.dig(:responses, "200", "content", "application/json", "schema", "properties")
+    operation
   end
 
   def owner_access(recording)
