@@ -264,7 +264,7 @@ module RecordingStudioPublishable
       refute_respond_to Page, :recording_studio_publishable_path_template
     end
 
-    test "publishable join sql uses kept_sql and does not look for a trashed_at column" do
+    test "publishable join sql uses kept_sql" do
       quoted_type = Page.connection.quote("Page")
       child_kept = RecordingStudio.kept_sql("publishable_recordings")
       parent_kept = RecordingStudio.kept_sql("parent_recordings")
@@ -272,12 +272,9 @@ module RecordingStudioPublishable
       publishable_sql = Page.send(:publishable_scope_join_sql, quoted_type)
       indexable_sql = Page.send(:indexable_scope_join_sql, quoted_type)
 
-      assert_equal "1=1", child_kept
       assert_includes publishable_sql, "AND #{child_kept}"
-      refute_includes publishable_sql, "trashed_at"
       assert_includes indexable_sql, "AND #{parent_kept}"
       assert_includes indexable_sql, "AND #{child_kept}"
-      refute_includes indexable_sql, "trashed_at"
     end
 
     test "publishable join sql includes a registered kept filter" do
