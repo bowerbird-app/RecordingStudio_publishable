@@ -107,14 +107,16 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     end
   end
 
-  test "renders nothing for a trashed publishable child" do
+  test "renders nothing when kept excludes the publishable child" do
     recording = publish_page("Trashed share", slug: "trashed-share")
-    child = recording.publishable_child_recording
-    RecordingStudio::Recording.where(id: child.id).update_all(trashed_at: Time.current)
-    recording.reload
+    with_trashed_kept_filter do
+      child = recording.publishable_child_recording
+      RecordingStudio::Recording.where(id: child.id).update_all(trashed_at: Time.current)
+      recording.reload
 
-    refute recording.currently_published?
-    assert_empty share_html(recording)
+      refute recording.currently_published?
+      assert_empty share_html(recording)
+    end
   end
 
   test "renders nothing for a recording that is not publishable" do
@@ -279,10 +281,12 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
       unpublish_at: Time.current
     )
     trashed = publish_page("Trashed modal", slug: "trashed-modal")
-    RecordingStudio::Recording.where(id: trashed.publishable_child_recording.id).update_all(trashed_at: Time.current)
+    with_trashed_kept_filter do
+      RecordingStudio::Recording.where(id: trashed.publishable_child_recording.id).update_all(trashed_at: Time.current)
 
-    [draft, future, expired, trashed.reload].each do |recording|
-      assert_empty share_html(recording, mode: :modal)
+      [draft, future, expired, trashed.reload].each do |recording|
+        assert_empty share_html(recording, mode: :modal)
+      end
     end
   end
 
@@ -325,6 +329,16 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
       parent_recording: recording,
       attributes: attributes
     ).value!
+  end
+
+  def with_trashed_kept_filter
+    RecordingStudio.register_recording_filter(
+      :trashed,
+      sql: ->(table) { "#{table}.trashed_at IS NULL" }
+    ) { |recordings| recordings.where(trashed_at: nil) }
+    yield
+  ensure
+    RecordingStudio.unregister_recording_filter(:trashed)
   end
 
   def share_html(recording, **)

@@ -1,5 +1,15 @@
 # Upgrading
 
+## 0.16.0 — Kept recordings
+
+Install `recording_studio_publishable` 0.16.0 and Recording Studio `6.14.0` or newer. No migration.
+
+Publish queries call `RecordingStudio::Recording.kept` and `RecordingStudio.kept_sql`. `RecordingStudioPublishable::TrashedAt` is gone. Publishable does not check for a `trashed_at` column and does not write its own `trashed_at IS NULL` SQL.
+
+Core registers no filters, so `kept` matches every recording until an addon registers one. A Trashable release that registers a kept filter is what hides trashed recordings. This gem does not require `recording_studio_trashable` `>= 0.16.0`, because that version is not tagged. Hosts keep their current Trashable pin.
+
+The unique publishable-child index is unchanged. `PublishableChildIndex::V1` still adds `trashed_at IS NULL` to that index only when the column is already on `recording_studio_recordings`.
+
 ## 0.15.0 — Publishable OpenAPI overrides and transition no-ops
 
 Install `recording_studio_publishable` 0.15.0 and Recording Studio API `~> 0.23`. No migration.

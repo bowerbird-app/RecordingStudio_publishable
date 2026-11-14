@@ -16,11 +16,9 @@ module RecordingStudioPublishable
       uuid = params[:uuid].presence
       return unless uuid
 
-      RecordingStudio::Recording.find_by(
-        RecordingStudioPublishable::TrashedAt.merge_active(
-          id: uuid,
-          recordable_type: RecordingStudioPublishable::Publishable.name
-        )
+      RecordingStudio::Recording.kept.find_by(
+        id: uuid,
+        recordable_type: RecordingStudioPublishable::Publishable.name
       )
     end
   end

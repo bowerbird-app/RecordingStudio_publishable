@@ -5,12 +5,7 @@ require "active_support/concern"
 module RecordingStudioPublishable
   module RecordingExtensions
     def publishable_child_recording
-      relation = child_recordings.of_type(RecordingStudioPublishable::Publishable)
-      if RecordingStudioPublishable::TrashedAt.column? && relation.respond_to?(:where)
-        relation = relation.where(trashed_at: nil)
-      end
-
-      relation.first
+      child_recordings.kept.of_type(RecordingStudioPublishable::Publishable).first
     end
 
     def current_publishable
