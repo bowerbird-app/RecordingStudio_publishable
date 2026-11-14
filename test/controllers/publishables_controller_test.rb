@@ -6,6 +6,7 @@ require_relative "../dummy/config/environment"
 
 require "cgi"
 require "nokogiri"
+require "open3"
 require "devise/test/integration_helpers"
 require "rails/test_help"
 
@@ -17,7 +18,8 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
   setup do
     @original_close_url_resolver = RecordingStudioPublishable.configuration.management_close_url_resolver
 
-    @user = User.find_or_create_by!(email: "publishables-test@example.com") do |user|
+    email = ENV.fetch("PUBLISHABLES_CONTROLLER_TEST_EMAIL", "publishables-test@example.com")
+    @user = User.find_or_create_by!(email: email) do |user|
       user.password = TEST_PASSWORD
       user.password_confirmation = TEST_PASSWORD
     end
@@ -599,6 +601,72 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "70", wrapper["data-flat-pack--text-input-max-characters-value"]
   end
 
+  test "social form does not reference rails active storage routes" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: { slug: "spring-release-notes" }
+    ).value!
+    attachment_recording = create_social_image_attachment!(publishable_recording)
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: {
+        slug: "spring-release-notes",
+        social_image_attachment_recording_id: attachment_recording.id
+      }
+    ).value!
+
+    get social_path_for(parent_recording)
+
+    assert_response :success
+    direct_upload_path = recording_studio_attachable.recording_direct_uploads_path(publishable_recording)
+    preview_path = recording_studio_attachable.attachment_preview_file_path(
+      attachment_recording,
+      variant_name: :social_share
+    )
+    assert_includes response.body, %(direct-upload-url-value="#{direct_upload_path}")
+    assert_includes response.body, %(src="#{preview_path}")
+    refute_includes response.body, "/rails/active_storage/direct_uploads"
+    refute_includes response.body, "/rails/active_storage/blobs"
+  end
+
+  test "social page renders when active storage routes are not drawn" do
+    if ENV["ACTIVE_STORAGE_DRAW_ROUTES"] == "false"
+      paths = Rails.application.routes.routes.map { |route| route.path.spec.to_s }
+      assert(paths.none? { |path| path.include?("/rails/active_storage") })
+
+      parent_recording = build_publishable_parent(title: "Spring Release Notes")
+
+      get social_path_for(parent_recording)
+
+      assert_response :success
+      publishable_recording = parent_recording.reload.publishable_child_recording
+      assert_includes response.body, recording_studio_attachable.recording_direct_uploads_path(publishable_recording)
+      refute_includes response.body, "/rails/active_storage/direct_uploads"
+      refute_includes response.body, "/rails/active_storage/blobs"
+      return
+    end
+
+    env = ENV.to_h.merge(
+      "ACTIVE_STORAGE_DRAW_ROUTES" => "false",
+      "DISABLE_SIMPLECOV" => "true",
+      "PUBLISHABLES_CONTROLLER_TEST_EMAIL" => "publishables-routes-off@example.com"
+    )
+    load_path = File.expand_path("..", __dir__)
+    output, status = Open3.capture2e(
+      env,
+      RbConfig.ruby,
+      "-I#{load_path}",
+      __FILE__,
+      "-i",
+      "test_social_page_renders_when_active_storage_routes_are_not_drawn"
+    )
+
+    assert_predicate status, :success?, output
+  end
+
   test "search title counter shows a stored value past the limit" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
     over_limit = "x" * 73
@@ -789,6 +857,18 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
   def hub_list_titles
     Nokogiri::HTML(response.body).css("[role=listitem] p.font-medium").map { |node| node.text.strip }
+  end
+
+  def create_social_image_attachment!(publishable_recording)
+    blob = ActiveStorage::Blob.create_and_upload!(
+      io: StringIO.new("image-bytes"),
+      filename: "hero.png",
+      content_type: "image/png"
+    )
+    attachment = RecordingStudioAttachable::Attachment.build_from_blob(blob: blob, name: "Hero image")
+    attachment.save!
+
+    RecordingStudio::Recording.create!(recordable: attachment, parent_recording: publishable_recording)
   end
 
   def build_publishable_parent(title:)

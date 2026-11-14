@@ -36,6 +36,10 @@ Rails.application.configure do
   # Store uploaded files on the local file system in a temporary directory.
   config.active_storage.service = :test
 
+  # The social form uses Attachable's upload and preview routes. A focused
+  # test boots with this set so Rails' public direct-upload routes stay off.
+  config.active_storage.draw_routes = ENV["ACTIVE_STORAGE_DRAW_ROUTES"] != "false"
+
   # Tell Action Mailer not to deliver emails to the real world.
   # The :test delivery method accumulates sent emails in the
   # ActionMailer::Base.deliveries array.

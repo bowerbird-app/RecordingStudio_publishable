@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.17.0] - 2026-11-14
+
+### Security
+- The social image picker uploads through Attachable's `recording_direct_uploads_path`, which authorizes `:upload` and runs `DirectUpload.prepare!`. The current preview uses `attachment_preview_file_path` with the `social_share` variant, the same helper as `resolved_social_image_url`. The social form no longer references `/rails/active_storage/direct_uploads` or `/rails/active_storage/blobs`.
+- The dummy upload page uses `recording_direct_uploads_path` for the same direct-upload endpoint.
+
+### Upgrade Notes
+- Install Publishable `0.17.0`. No migration. Active Storage tables are still required for attachment bytes. This gem does not add an Attachable dependency.
+- Hosts that copied `publishables/social` should point the image picker `direct-upload-url` at `recording_studio_attachable.recording_direct_uploads_path(publishable_recording)` and the preview `src` at `recording_studio_attachable.attachment_preview_file_path(attachment_recording, variant_name: :social_share)`.
+- After every screen stops calling `rails_direct_uploads_path` and `rails_blob_path`, set `config.active_storage.draw_routes = false` so signed-out visitors cannot create blobs through Rails' default direct-upload route.
+
 ## [0.16.0] - 2026-11-14
 
 ### Changed

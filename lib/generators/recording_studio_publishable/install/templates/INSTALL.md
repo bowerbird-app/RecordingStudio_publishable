@@ -10,7 +10,7 @@ Next steps:
 6. Mount the engine at `/` if you want the default public route `/published/:uuid/:slug`.
 7. Enable Publishable on each recordable type with `include RecordingStudio::Capabilities::Publishable.to(**opts)`.
 8. Run `bin/rails tailwindcss:build` if you use Tailwind CSS.
-9. If you want to upload `social_image`, install Active Storage first with `bin/rails active_storage:install` and run `bin/rails db:migrate`.
+9. If you want to upload `social_image`, install Active Storage first with `bin/rails active_storage:install` and run `bin/rails db:migrate`. The social form uploads and previews through Attachable, so you can set `config.active_storage.draw_routes = false` once no screen still calls Rails' public blob routes.
 
 Configuration notes:
 

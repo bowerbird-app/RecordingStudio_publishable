@@ -1,5 +1,19 @@
 # Upgrading
 
+## 0.17.0 — Social images use Attachable upload routes
+
+Install `recording_studio_publishable` 0.17.0. No migration. Keep Active Storage installed so attachment bytes have a place to live. Publishable still does not depend on Attachable in the gemspec; the host that shows the social form already mounts Attachable.
+
+The social image picker posts direct uploads to Attachable's recording direct-upload route. That route authorizes `:upload` and calls `DirectUpload.prepare!`. The preview image loads through `attachment_preview_file_path` with the `social_share` variant. The form does not call `rails_direct_uploads_path` or `rails_blob_path`.
+
+A host that copied `app/views/recording_studio_publishable/publishables/social.html.erb` should make the same two swaps. A host that copied Attachable's upload page should use `recording_direct_uploads_path(recording)` the way Attachable's uploader does.
+
+When nothing in the host still needs Rails' public blob routes, set:
+
+```ruby
+config.active_storage.draw_routes = false
+```
+
 ## 0.16.0 — Kept recordings
 
 Install `recording_studio_publishable` 0.16.0 and Recording Studio `6.14.0` or newer. No migration.
