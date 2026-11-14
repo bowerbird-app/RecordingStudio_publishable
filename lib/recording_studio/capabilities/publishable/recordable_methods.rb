@@ -109,33 +109,18 @@ module RecordingStudio
           end
 
           def indexable_scope_join_sql(quoted_recordable_type)
-            child_trash_sql = RecordingStudioPublishable::TrashedAt.active_sql("publishable_recordings")
-            parent_trash_sql = RecordingStudioPublishable::TrashedAt.active_sql("parent_recordings")
-            child_trash_clause = child_trash_sql ? "AND #{child_trash_sql}" : ""
-            parent_trash_clause = parent_trash_sql ? "AND #{parent_trash_sql}" : ""
-            recordable_trash_clause = recordable_trashed_at_sql
-
             <<~SQL.squish
               INNER JOIN recording_studio_recordings parent_recordings
                 ON parent_recordings.recordable_type = #{quoted_recordable_type}
                AND parent_recordings.recordable_id = #{table_name}.id
-               #{parent_trash_clause}
+               AND #{RecordingStudio.kept_sql('parent_recordings')}
               INNER JOIN recording_studio_recordings publishable_recordings
                 ON publishable_recordings.parent_recording_id = parent_recordings.id
                AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable'
-               #{child_trash_clause}
+               AND #{RecordingStudio.kept_sql('publishable_recordings')}
               INNER JOIN recording_studio_publishable_publishables
                 ON recording_studio_publishable_publishables.id = publishable_recordings.recordable_id
-              #{recordable_trash_clause}
             SQL
-          end
-
-          def recordable_trashed_at_sql
-            return "" unless column_names.include?("trashed_at")
-
-            "AND #{table_name}.trashed_at IS NULL"
-          rescue StandardError
-            ""
           end
 
           def joins_publishable_scope
@@ -145,9 +130,6 @@ module RecordingStudio
           end
 
           def publishable_scope_join_sql(quoted_recordable_type)
-            trash_sql = RecordingStudioPublishable::TrashedAt.active_sql("publishable_recordings")
-            trash_clause = trash_sql ? "AND #{trash_sql}" : ""
-
             <<~SQL.squish
               INNER JOIN recording_studio_recordings parent_recordings
                 ON parent_recordings.recordable_type = #{quoted_recordable_type}
@@ -155,7 +137,7 @@ module RecordingStudio
               INNER JOIN recording_studio_recordings publishable_recordings
                 ON publishable_recordings.parent_recording_id = parent_recordings.id
                AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable'
-               #{trash_clause}
+               AND #{RecordingStudio.kept_sql('publishable_recordings')}
               INNER JOIN recording_studio_publishable_publishables
                 ON recording_studio_publishable_publishables.id = publishable_recordings.recordable_id
             SQL
@@ -197,11 +179,9 @@ module RecordingStudio
           return @published_url if instance_variable_defined?(:@published_url)
 
           @published_url = begin
-            parent_recording = RecordingStudio::Recording.where(
-              RecordingStudioPublishable::TrashedAt.merge_active(
-                recordable_type: self.class.name,
-                recordable_id: id
-              )
+            parent_recording = RecordingStudio::Recording.kept.where(
+              recordable_type: self.class.name,
+              recordable_id: id
             ).order(:created_at, :id).last
             if parent_recording.present?
               publishable_recording = if parent_recording.respond_to?(:publishable_child_recording)
@@ -223,11 +203,9 @@ module RecordingStudio
         end
 
         def current_publishable_for_index
-          parent_recording = RecordingStudio::Recording.where(
-            RecordingStudioPublishable::TrashedAt.merge_active(
-              recordable_type: self.class.name,
-              recordable_id: id
-            )
+          parent_recording = RecordingStudio::Recording.kept.where(
+            recordable_type: self.class.name,
+            recordable_id: id
           ).order(:created_at, :id).last
           return if parent_recording.blank?
 
