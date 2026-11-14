@@ -1,7 +1,13 @@
 <% social_image_modal_id = "publishable-social-image-picker-modal" %>
 <% social_title_max_characters = 70 %>
-<% current_social_image_preview_path = if @publishable.social_image_attached? && @publishable.social_image_attachment&.file_attachment.present?
-  main_app.rails_blob_path(@publishable.social_image_attachment.file_attachment, only_path: true)
+<% current_social_image_preview_path = if @publishable.social_image_attached?
+  attachment_recording = @publishable.social_image_attachment_recording
+  if attachment_recording.present?
+    recording_studio_attachable.attachment_preview_file_path(
+      attachment_recording,
+      variant_name: RecordingStudioPublishable::ApplicationHelper::DEFAULT_SOCIAL_IMAGE_VARIANT
+    )
+  end
 end %>
 
 <%= render "job_nav" %>
@@ -13,7 +19,7 @@ end %>
   data-controller="recording-studio-attachable--attachment-image-picker"
   data-recording-studio-attachable--attachment-image-picker-picker-url-value="<%= recording_studio_attachable.recording_attachment_picker_path(@publishable_recording) %>"
   data-recording-studio-attachable--attachment-image-picker-upload-url-value="<%= recording_studio_attachable.recording_attachment_imports_path(@publishable_recording) %>"
-  data-recording-studio-attachable--attachment-image-picker-direct-upload-url-value="<%= main_app.rails_direct_uploads_path %>"
+  data-recording-studio-attachable--attachment-image-picker-direct-upload-url-value="<%= recording_studio_attachable.recording_direct_uploads_path(@publishable_recording) %>"
   data-recording-studio-attachable--attachment-image-picker-max-file-size-value="<%= RecordingStudioAttachable.configuration.max_file_size %>"
   data-recording-studio-attachable--attachment-image-picker-image-processing-enabled-value="<%= RecordingStudioAttachable.configuration.image_processing_enabled %>"
   data-recording-studio-attachable--attachment-image-picker-image-processing-max-width-value="<%= RecordingStudioAttachable.configuration.image_processing_max_width %>"
