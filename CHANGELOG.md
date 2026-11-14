@@ -7,12 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-11-14
+
 ### Changed
-- Development and dummy Gemfiles pin Recording Studio `v6.10.0`, Flatpack `v0.1.366`, Accessible `v0.37.0`, Attachable `v0.23.0`, Cache `v0.6.3`, Metrics `v0.8.0`, Root Switchable `v0.15.0`, and Trashable `v0.14.1`. Development also pins API `v0.23.1`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1` so Bundler can resolve the gemspec's `recording_studio_api` `~> 0.23`. The dummy also pins API `v0.23.1`, Admin `v2.13.0`, Internationalization `v0.2.2`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`.
+- Publish queries use `RecordingStudio::Recording.kept` and `RecordingStudio.kept_sql`. `RecordingStudioPublishable::TrashedAt` is removed, along with the column check that skipped `trashed_at` SQL when the column was absent.
+- The gemspec requires `recording_studio` `~> 6.14`, `>= 6.14.0`. Development and dummy Gemfiles pin Recording Studio `v6.14.0`. Trashable stays on `v0.14.1` because `0.16.0` is not tagged.
+- Development and dummy Gemfiles pin Recording Studio `v6.14.0`, Flatpack `v0.1.366`, Accessible `v0.37.0`, Attachable `v0.23.0`, Cache `v0.6.3`, Metrics `v0.8.0`, Root Switchable `v0.15.0`, and Trashable `v0.14.1`. Development also pins API `v0.23.1`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1` so Bundler can resolve the gemspec's `recording_studio_api` `~> 0.23`. The dummy also pins API `v0.23.1`, Admin `v2.13.0`, Internationalization `v0.2.2`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`.
 - The dummy copies Recording Studio 6.9 migration `20261114090000_add_root_recording_id_to_recording_studio_events` so events store `root_recording_id`.
-- Removed `test/support/widen_recording_studio_requirement.rb`. These pins accept Recording Studio 6.x. Internationalization `v0.1.2` still required `recording_studio` `~> 4.2`, so the dummy pins `v0.2.2` (`>= 6.1`, `< 7`). Gemspec floors are unchanged except Recording Studio API `~> 0.23`.
+- Removed `test/support/widen_recording_studio_requirement.rb`. These pins accept Recording Studio 6.x. Internationalization `v0.1.2` still required `recording_studio` `~> 4.2`, so the dummy pins `v0.2.2` (`>= 6.1`, `< 7`). Recording Studio API stays `~> 0.23`.
 - The dummy no longer registers `RecordingStudioAttachable::Library` or `Placement`. Attachable 0.18.0 moved those types out of the gem.
 - The dummy sets `config.allow_unauthorized_writes` so Recording Studio 6.5 still accepts the test host's open writes.
+
+### Upgrade Notes
+- Install Publishable `0.16.0`. Recording Studio must be `6.14.0` or newer. No migration.
+- Stop calling `RecordingStudioPublishable::TrashedAt`. Use `RecordingStudio::Recording.kept` for relations and `RecordingStudio.kept_sql` for a join alias.
+- Publishable no longer hides trashed recordings on its own. A Trashable release that registers a kept filter does that. This gem does not pin `recording_studio_trashable` `>= 0.16.0`, because that version is not tagged.
+- The unique publishable-child index is unchanged. It still mentions `trashed_at` only when that column is already on `recording_studio_recordings`.
 
 ## [0.15.0] - 2026-11-13
 

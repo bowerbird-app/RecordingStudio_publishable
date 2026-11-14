@@ -264,24 +264,56 @@ module RecordingStudioPublishable
       refute_respond_to Page, :recording_studio_publishable_path_template
     end
 
-    test "publishable join sql omits trashed_at when the column is absent" do
+    test "publishable join sql uses kept_sql and does not look for a trashed_at column" do
       quoted_type = Page.connection.quote("Page")
+      child_kept = RecordingStudio.kept_sql("publishable_recordings")
+      parent_kept = RecordingStudio.kept_sql("parent_recordings")
 
-      RecordingStudioPublishable::TrashedAt.stub(:column?, false) do
-        sql = Page.send(:publishable_scope_join_sql, quoted_type)
+      publishable_sql = Page.send(:publishable_scope_join_sql, quoted_type)
+      indexable_sql = Page.send(:indexable_scope_join_sql, quoted_type)
 
-        refute_includes sql, "trashed_at"
-      end
+      assert_equal "1=1", child_kept
+      assert_includes publishable_sql, "AND #{child_kept}"
+      refute_includes publishable_sql, "trashed_at"
+      assert_includes indexable_sql, "AND #{parent_kept}"
+      assert_includes indexable_sql, "AND #{child_kept}"
+      refute_includes indexable_sql, "trashed_at"
     end
 
-    test "publishable join sql filters trashed_at when the column exists" do
+    test "publishable join sql includes a registered kept filter" do
       quoted_type = Page.connection.quote("Page")
+      RecordingStudio.register_recording_filter(
+        :trashed,
+        sql: ->(table) { "#{table}.trashed_at IS NULL" }
+      ) { |recordings| recordings.where(trashed_at: nil) }
 
-      RecordingStudioPublishable::TrashedAt.stub(:column?, true) do
-        sql = Page.send(:publishable_scope_join_sql, quoted_type)
+      sql = Page.send(:publishable_scope_join_sql, quoted_type)
 
-        assert_includes sql, "trashed_at IS NULL"
-      end
+      assert_includes sql, RecordingStudio.kept_sql("publishable_recordings")
+      assert_includes sql, "trashed_at IS NULL"
+    ensure
+      RecordingStudio.unregister_recording_filter(:trashed)
+    end
+
+    test "published scope skips a child that kept excludes" do
+      root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Kept workspace"))
+      page = Page.create!(title: "Kept page")
+      recording = RecordingStudio::Recording.create!(recordable: page, parent_recording: root)
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: recording,
+        attributes: { slug: "kept-page", status: "published" }
+      ).value!
+      RecordingStudio.register_recording_filter(
+        :trashed,
+        sql: ->(table) { "#{table}.trashed_at IS NULL" }
+      ) { |recordings| recordings.where(trashed_at: nil) }
+      child = recording.publishable_child_recording
+      RecordingStudio::Recording.where(id: child.id).update_all(trashed_at: Time.current)
+
+      refute_includes Page.published.pluck(:id), page.id
+      assert_nil recording.reload.publishable_child_recording
+    ensure
+      RecordingStudio.unregister_recording_filter(:trashed)
     end
   end
 end

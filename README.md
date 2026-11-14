@@ -15,13 +15,13 @@ A parent recordable type such as a page or article can hold one child publishabl
 - `publishable_share_button` for copying the absolute public page URL of a live recording
 - public routing and Flatpack management screens for the current publishable child
 
-Trashable is optional. Publishable does not depend on it. Query SQL only mentions `trashed_at` when that column exists.
+Trashable is optional. Publishable does not depend on it. Publish queries use `RecordingStudio::Recording.kept` and `RecordingStudio.kept_sql`. Those match every recording until a host addon registers a kept filter.
 
 ## Installation
 
 Requires PostgreSQL 16+.
 
-Add the gems to your host app. This addon requires Recording Studio 6.1.0 or newer, Recording Studio API 0.23 or newer, Flatpack 0.1.331 or newer, and ViewComponent 4.14 or newer (below 5):
+Add the gems to your host app. This addon requires Recording Studio 6.14.0 or newer, Recording Studio API 0.23 or newer, Flatpack 0.1.331 or newer, and ViewComponent 4.14 or newer (below 5):
 
 ```ruby
 gem "recording_studio"
@@ -135,7 +135,7 @@ page.indexable?
 page.published_url
 ```
 
-`indexable` is the list Support and Press kits should use for public search. A parent is indexable when it is currently published, not trashed (if `trashed_at` exists), not marked `noindex`, and has a canonical URL or public URL.
+`indexable` is the list Support and Press kits should use for public search. A parent is indexable when it is currently published, kept, not marked `noindex`, and has a canonical URL or public URL. Kept means every registered recording filter passes, including trash once Trashable registers one.
 
 `publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title. On Preview it emits only `noindex,nofollow`.
 
@@ -437,7 +437,7 @@ Add [Recording Studio Internationalization](https://github.com/bowerbird-app/Rec
 
 ## Dummy app
 
-The dummy host at `test/dummy` pins Recording Studio `v6.10.0`, Accessible `v0.37.0` (Trashable `v0.14.1` query-only, `require: false`), API `v0.23.1`, Admin `v2.13.0`, Attachable `v0.23.0`, Metrics `v0.8.0` (`require: false`), Flatpack `v0.1.366`, dummy-only Root Switchable `v0.15.0` (with Cache `v0.6.3`), and dummy-only Recording Studio Internationalization `v0.2.2`. API and Admin also need Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`. Those three are not on RubyGems, so the dummy Gemfile names their GitHub tags. Admin, Trashable, and Internationalization are dummy-only. The gemspec requires Recording Studio `~> 6.1`, `>= 6.1.0`, Recording Studio API `~> 0.23`, Flatpack `>= 0.1.331`, and ViewComponent `>= 4.14`, `< 5`. It does not depend on those dummy-only gems. These pins accept Recording Studio 6.x, including `v6.10.0`, so the Gemfiles do not widen that requirement. Recording Studio 6.5 denies a write unless `config.authorize_write` is set. The dummy sets `config.allow_unauthorized_writes` so the test host keeps the previous open writes. Recording Studio 6.9 stores `root_recording_id` on events. The dummy copies migration `20261114090000_add_root_recording_id_to_recording_studio_events`. Internationalization `v0.1.2` required `recording_studio` `~> 4.2`. Dummy tests still switch English and French, so the dummy pins `v0.2.2` (`>= 6.1`, `< 7`) instead. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable `v0.23.0` keeps attachment migrations through presentation fields and `root_recording_id`. Image libraries and placements left Attachable in 0.18.0, so the dummy does not register `Library` or `Placement`. Dummy offers English and French. The language selector sits in the top nav on the dummy's own screens, to the left of the workspace switcher. Publish, success, preview, and public screens omit it. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
+The dummy host at `test/dummy` pins Recording Studio `v6.14.0`, Accessible `v0.37.0` (Trashable `v0.14.1` query-only, `require: false`), API `v0.23.1`, Admin `v2.13.0`, Attachable `v0.23.0`, Metrics `v0.8.0` (`require: false`), Flatpack `v0.1.366`, dummy-only Root Switchable `v0.15.0` (with Cache `v0.6.3`), and dummy-only Recording Studio Internationalization `v0.2.2`. API and Admin also need Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`. Those three are not on RubyGems, so the dummy Gemfile names their GitHub tags. Admin, Trashable, and Internationalization are dummy-only. The gemspec requires Recording Studio `~> 6.14`, `>= 6.14.0`, Recording Studio API `~> 0.23`, Flatpack `>= 0.1.331`, and ViewComponent `>= 4.14`, `< 5`. It does not depend on those dummy-only gems. Trashable stays on `v0.14.1` because `0.16.0` is not tagged. These pins accept Recording Studio 6.x from `v6.14.0` upward, so the Gemfiles do not widen that requirement. Recording Studio 6.5 denies a write unless `config.authorize_write` is set. The dummy sets `config.allow_unauthorized_writes` so the test host keeps the previous open writes. Recording Studio 6.9 stores `root_recording_id` on events. The dummy copies migration `20261114090000_add_root_recording_id_to_recording_studio_events`. Internationalization `v0.1.2` required `recording_studio` `~> 4.2`. Dummy tests still switch English and French, so the dummy pins `v0.2.2` (`>= 6.1`, `< 7`) instead. Dummy Accessible uses string roles and the 0.8–0.14 migrations (depends-on recording, invitations, role as string, access constraints, access rules). Grants go through `bootstrap_owner_access!` and `grant_access`. Attachable `v0.23.0` keeps attachment migrations through presentation fields and `root_recording_id`. Image libraries and placements left Attachable in 0.18.0, so the dummy does not register `Library` or `Placement`. Dummy offers English and French. The language selector sits in the top nav on the dummy's own screens, to the left of the workspace switcher. Publish, success, preview, and public screens omit it. French keys live in `test/dummy/config/locales/fr.yml`. The engine does not ship French.
 
 Dummy credentials (`test/dummy/config/credentials.yml.enc`) are encrypted with the shared RecordingStudio_* development master key. Set `RAILS_MASTER_KEY` or put that key in `test/dummy/config/master.key` (gitignored). Keep the encrypted file; do not generate a per-repo dummy key.
 

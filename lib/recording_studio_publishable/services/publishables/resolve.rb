@@ -14,11 +14,9 @@ module RecordingStudioPublishable
         attr_reader :uuid, :slug
 
         def perform
-          publishable_recording = RecordingStudio::Recording.find_by(
-            RecordingStudioPublishable::TrashedAt.merge_active(
-              id: uuid,
-              recordable_type: RecordingStudioPublishable::Publishable.name
-            )
+          publishable_recording = RecordingStudio::Recording.kept.find_by(
+            id: uuid,
+            recordable_type: RecordingStudioPublishable::Publishable.name
           )
           return failure(Copy.t("errors.recording_not_found")) unless publishable_recording
 
