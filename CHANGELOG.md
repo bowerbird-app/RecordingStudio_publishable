@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Upgrade Notes
 - Install Publishable `0.16.0`. Recording Studio must be `6.14.0` or newer. No migration.
 - Stop calling `RecordingStudioPublishable::TrashedAt`. Use `RecordingStudio::Recording.kept` for relations and `RecordingStudio.kept_sql` for a join alias.
-- Publishable no longer hides trashed recordings on its own. Trashable `0.16.0` registers the kept filter. This gem does not depend on `recording_studio_trashable`, so the gemspec does not pin it. Development and the dummy pin `v0.16.0`.
+- Publishable no longer hides trashed recordings on its own. Trashable `0.16.0` registers the kept filter. This gem does not depend on `recording_studio_trashable`, so the gemspec does not pin it. Development and the dummy pin `v0.16.0`. The dummy defines `Recording.recording_studio_trashable_kept_sql` as `RecordingStudio.kept_sql` because pinned API and Admin still call the removed method.
 - The unique publishable-child index is unchanged. It still mentions `trashed_at` only when that column is already on `recording_studio_recordings`.
 
 ## [0.15.0] - 2026-11-13
