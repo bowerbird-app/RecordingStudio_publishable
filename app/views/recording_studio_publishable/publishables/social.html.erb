@@ -71,6 +71,7 @@ end %>
     modal_id: social_image_modal_id,
     modal_title: publishable_t("form.select_social_image"),
     recording: @publishable_recording,
+    picker_url: recording_studio_attachable.recording_attachment_picker_path(@publishable_recording),
     search_aria_label: publishable_t("form.search_social_images"),
     empty_state_text: publishable_t("form.no_images") %>
 </div>

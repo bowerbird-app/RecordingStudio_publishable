@@ -1,5 +1,13 @@
 # Upgrading
 
+## 0.15.1 — Social image picker search URL
+
+Install `recording_studio_publishable` 0.15.1. No migration. The gemspec is unchanged.
+
+The social screen passes `picker_url` into Attachable's image picker modal. Attachable 0.26 uses that URL as Flatpack's remote search endpoint (`recording_attachment_picker_path` for the parent recording). An older Attachable partial ignores the extra local.
+
+Development pins are Recording Studio `v6.14.0` and Attachable `v0.26.0`. Accessible `0.41.0` needs Recording Studio `>= 6.13.0`. Moveable `4.2.0` needs Recording Studio `>= 6.11.0`. Attachable `0.26.0` needs Flatpack `>= 0.1.371`.
+
 ## 0.15.0 — Publishable OpenAPI overrides and transition no-ops
 
 Install `recording_studio_publishable` 0.15.0 and Recording Studio API `~> 0.23`. No migration.

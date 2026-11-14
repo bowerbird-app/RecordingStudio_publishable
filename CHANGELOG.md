@@ -7,12 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-11-14
+
 ### Changed
-- Development and dummy Gemfiles pin Recording Studio `v6.10.0`, Flatpack `v0.1.366`, Accessible `v0.37.0`, Attachable `v0.23.0`, Cache `v0.6.3`, Metrics `v0.8.0`, Root Switchable `v0.15.0`, and Trashable `v0.14.1`. Development also pins API `v0.23.1`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1` so Bundler can resolve the gemspec's `recording_studio_api` `~> 0.23`. The dummy also pins API `v0.23.1`, Admin `v2.13.0`, Internationalization `v0.2.2`, Logs `v0.7.4`, Moveable `v4.1.1`, and Icons `v0.2.1`.
-- The dummy copies Recording Studio 6.9 migration `20261114090000_add_root_recording_id_to_recording_studio_events` so events store `root_recording_id`.
-- Removed `test/support/widen_recording_studio_requirement.rb`. These pins accept Recording Studio 6.x. Internationalization `v0.1.2` still required `recording_studio` `~> 4.2`, so the dummy pins `v0.2.2` (`>= 6.1`, `< 7`). Gemspec floors are unchanged except Recording Studio API `~> 0.23`.
+- The social image picker passes `picker_url` into Attachable's image picker modal. Attachable 0.26 uses that URL as Flatpack's remote search endpoint.
+- Development and dummy Gemfiles pin Recording Studio `v6.14.0`, Flatpack `v0.1.374`, Accessible `v0.41.0`, Attachable `v0.26.0`, Cache `v0.6.3`, Metrics `v0.8.0`, Root Switchable `v0.15.0`, and Trashable `v0.15.0`. Development also pins API `v0.23.3`, Logs `v0.7.5`, Moveable `v4.2.0`, and Icons `v0.2.1` so Bundler can resolve the gemspec's `recording_studio_api` `~> 0.23`. The dummy also pins API `v0.23.3`, Admin `v2.13.1`, Internationalization `v0.2.2`, Logs `v0.7.5`, Moveable `v4.2.0`, and Icons `v0.2.1`.
+- The dummy copies Recording Studio 6.9 migration `20261114090000_add_root_recording_id_to_recording_studio_events` so events store `root_recording_id`. Core `v6.11.0` through `v6.14.0` add no further migrations.
+- Removed `test/support/widen_recording_studio_requirement.rb`. These pins accept Recording Studio 6.x. Internationalization `v0.1.2` still required `recording_studio` `~> 4.2`, so the dummy pins `v0.2.2` (`>= 6.1`, `< 7`). Gemspec floors stay Recording Studio `~> 6.1`, `>= 6.1.0` and Recording Studio API `~> 0.23`.
 - The dummy no longer registers `RecordingStudioAttachable::Library` or `Placement`. Attachable 0.18.0 moved those types out of the gem.
 - The dummy sets `config.allow_unauthorized_writes` so Recording Studio 6.5 still accepts the test host's open writes.
+
+### Upgrade Notes
+- Install Publishable `0.15.1`. No migration. The gemspec is unchanged.
+- Attachable 0.26 requires `picker_url` on `recording_studio_attachable/attachment_image_pickers/modal`. The social screen passes the parent recording's attachment picker path. An older Attachable partial ignores that extra local.
+- Accessible `0.41.0` needs Recording Studio `>= 6.13.0`. Moveable `4.2.0` needs Recording Studio `>= 6.11.0`. Attachable `0.26.0` needs Flatpack `>= 0.1.371`. The existing gemspec ranges already allow those.
 
 ## [0.15.0] - 2026-11-13
 
