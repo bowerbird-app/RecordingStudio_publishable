@@ -15,7 +15,7 @@ gem "puma"
 gem "sprockets-rails"
 gem "view_component", "4.19.0"
 
-gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.37.0"
+gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.42.0"
 gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v0.23.1",
                             require: false
 gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.23.0"
@@ -31,7 +31,7 @@ gem "recording_studio_moveable", github: "bowerbird-app/RecordingStudio_moveable
                                  require: false
 gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.15.0"
 gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable",
-                                  tag: "v0.14.1", require: false
+                                  tag: "v0.16.0", require: false
 
 group :development, :test do
   gem "debug"
