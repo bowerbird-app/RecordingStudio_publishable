@@ -582,6 +582,9 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "publishable[social_title]"
     assert_includes response.body, "data-publishable-social-image-picker"
     assert_includes response.body, "Select social image"
+    child = parent_recording.reload.publishable_child_recording
+    picker_path = recording_studio_attachable.recording_attachment_picker_path(child)
+    assert_includes response.body, %(data-flat-pack--picker-search-endpoint-value="#{picker_path}")
     refute_includes response.body, "datetime-local"
     refute_includes response.body, "data-publishable-title-counter"
     refute_includes response.body, "data-publishable-character-count-template"
