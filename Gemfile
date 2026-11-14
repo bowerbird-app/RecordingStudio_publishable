@@ -6,19 +6,19 @@ source "https://rubygems.org"
 gemspec
 
 # recording_studio is not published to RubyGems; resolve the gemspec pin from GitHub.
-gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.7.0"
+gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v6.10.0"
 
 gem "devise"
-gem "flat_pack", ">= 0.1.331", github: "bowerbird-app/flatpack", tag: "v0.1.356"
+gem "flat_pack", ">= 0.1.331", github: "bowerbird-app/flatpack", tag: "v0.1.366"
 gem "pg", "~> 1.1"
 gem "puma"
 gem "sprockets-rails"
 gem "view_component", "4.19.0"
 
-gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.31.0"
-gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v0.23.0",
+gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.37.0"
+gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v0.23.1",
                             require: false
-gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.22.4"
+gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.23.0"
 gem "recording_studio_cache", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"
 # API depends on these. They are not published to RubyGems.
 gem "recording_studio_icons", github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1",
@@ -31,7 +31,7 @@ gem "recording_studio_moveable", github: "bowerbird-app/RecordingStudio_moveable
                                  require: false
 gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.15.0"
 gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable",
-                                  tag: "v0.14.0", require: false
+                                  tag: "v0.14.1", require: false
 
 group :development, :test do
   gem "debug"
