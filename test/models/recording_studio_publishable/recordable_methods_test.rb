@@ -148,7 +148,6 @@ module RecordingStudioPublishable
         attributes: { slug: "old-unpublished-page", status: "draft" }
       ).value!.recordable
 
-      # Update clears unpublish_at on drafts and the returned recordable is readonly.
       RecordingStudioPublishable::Publishable.where(id: recent_publishable.id)
                                              .update_all(unpublish_at: 2.days.from_now)
       RecordingStudioPublishable::Publishable.where(id: old_publishable.id)

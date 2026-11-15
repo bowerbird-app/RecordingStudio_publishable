@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 module RecordingStudioPublishable
-  # One SQL shape for "which publishable counts" on a recordable or a recording.
-  # Publishable.currently_published remains the publish window.
   module PublishRules
     PUBLISHABLE_TYPE = "RecordingStudioPublishable::Publishable"
 
@@ -30,7 +28,6 @@ module RecordingStudioPublishable
         SQL
       end
 
-      # indexable_url? requires a host. ILIKE 'http://%' also matches "http://".
       def allow_canonical_sql
         column = "#{publishables_table}.canonical_url"
         trimmed = "BTRIM(#{column})"
