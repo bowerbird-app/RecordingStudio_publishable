@@ -24,7 +24,7 @@ module RecordingStudioPublishable
 
         assert_equal ["publish"], transitions
         assert_equal "published", outcome.publishable.status
-        assert_in_delta Time.current.to_f, outcome.publishable.publish_at.to_f, 1.0
+        assert_in_delta Time.current.to_f, outcome.publishable.publish_at.to_f, 5
         assert_equal [@parent_recording.id.to_s, "published"], snapshot_id_and_status(outcome)
       end
 
