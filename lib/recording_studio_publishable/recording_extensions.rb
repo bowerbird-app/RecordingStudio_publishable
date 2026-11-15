@@ -1,9 +1,20 @@
 # frozen_string_literal: true
 
 require "active_support/concern"
+require "recording_studio_publishable/publish_rules"
 
 module RecordingStudioPublishable
   module RecordingExtensions
+    extend ActiveSupport::Concern
+
+    included do
+      scope :currently_published, lambda {
+        kept.joins(RecordingStudioPublishable::PublishRules.recording_child_join_sql(self))
+            .merge(RecordingStudioPublishable::Publishable.currently_published)
+            .distinct
+      }
+    end
+
     def publishable_child_recording
       child_recordings.kept.of_type(RecordingStudioPublishable::Publishable).first
     end
@@ -13,11 +24,13 @@ module RecordingStudioPublishable
     end
 
     def currently_published?
-      current_publishable&.currently_published? || false
+      return false if id.blank?
+
+      self.class.currently_published.exists?(id: id)
     end
 
     def published?
-      current_publishable&.published? || false
+      currently_published?
     end
 
     def draft?
@@ -49,7 +62,10 @@ module RecordingStudioPublishable
     end
 
     def indexable?
-      recordable.respond_to?(:indexable?) && recordable.indexable?
+      return false unless recordable.respond_to?(:indexable?)
+
+      parent = RecordingStudioPublishable::PublishRules.newest_kept_parent(recordable)
+      parent&.id == id && recordable.indexable?
     end
 
     def social_image_supported?

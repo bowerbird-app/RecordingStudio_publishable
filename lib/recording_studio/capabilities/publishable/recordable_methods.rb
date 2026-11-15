@@ -91,56 +91,27 @@ module RecordingStudio
           end
 
           def indexable_robots_scope
-            RecordingStudioPublishable::Publishable.currently_published.where(<<~SQL.squish, noindex: "%noindex%")
-              recording_studio_publishable_publishables.meta_robots IS NULL
-              OR BTRIM(recording_studio_publishable_publishables.meta_robots) = ''
-              OR recording_studio_publishable_publishables.meta_robots NOT ILIKE :noindex
-            SQL
+            RecordingStudioPublishable::Publishable.currently_published.where(
+              RecordingStudioPublishable::PublishRules.allow_index_sql
+            )
           end
 
           def indexable_url_scope
-            RecordingStudioPublishable::Publishable.where(<<~SQL.squish)
-              recording_studio_publishable_publishables.canonical_url IS NULL
-              OR BTRIM(recording_studio_publishable_publishables.canonical_url) = ''
-              OR recording_studio_publishable_publishables.canonical_url LIKE '/%'
-              OR recording_studio_publishable_publishables.canonical_url ILIKE 'http://%'
-              OR recording_studio_publishable_publishables.canonical_url ILIKE 'https://%'
-            SQL
+            RecordingStudioPublishable::Publishable.where(
+              RecordingStudioPublishable::PublishRules.allow_canonical_sql
+            )
           end
 
           def indexable_scope_join_sql(quoted_recordable_type)
-            <<~SQL.squish
-              INNER JOIN recording_studio_recordings parent_recordings
-                ON parent_recordings.recordable_type = #{quoted_recordable_type}
-               AND parent_recordings.recordable_id = #{table_name}.id
-               AND #{RecordingStudio.kept_sql('parent_recordings')}
-              INNER JOIN recording_studio_recordings publishable_recordings
-                ON publishable_recordings.parent_recording_id = parent_recordings.id
-               AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable'
-               AND #{RecordingStudio.kept_sql('publishable_recordings')}
-              INNER JOIN recording_studio_publishable_publishables
-                ON recording_studio_publishable_publishables.id = publishable_recordings.recordable_id
-            SQL
+            publishable_scope_join_sql(quoted_recordable_type)
           end
 
           def joins_publishable_scope
-            quoted_recordable_type = connection.quote(name)
-
-            joins(publishable_scope_join_sql(quoted_recordable_type))
+            joins(publishable_scope_join_sql(connection.quote(name)))
           end
 
           def publishable_scope_join_sql(quoted_recordable_type)
-            <<~SQL.squish
-              INNER JOIN recording_studio_recordings parent_recordings
-                ON parent_recordings.recordable_type = #{quoted_recordable_type}
-               AND parent_recordings.recordable_id = #{table_name}.id
-              INNER JOIN recording_studio_recordings publishable_recordings
-                ON publishable_recordings.parent_recording_id = parent_recordings.id
-               AND publishable_recordings.recordable_type = 'RecordingStudioPublishable::Publishable'
-               AND #{RecordingStudio.kept_sql('publishable_recordings')}
-              INNER JOIN recording_studio_publishable_publishables
-                ON recording_studio_publishable_publishables.id = publishable_recordings.recordable_id
-            SQL
+            RecordingStudioPublishable::PublishRules.recordable_join_sql(self, quoted_type: quoted_recordable_type)
           end
         end
 
@@ -169,7 +140,7 @@ module RecordingStudio
 
           publishable = current_publishable_for_index
           return if publishable.blank?
-          return if publishable.noindex?
+          return if RecordingStudioPublishable::PublishRules.hides_from_index?(publishable.meta_robots)
 
           url = publishable.canonical_url.presence || published_url
           url if self.class.indexable_url?(url)
@@ -179,10 +150,7 @@ module RecordingStudio
           return @published_url if instance_variable_defined?(:@published_url)
 
           @published_url = begin
-            parent_recording = RecordingStudio::Recording.kept.where(
-              recordable_type: self.class.name,
-              recordable_id: id
-            ).order(:created_at, :id).last
+            parent_recording = RecordingStudioPublishable::PublishRules.newest_kept_parent(self)
             if parent_recording.present?
               publishable_recording = if parent_recording.respond_to?(:publishable_child_recording)
                                         parent_recording.publishable_child_recording
@@ -203,10 +171,7 @@ module RecordingStudio
         end
 
         def current_publishable_for_index
-          parent_recording = RecordingStudio::Recording.kept.where(
-            recordable_type: self.class.name,
-            recordable_id: id
-          ).order(:created_at, :id).last
+          parent_recording = RecordingStudioPublishable::PublishRules.newest_kept_parent(self)
           return if parent_recording.blank?
 
           if parent_recording.respond_to?(:current_publishable)

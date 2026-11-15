@@ -36,6 +36,8 @@ module RecordingStudio
       end
 
       module RecordingMethods
+        extend ActiveSupport::Concern
+
         include RecordingStudio::Capability if defined?(RecordingStudio::Capability)
         include RecordingStudioPublishable::RecordingExtensions
       end

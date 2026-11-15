@@ -148,7 +148,6 @@ module RecordingStudioPublishable
         attributes: { slug: "old-unpublished-page", status: "draft" }
       ).value!.recordable
 
-      # Update clears unpublish_at on drafts and the returned recordable is readonly.
       RecordingStudioPublishable::Publishable.where(id: recent_publishable.id)
                                              .update_all(unpublish_at: 2.days.from_now)
       RecordingStudioPublishable::Publishable.where(id: old_publishable.id)
@@ -253,7 +252,8 @@ module RecordingStudioPublishable
       assert_respond_to Article, :scheduled
       refute_respond_to Folder, :published
       refute_respond_to Workspace, :published
-      refute RecordingStudio::Recording.respond_to?(:currently_published)
+      assert_respond_to RecordingStudio::Recording, :currently_published
+      assert_kind_of ActiveRecord::Relation, RecordingStudio::Recording.currently_published
       assert RecordingStudio.capability_enabled?(:publishable, for: Page)
       assert RecordingStudio.capability_enabled?(:publishable, for: Article)
       refute RecordingStudio.capability_enabled?(:publishable, for: Folder)
@@ -272,6 +272,7 @@ module RecordingStudioPublishable
       publishable_sql = Page.send(:publishable_scope_join_sql, quoted_type)
       indexable_sql = Page.send(:indexable_scope_join_sql, quoted_type)
 
+      assert_includes publishable_sql, "AND #{parent_kept}"
       assert_includes publishable_sql, "AND #{child_kept}"
       assert_includes indexable_sql, "AND #{parent_kept}"
       assert_includes indexable_sql, "AND #{child_kept}"

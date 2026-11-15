@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-11-15
+
+### Added
+- `Recording.currently_published` selects recordings whose kept publishable child is inside `Publishable.currently_published`. The recording itself must be kept. The scope is chainable.
+
+### Changed
+- `published`, `scheduled`, `draft`, `unpublished`, and `indexable` follow the newest kept parent recording and that parent's kept publishable child. `published` now requires the parent to be kept. `indexable` rejects a canonical URL with no host.
+- `published?`, `currently_published?`, and `indexable?` on recordings and recordables use that same rule. `indexable_url` hides a robots value that contains `noindex`, including `noindexable`. `indexable?` still checks in Ruby that the public URL resolves.
+
+### Upgrade Notes
+- Install Publishable `0.19.0`. No migration. No new column.
+- Nothing new becomes public. Some rows drop out of public lists.
+- A recordable whose parent recording is trashed drops out of `published`, `scheduled`, `draft`, `unpublished`, and `indexable`. `indexable` already required a kept parent.
+- A recordable that matched through an older parent drops out unless the newest kept parent matches. An older recording can still be `currently_published` when its own child is live.
+- A canonical value such as `http://`, `https://`, or `http:///path` drops out of `indexable`. `indexable?` already rejected those.
+- A robots value that contains the letters `noindex` but not as a whole token, such as `noindexable`, stays out of `indexable`. `indexable_url` now follows that rule.
+- A trashed recording is no longer `currently_published?` or `published?`. `recording.indexable?` is true only for the newest kept parent of an indexable recordable.
+- `Page.indexable` does not check that the public URL resolves. Call `indexable?` or `indexable_url` on the rows you render.
+
 ## [0.18.1] - 2026-11-15
 
 ### Changed
