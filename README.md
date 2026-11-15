@@ -125,18 +125,23 @@ Optional `.to` keywords:
 Scopes live on the opted-in recordable class:
 
 ```ruby
-Page.published
+Page.published.limit(12)
+Page.indexable.count
 Page.scheduled
 Page.draft
 Page.unpublished
-Page.indexable
 Page.published_in(2.weeks.ago..Time.current)
 page.published?
 page.indexable?
 page.published_url
+RecordingStudio::Recording.currently_published.limit(12)
 ```
 
-`indexable` is the list Support and Press kits should use for public search. A parent is indexable when it is currently published, kept, not marked `noindex`, and has a canonical URL or public URL. Kept means every registered recording filter passes, including trash once Trashable registers one.
+`published`, `indexable`, `scheduled`, `draft`, and `unpublished` use the newest kept parent recording and that parent's kept publishable child. Kept means every registered recording filter passes, including trash once Trashable registers one. A trashed parent, a trashed publishable, or an older parent does not put the recordable on the list. The publish window is `Publishable.currently_published`. `publish_at` at the current time is inside the window. `unpublish_at` at the current time is outside it.
+
+`indexable` is the list Support and Press kits should use for public search. It is the published list, minus robots values that contain `noindex`, minus a canonical URL that is not a path or an http or https URL with a host. A blank canonical stays in the scope. `Page.indexable` does not ask Routing whether the public URL resolves. Call `indexable?` or `indexable_url` on the rows you render. `limit` and `count` run in SQL.
+
+`RecordingStudio::Recording.currently_published` is the same window for one recording and its kept publishable child. It does not require that recording to be the newest parent of the recordable. Chain it with other recording conditions. These scopes do not grant access. Accessible still decides who can read a root.
 
 `publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title. On Preview it emits only `noindex,nofollow`.
 

@@ -1,5 +1,29 @@
 # Upgrading
 
+## 0.19.0 — SQL scopes for published and indexable lists
+
+Install `recording_studio_publishable` 0.19.0. No migration. No new column.
+
+`Page.published`, `Page.indexable`, and the other publish scopes run in SQL. `Page.indexable.limit(12)` and `Page.indexable.count` do not load every row. `Recording.currently_published` is the same kind of scope for recordings. Chain it.
+
+The publish window is still `Publishable.currently_published`. A record is inside the window when status is published, `publish_at` is blank or at or before the current time, and `unpublish_at` is blank or after the current time. `publish_at` equal to now counts. `unpublish_at` equal to now does not.
+
+Recordable scopes use the newest kept parent recording and that parent's kept publishable child. Kept means every registered recording filter passes. Trashable's filter is the usual one. An older parent recording does not put the recordable on the list. `Recording.currently_published` looks at that recording's own kept child, and the recording must be kept.
+
+`indexable` also drops a robots value that contains `noindex`, including `noindexable`, and a canonical URL that is not a path or an http or https URL with a host. `http://` is not indexable. A blank canonical stays in `indexable`. The scope does not ask whether the public URL resolves. Call `indexable?` or `indexable_url` on the rows you render.
+
+These scopes do not grant access. Accessible still decides who can read a root.
+
+Nothing new becomes public. These rows drop out of the lists they used to match:
+
+- A recordable with a trashed parent drops out of `published` and the other publish scopes. `indexable` already required a kept parent.
+- A recordable drops out of a scope when only an older parent matches. The newest kept parent has to match.
+- `http://`, `https://`, and `http:///path` drop out of `indexable`.
+- A robots value that merely contains `noindex` stays out of `indexable`, and `indexable_url` now returns nil for it.
+- A trashed recording is not `currently_published?`. `indexable?` on a recording is true only when that recording is the newest kept parent of an indexable recordable.
+
+State changes still go through the publish services.
+
 ## 0.18.1 — Recording Studio API 0.24
 
 Install `recording_studio_publishable` 0.18.1. Recording Studio API must be `0.24.0` or newer, below 1. Flatpack must be `0.1.341` or newer. No migration.
