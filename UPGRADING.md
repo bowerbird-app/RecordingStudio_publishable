@@ -1,5 +1,11 @@
 # Upgrading
 
+## 0.18.1 — Recording Studio API 0.24
+
+Install `recording_studio_publishable` 0.18.1. Recording Studio API must be `0.24.0` or newer, below 1. Flatpack must be `0.1.341` or newer. No migration.
+
+API 0.24 also requires Accessible `>= 0.44.0`, `< 1.0`, Logs `>= 0.8.0`, `< 1.0`, Metrics `>= 0.9.0`, `< 1.0`, Moveable `>= 5.0`, `< 6.0`, and Trashable `>= 0.17.0`, `< 1.0`. Publishable does not depend on those gems. Hosts that install API need them. Development and the dummy pin API `v0.24.0`, Moveable `v5.0.0`, Trashable `v0.17.0`, Accessible `v0.44.0`, Logs `v0.8.0`, and Metrics `v0.9.0`, on Recording Studio `v7.0.0`. The dummy no longer defines `Recording.recording_studio_trashable_kept_sql`. API 0.24 and Admin 2.16 call `Recording.kept` and `RecordingStudio.kept_sql`.
+
 ## 0.18.0 — Recording Studio 7 and one publishable child per parent
 
 Install `recording_studio_publishable` 0.18.0 and Recording Studio `7.0.0` or newer, below 8. `root_recording_for` only finds a root. It returns `nil` and does not write. Create a root with `RecordingStudio.create_root_recording!`.

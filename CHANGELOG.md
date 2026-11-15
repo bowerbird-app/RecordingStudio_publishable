@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.1] - 2026-11-15
+
+### Changed
+- The gemspec requires `recording_studio_api` `>= 0.24`, `< 1.0` and raises `flat_pack` to `>= 0.1.341`. Recording Studio stays `>= 7.0`, `< 8.0`.
+- Development and dummy Gemfiles and lockfiles pin API `v0.24.0`, Moveable `v5.0.0`, Trashable `v0.17.0`, Accessible `v0.44.0`, Logs `v0.8.0`, and Metrics `v0.9.0`. Core stays `v7.0.0`. Attachable `v0.23.0`, Cache `v0.6.3`, Admin `v2.16.0`, Icons `v0.2.1`, Root Switchable `v0.15.1`, Internationalization `v0.2.3`, and Flatpack `v0.1.366` stay on their current tags.
+- Removed the dummy `recording_studio_trashable_kept_sql` bridge. API 0.24 and Admin 2.16 no longer call that method.
+
+### Upgrade Notes
+- Install Publishable `0.18.1`. Recording Studio API must be `0.24.0` or newer, below 1. Flatpack must be `0.1.341` or newer. No migration.
+- API 0.24 also requires Accessible `>= 0.44.0`, `< 1.0`, Logs `>= 0.8.0`, `< 1.0`, Metrics `>= 0.9.0`, `< 1.0`, Moveable `>= 5.0`, `< 6.0`, and Trashable `>= 0.17.0`, `< 1.0`. Publishable does not depend on those gems.
+
 ## [0.18.0] - 2026-11-15
 
 ### Changed

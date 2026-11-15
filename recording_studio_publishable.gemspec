@@ -23,9 +23,9 @@ Gem::Specification.new do |spec|
     Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.md", "UPGRADING.md"]
   end
 
-  spec.add_dependency "flat_pack", ">= 0.1.331"
+  spec.add_dependency "flat_pack", ">= 0.1.341"
   spec.add_dependency "rails", "~> 8.1.0"
   spec.add_dependency "recording_studio", ">= 7.0", "< 8.0"
-  spec.add_dependency "recording_studio_api", "~> 0.23"
+  spec.add_dependency "recording_studio_api", ">= 0.24", "< 1.0"
   spec.add_dependency "view_component", ">= 4.14", "< 5"
 end
