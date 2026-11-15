@@ -58,30 +58,37 @@ class PublishableMigrationCopiesTest < Minitest::Test
   end
 
   def test_concurrent_migrations_declare_the_production_guards
-    unique = File.read(File.join(GEM_MIGRATIONS, "20261019120000_add_unique_publishable_child_index_concurrently.rb"))
+    names = Dir.children(GEM_MIGRATIONS)
+    drop_child = File.read(File.join(GEM_MIGRATIONS, "20261115000000_drop_publishable_child_per_parent_index.rb"))
     duplicate = File.read(File.join(GEM_MIGRATIONS, "20261019120001_drop_duplicate_publishable_status_index.rb"))
     indexes = File.read(File.join(GEM_MIGRATIONS, "20260516000100_add_indexes_to_publishable.rb"))
 
-    assert_includes unique, "disable_ddl_transaction!"
-    assert_includes unique, "algorithm: :concurrently"
-    assert_includes unique, "if_not_exists: true"
-    assert_includes unique, "unique_child_index_shape?"
-    assert_includes unique, "drop_invalid_unique_child_index"
-    assert_includes unique, "with_concurrent_lock_timeout"
-    assert_includes unique, "PublishableChildIndex::V1"
-    assert_includes unique, "swap_stricter_unique_child_index!"
-    refute_includes unique, "5s"
+    refute(names.any? { |name| name.include?("add_unique_publishable_child_index") })
+    refute File.exist?(File.expand_path("../lib/recording_studio_publishable/publishable_child_index.rb", __dir__))
+    refute_includes drop_child, "PublishableChildIndex"
+    refute_includes duplicate, "PublishableChildIndex"
+
+    assert_includes drop_child, "disable_ddl_transaction!"
+    assert_includes drop_child, "algorithm: :concurrently"
+    assert_includes drop_child, "if_exists: true"
+    assert_includes drop_child, "index_rs_publishable_child_per_parent"
+    assert_includes drop_child, "CONCURRENT_LOCK_TIMEOUT = \"0\""
+    assert_includes drop_child, "SHOW statement_timeout"
+    assert_includes drop_child, "recording_studio:single_child_index"
+    assert_includes drop_child, "IrreversibleMigration"
+    refute_includes drop_child, "5s"
+    refute_includes drop_child, "trashed_at IS NULL"
 
     assert_includes duplicate, "disable_ddl_transaction!"
     assert_includes duplicate, "algorithm: :concurrently"
     assert_includes duplicate, "if_exists: true"
-    assert_includes duplicate, "with_concurrent_lock_timeout"
-    assert_includes duplicate, "PublishableChildIndex::V1"
+    assert_includes duplicate, "CONCURRENT_LOCK_TIMEOUT = \"0\""
+    assert_includes duplicate, "SHOW statement_timeout"
     assert_includes duplicate, "plain_status_index?"
     assert_includes duplicate, "index_rs_publishables_on_state_window"
     assert_includes duplicate, "index_publishables_on_status_and_publish_times"
     assert_includes duplicate, "IrreversibleMigration"
-    assert_includes duplicate, "refuse_invalid_unique_child_index!"
+    refute_includes duplicate, "refuse_invalid_unique_child_index!"
     refute_includes duplicate, "AND trashed_at IS NULL"
     refute_includes duplicate, "5s"
     refute_match(/remove_index[^\n]+index_rs_publishables_on_state_window/, duplicate)
@@ -92,17 +99,6 @@ class PublishableMigrationCopiesTest < Minitest::Test
     assert_includes indexes, "index.orders.blank?"
     assert_includes indexes, "index.include.blank?"
     assert_includes indexes, "if_not_exists: true"
-
-    shared = File.read(File.expand_path("../lib/recording_studio_publishable/publishable_child_index.rb", __dir__))
-    assert_includes shared, "connection.indexes(table_name).find { |candidate| candidate.name == index_name }&.valid?"
-    assert_includes shared, "def unique_child_index_where_clause"
-    assert_includes shared, "CONCURRENT_LOCK_TIMEOUT = \"0\""
-    assert_includes shared, "SHOW statement_timeout"
-    assert_includes shared, "module V1"
-    assert_includes shared, "schema_qualified_table_name"
-    assert_includes shared, "bin/rails db:migrate"
-    refute_includes shared, "5s"
-    refute_includes shared, "current_schema()"
   end
 
   def test_migrations_generator_versions_are_unique_increasing_and_above_existing

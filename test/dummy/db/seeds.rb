@@ -18,7 +18,7 @@ article = Article.find_or_create_by!(title: "Spring Release Notes") do |record|
   record.excerpt = "A second publishable recordable type routed through ArticlesController#show."
 end
 
-root_recording = RecordingStudio.root_recording_for(workspace)
+root_recording = RecordingStudio.create_root_recording!(workspace, actor: admin_user)
 
 folder_recording = root_recording.recording_for(folder)
 folder_recording ||= root_recording.record(folder, actor: admin_user, parent_recording: root_recording)

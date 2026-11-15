@@ -33,8 +33,9 @@ module RecordingStudioPublishable
           end
 
           success(publishable_recording)
-        rescue ActiveRecord::RecordNotUnique
-          success(parent_recording.reload.publishable_child_recording)
+        rescue RecordingStudio::SlotTaken, ActiveRecord::RecordNotUnique => e
+          existing = parent_recording.reload.publishable_child_recording
+          existing ? success(existing) : failure(e)
         rescue StandardError => e
           failure(e)
         end

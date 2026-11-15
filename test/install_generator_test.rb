@@ -188,7 +188,9 @@ class InstallGeneratorTest < Minitest::Test
 
     assert_includes install_guide, "bin/rails db:migrate"
     assert_includes install_guide, "CONCURRENTLY"
-    assert_includes install_guide, "live recordings table"
+    assert_includes install_guide, "recording_studio:single_child_index"
+    assert_includes install_guide, "index_recording_studio_recordings_on_single_child"
+    assert_includes install_guide, "index_rs_publishable_child_per_parent"
     assert_includes install_guide, "direct database connection"
     assert_includes install_guide, "PgBouncer"
     assert_includes install_guide, "db/seeds.rb"

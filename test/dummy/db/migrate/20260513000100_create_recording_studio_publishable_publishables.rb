@@ -4,9 +4,11 @@ class CreateRecordingStudioPublishablePublishables < ActiveRecord::Migration[8.1
   CANONICAL_URL_INDEX = "index_rs_publishables_on_canonical_url"
   SLUG_INDEX = "index_rs_publishables_on_slug"
 
-  # The unique partial index on recording_studio_recordings is built in
-  # AddUniquePublishableChildIndexConcurrently. This migration also creates
-  # the publishables table, which has to stay in one transaction.
+  # One publishable child per parent is core's
+  # index_recording_studio_recordings_on_single_child. Hosts drop
+  # index_rs_publishable_child_per_parent, then run
+  # `rails generate recording_studio:single_child_index`. This migration
+  # creates the publishables table, which has to stay in one transaction.
   def change
     create_table :recording_studio_publishable_publishables, id: :uuid do |t|
       t.string :slug, null: false
