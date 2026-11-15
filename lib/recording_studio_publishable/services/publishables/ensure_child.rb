@@ -3,7 +3,7 @@
 module RecordingStudioPublishable
   module Services
     module Publishables
-      class EnsureChild < BaseService
+      class EnsureChild < ::RecordingStudio::Services::BaseService
         def initialize(parent_recording:, actor: nil)
           @parent_recording = parent_recording
           @actor = actor

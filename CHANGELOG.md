@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-15
+
+### Removed
+- `RecordingStudioPublishable::Hooks`.
+- `RecordingStudioPublishable::Services::BaseService`.
+- `RecordingStudioPublishable.configuration.hooks`.
+- The `:hooks_registered` key on `RecordingStudioPublishable.configuration.to_h`.
+- Engine calls that ran `:before_initialize`, `:on_configuration`, and `:after_initialize` on that registry.
+
+### Changed
+- `Update`, `Transition`, `EnsureChild`, and `Resolve` inherit `RecordingStudio::Services::BaseService`.
+- `.call` still returns an object with `success?`, `failure?`, `value`, `error`, `errors`, `on_success`, `on_failure`, and `value!`. That object is `RecordingStudio::Services::BaseService::Result`.
+- Those services run `before_service`, `after_service`, and `around_service` on `RecordingStudio.configuration.hooks`.
+- `RecordingStudioPublishable.subscribe` and the ActiveSupport notification names are unchanged.
+
+### Upgrade Notes
+- Install Publishable `1.0.0`. No migration. No alias.
+- Delete references to `RecordingStudioPublishable::Hooks`, `RecordingStudioPublishable::Services::BaseService`, and `RecordingStudioPublishable.configuration.hooks`.
+- Register service hooks on `RecordingStudio.configuration.hooks`. Filter on the Publishable service class. Core runs the same hooks for every gem.
+- `before_service` receives the service class and the arguments. `after_service` receives the service class and the result. `around_service` receives the service instance and the next block.
+- Stop reading `:hooks_registered` from `configuration.to_h`.
+- Terms and conditions. Move `SoleLive` (`after_service`, latch `:recording_studio_terms_sole_live`), `OutlinePublish` (`around_service`, latch `:recording_studio_terms_outline_publish`), and `Published` (latch `:recording_studio_terms_published`) onto Core's registry. Leave `subscribe(:published)` in place.
+- Broadcasts. Move `subscribe_publishable_writes!` (`after_service`) and `SentPublishableLock` (`around_service` on `Update` and `Transition`) onto Core's registry. Keep the service-class filter. The hook now sees every service.
+
 ## [0.19.0] - 2026-11-15
 
 ### Added

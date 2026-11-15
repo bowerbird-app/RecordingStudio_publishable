@@ -3,7 +3,7 @@
 module RecordingStudioPublishable
   module Services
     module Publishables
-      class Transition < BaseService
+      class Transition < ::RecordingStudio::Services::BaseService
         TRANSITIONS = {
           "publish" => { status: "published", unpublish_at: nil },
           "schedule" => { status: "published" },

@@ -3,7 +3,7 @@
 module RecordingStudioPublishable
   module Services
     module Publishables
-      class Update < BaseService
+      class Update < ::RecordingStudio::Services::BaseService
         def initialize(parent_recording:, attributes:, actor: nil)
           @parent_recording = parent_recording
           @attributes = attributes.to_h.symbolize_keys

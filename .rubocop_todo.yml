@@ -93,7 +93,6 @@ Metrics/ClassLength:
     - 'test/**/*'
     - 'lib/generators/**/*'
     - 'lib/recording_studio_publishable/configuration.rb'
-    - 'lib/recording_studio_publishable/hooks.rb'
     - 'app/controllers/recording_studio_publishable/publishables_controller.rb'
     - 'app/controllers/recording_studio_publishable/published_controller.rb'
     - 'app/controllers/recording_studio_publishable/renders_public_page.rb'

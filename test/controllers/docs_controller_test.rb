@@ -122,6 +122,8 @@ class DocsControllerTest < ActionDispatch::IntegrationTest
     refute_includes response.body, "Article.published"
     refute_includes response.body, "RecordingStudioPublishable::Routing.url_for"
     refute_includes response.body, "RecordingStudioPublishable::Services::BaseService"
+    refute_includes response.body, "RecordingStudioPublishable::Hooks"
+    refute_includes response.body, "configuration.hooks"
   end
 
   test "components page lists addon partial entry points" do

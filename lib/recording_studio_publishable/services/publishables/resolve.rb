@@ -3,7 +3,7 @@
 module RecordingStudioPublishable
   module Services
     module Publishables
-      class Resolve < BaseService
+      class Resolve < ::RecordingStudio::Services::BaseService
         def initialize(uuid:, slug: nil)
           @uuid = uuid
           @slug = slug

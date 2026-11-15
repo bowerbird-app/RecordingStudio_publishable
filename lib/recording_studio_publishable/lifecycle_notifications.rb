@@ -5,7 +5,8 @@ module RecordingStudioPublishable
   #
   # Recording Studio already emits `recordings.event_created` for every `revise`
   # / `log_event!`. That is snapshot history, not "this parent went live".
-  # Service hooks run for every Update, in-process, and are not after-commit.
+  # Core before_service and after_service hooks run in process for every service,
+  # and they are not after commit.
   # These events are the cross-gem signal: Publishable stays unaware of
   # Downloadable, Presskits, and other subscribers.
   module LifecycleNotifications
