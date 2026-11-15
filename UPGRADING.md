@@ -1,5 +1,31 @@
 # Upgrading
 
+## 1.0.0 — Core service hooks
+
+Install `recording_studio_publishable` 1.0.0. No migration. There is no alias and no compatibility shim.
+
+`RecordingStudioPublishable::Hooks`, `RecordingStudioPublishable::Services::BaseService`, and `RecordingStudioPublishable.configuration.hooks` are gone. `configuration.to_h` no longer includes `:hooks_registered`.
+
+`Update`, `Transition`, `EnsureChild`, and `Resolve` inherit `RecordingStudio::Services::BaseService`. Register `before_service`, `after_service`, and `around_service` on `RecordingStudio.configuration.hooks`. Core runs those hooks for every service from every gem. Check the service class before you act.
+
+`before_service` receives the service class and the service arguments. `after_service` receives the service class and the result. `around_service` receives the service instance and the block that runs the service. Call that block, unless you are returning a result yourself.
+
+`RecordingStudioPublishable.subscribe` and the `published.recording_studio_publishable` notifications are unchanged.
+
+The engine no longer runs `:before_initialize`, `:on_configuration`, or `:after_initialize`. Nothing in the org listened for those events.
+
+### Terms and conditions
+
+Move these registrations from `RecordingStudioPublishable.configuration.hooks` to `RecordingStudio.configuration.hooks`.
+
+- `SoleLive` registers `after_service` and a latch on `:recording_studio_terms_sole_live`. Keep the `Update` check. Move `hooks.on` and `hooks.registered?` for that latch to Core.
+- `OutlinePublish` registers `around_service` and a latch on `:recording_studio_terms_outline_publish`. The hook already limits itself to `Update`. Move the latch the same way. Keep calling the block for every other service.
+- `Published` uses the latch `:recording_studio_terms_published` to decide `installed?`. Move that latch to Core. Leave `RecordingStudioPublishable.subscribe(:published)` where it is.
+
+### Broadcasts
+
+Move the `after_service` block in `subscribe_publishable_writes!` to Core. Ignore service classes other than Publishable's. `SentPublishableLock` registers `around_service` and already limits the refusal to `Update` and `Transition`. Move that registration to Core and keep calling the block for every other service.
+
 ## 0.19.0 — SQL scopes for published and indexable lists
 
 Install `recording_studio_publishable` 0.19.0. No migration. No new column.

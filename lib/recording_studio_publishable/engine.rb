@@ -35,11 +35,6 @@ module RecordingStudioPublishable
       Mime::Type.register "text/vnd.turbo-stream.html", :turbo_stream unless Mime[:turbo_stream]
     end
 
-    initializer "recording_studio_publishable.before_initialize",
-                before: "recording_studio_publishable.load_config" do |_app|
-      RecordingStudioPublishable::Hooks.run(:before_initialize, self)
-    end
-
     initializer "recording_studio_publishable.load_config" do |app|
       if app.respond_to?(:config_for)
         yaml = begin
@@ -54,15 +49,8 @@ module RecordingStudioPublishable
         xcfg = app.config.x.recording_studio_publishable
         RecordingStudioPublishable.configuration.merge!(xcfg.to_h) if xcfg.respond_to?(:to_h)
       end
-
-      RecordingStudioPublishable::Hooks.run(:on_configuration, RecordingStudioPublishable.configuration)
     rescue StandardError
       nil
-    end
-
-    initializer "recording_studio_publishable.after_initialize",
-                after: "recording_studio_publishable.load_config" do |_app|
-      RecordingStudioPublishable::Hooks.run(:after_initialize, self)
     end
 
     initializer "recording_studio_publishable.register_recording_studio_api_action",

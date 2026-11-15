@@ -27,7 +27,6 @@ Metrics/ClassLength:
     - 'test/**/*'
     - 'lib/generators/**/*'
     - 'lib/recording_studio_publishable/configuration.rb'
-    - 'lib/recording_studio_publishable/hooks.rb'
 
 Metrics/ModuleLength:
   Exclude:

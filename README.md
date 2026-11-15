@@ -344,7 +344,7 @@ The social image id must be an image attachment recording that is a direct child
 
 Other gems subscribe to publish visibility without Publishable knowing they exist. Do not add a Downloadable or Presskits hook here.
 
-Recording Studio already records snapshot history through `revise` (`action: "updated"` on the publishable child) and can emit `recordings.event_created` for those rows. Service `before_service` / `after_service` hooks run for every Update, in process, and not after commit. Neither of those is “this parent just went live.” Use these events instead.
+Recording Studio already records snapshot history through `revise` (`action: "updated"` on the publishable child) and can emit `recordings.event_created` for those rows. Core `before_service` and `after_service` hooks run in process for every service, including Update. Register them on `RecordingStudio.configuration.hooks` and check the service class, because that registry sees every gem. Those hooks are not after commit, and they are not "this parent just went live." Use these events instead.
 
 | Event | When |
 |---|---|

@@ -223,6 +223,15 @@ class ConfigurationTest < Minitest::Test
     assert_equal({ icon_variant: :solid, icon_style: :success }, published)
   end
 
+  def test_configuration_has_no_hook_registry
+    configuration = RecordingStudioPublishable.configuration
+
+    refute_respond_to configuration, :hooks
+    refute_includes configuration.to_h, :hooks_registered
+    refute defined?(RecordingStudioPublishable::Hooks)
+    refute defined?(RecordingStudioPublishable::Services::BaseService)
+  end
+
   def test_quick_actions_states_reject_unknown_state_keys_and_icons
     error = assert_raises(ArgumentError) do
       RecordingStudioPublishable.configuration.quick_actions_states = { live: { style: :primary } }

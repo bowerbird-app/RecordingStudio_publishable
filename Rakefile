@@ -15,6 +15,7 @@ DUMMY_TEST_FILES = %w[
   test/services/recording_studio_publishable/publications/resolve_test.rb
   test/services/recording_studio_publishable/publications/api_actions_test.rb
   test/services/recording_studio_publishable/publications/transition_test.rb
+  test/services/recording_studio_publishable/publications/service_hooks_test.rb
 ].map { |path| File.expand_path(path, __dir__) }.freeze
 DUMMY_GEMFILE = File.expand_path("test/dummy/Gemfile", __dir__)
 DUMMY_APP_ROOT = File.expand_path("test/dummy", __dir__)
@@ -28,6 +29,7 @@ ROOT_TEST_EXCLUSIONS = %w[
   test/services/recording_studio_publishable/publications/resolve_test.rb
   test/services/recording_studio_publishable/publications/api_actions_test.rb
   test/services/recording_studio_publishable/publications/transition_test.rb
+  test/services/recording_studio_publishable/publications/service_hooks_test.rb
   test/rename_verification_test.rb
   test/dummy/**/*_test.rb
 ].freeze
