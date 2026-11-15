@@ -14,7 +14,8 @@ module RecordingStudioPublishable
       recording_studio_recordable(
         label: "Publishable",
         plural_label: "Publishables",
-        root: false
+        root: false,
+        one_per_parent: true
       )
     end
 

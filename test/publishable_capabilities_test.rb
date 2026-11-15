@@ -91,10 +91,22 @@ class PublishableCapabilitiesTest < Minitest::Test
     refute RecordingStudio.capability_enabled?(:publishable, for: "UnenabledRecordable")
   end
 
+  def test_seeds_create_the_workspace_root_and_the_switcher_only_looks_it_up
+    seeds = File.read(File.expand_path("../test/dummy/db/seeds.rb", __dir__))
+    switcher = File.read(
+      File.expand_path("../test/dummy/config/initializers/recording_studio_root_switchable.rb", __dir__)
+    )
+
+    assert_includes seeds, "RecordingStudio.create_root_recording!(workspace, actor: admin_user)"
+    refute_includes seeds, "root_recording_for"
+    assert_includes switcher, "RecordingStudio.root_recording_for(workspace)"
+    refute_includes switcher, "create_root_recording!"
+  end
+
   def test_gemspec_depends_on_recording_studio_and_not_trashable
     gemspec = File.read(File.expand_path("../recording_studio_publishable.gemspec", __dir__))
 
-    assert_includes gemspec, 'spec.add_dependency "recording_studio", "~> 6.14", ">= 6.14.0"'
+    assert_includes gemspec, 'spec.add_dependency "recording_studio", ">= 7.0", "< 8.0"'
     assert_includes gemspec, 'spec.add_dependency "recording_studio_api", "~> 0.23"'
     assert_includes gemspec, 'spec.add_dependency "flat_pack", ">= 0.1.331"'
     assert_includes gemspec, 'spec.add_dependency "view_component", ">= 4.14", "< 5"'

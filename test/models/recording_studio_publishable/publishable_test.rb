@@ -7,6 +7,15 @@ require "rails/test_help"
 
 module RecordingStudioPublishable
   class PublishableTest < ActiveSupport::TestCase
+    test "is one publishable child per parent" do
+      declaration = RecordingStudio.recordable_declaration_for(Publishable)
+
+      assert_equal false, declaration.root
+      assert_equal true, declaration.one_per_parent
+      assert RecordingStudio.single_child?(Publishable, under: "Page")
+      assert RecordingStudio.single_child?(Publishable, under: "Workspace")
+    end
+
     test "currently_published? respects publish and unpublish timestamps" do
       publishable = Publishable.new(status: :published, publish_at: 1.hour.ago, unpublish_at: 1.hour.from_now,
                                     slug: "demo")

@@ -1,21 +1,18 @@
 # frozen_string_literal: true
 
-require "recording_studio_publishable/publishable_child_index"
-
 class DropDuplicatePublishableStatusIndex < ActiveRecord::Migration[8.1]
-  include RecordingStudioPublishable::PublishableChildIndex::V1
-
   # Created with the publishables table. Fresh installs keep this index.
   ORIGINAL_INDEX = "index_rs_publishables_on_state_window"
   # Added by 20260516000100 on the same columns and options. Never drop ORIGINAL_INDEX.
   DUPLICATE_INDEX = "index_publishables_on_status_and_publish_times"
   PUBLISHABLES = :recording_studio_publishable_publishables
   STATUS_COLUMNS = %w[status publish_at unpublish_at].freeze
+  CONCURRENT_LOCK_TIMEOUT = "0"
+  CONCURRENT_STATEMENT_TIMEOUT = "0"
 
   disable_ddl_transaction!
 
   def up
-    refuse_invalid_unique_child_index!
     return unless original_status_index_valid?
     return unless index_exists?(PUBLISHABLES, name: DUPLICATE_INDEX)
 
@@ -58,5 +55,23 @@ class DropDuplicatePublishableStatusIndex < ActiveRecord::Migration[8.1]
       !index.unique,
       index.where.blank?
     ].all?
+  end
+
+  # 0 waits. A short lock_timeout or statement_timeout cancels that wait.
+  def with_concurrent_lock_timeout
+    previous_lock_timeout = select_value("SHOW lock_timeout")
+    previous_statement_timeout = select_value("SHOW statement_timeout")
+    execute("SET lock_timeout = #{connection.quote(CONCURRENT_LOCK_TIMEOUT)}")
+    execute("SET statement_timeout = #{connection.quote(CONCURRENT_STATEMENT_TIMEOUT)}")
+    yield
+  ensure
+    restore_timeout("statement_timeout", previous_statement_timeout)
+    restore_timeout("lock_timeout", previous_lock_timeout)
+  end
+
+  def restore_timeout(setting, previous)
+    return if previous.nil?
+
+    execute("SET #{setting} = #{connection.quote(previous)}")
   end
 end

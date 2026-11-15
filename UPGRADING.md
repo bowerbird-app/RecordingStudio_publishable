@@ -1,5 +1,58 @@
 # Upgrading
 
+## 0.18.0 — Recording Studio 7 and one publishable child per parent
+
+Install `recording_studio_publishable` 0.18.0 and Recording Studio `7.0.0` or newer, below 8. `root_recording_for` only finds a root. It returns `nil` and does not write. Create a root with `RecordingStudio.create_root_recording!`.
+
+`RecordingStudioPublishable::Publishable` declares `one_per_parent: true`. One publishable recording is allowed directly under a parent. A second create raises `RecordingStudio::SlotTaken`, including when the existing child is trashed. Trashing a publishable does not free the slot. Revise the existing child, or remove that recording, before creating another. `EnsureChild` returns the kept child when a concurrent create loses the slot. When the only child is trashed, `EnsureChild` fails with `SlotTaken` and does not insert a replacement.
+
+Lookup stays on `root_recording_for` and handles `nil`. Seeds and setup that used to create a root by looking it up pass an actor:
+
+```ruby
+root = RecordingStudio.create_root_recording!(workspace, actor: Current.actor)
+```
+
+A second call returns the same root and does not append another event.
+
+### Migration
+
+Copy the engine migrations, drop the old index, then generate core's index. Run `db:migrate` on a direct database connection. PgBouncer transaction pooling cannot run the drop: `disable_ddl_transaction!` splits the work across statements, Rails holds a session advisory lock, and `SET lock_timeout` and `SET statement_timeout` have to stay on that session. Check `pg_stat_activity` for an idle transaction first. The drop sets both timeouts to `0` so it waits for that transaction.
+
+```bash
+bin/rails generate recording_studio_publishable:migrations
+bin/rails generate recording_studio:single_child_index
+bin/rails db:migrate
+```
+
+`DropPublishableChildPerParentIndex` drops `index_rs_publishable_child_per_parent` with `CONCURRENTLY` when that index is present, including when it is `INVALID`. It does not recreate it. Core's generator writes the replacement. For an app whose only single-child type is Publishable, that migration is:
+
+```ruby
+class AddRecordingStudioSingleChildIndex < ActiveRecord::Migration[8.1]
+  def change
+    add_index :recording_studio_recordings,
+              %i[parent_recording_id recordable_type],
+              unique: true,
+              name: "index_recording_studio_recordings_on_single_child",
+              where: "recordable_type IN ('RecordingStudioPublishable::Publishable')",
+              if_not_exists: true
+  end
+end
+```
+
+Run the generator in the host app. The `IN` list is every child type that is single under every parent when the generator runs, not only Publishable. Do not keep `index_rs_publishable_child_per_parent` beside `index_recording_studio_recordings_on_single_child`.
+
+The old index ignored trashed rows. Core's index counts them. Before migrating, find parents that already have more than one publishable recording, trashed or not:
+
+```sql
+SELECT parent_recording_id, count(*)
+FROM recording_studio_recordings
+WHERE recordable_type = 'RecordingStudioPublishable::Publishable'
+GROUP BY parent_recording_id
+HAVING count(*) > 1;
+```
+
+Leave one recording under each of those parents. The new index will not build while a duplicate remains.
+
 ## 0.17.0 — Social images use Attachable upload routes
 
 Install `recording_studio_publishable` 0.17.0. No migration. Keep Active Storage installed so attachment bytes have a place to live. Publishable still does not depend on Attachable in the gemspec; the host that shows the social form already mounts Attachable.

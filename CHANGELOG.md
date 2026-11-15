@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.0] - 2026-11-15
+
+### Changed
+- Requires `recording_studio` `>= 7.0`, `< 8.0`. Development and dummy Gemfiles pin Recording Studio `v7.0.0`.
+- `RecordingStudioPublishable::Publishable` declares `one_per_parent: true`. A second publishable recording under the same parent raises `RecordingStudio::SlotTaken`. A trashed child still holds the slot. `EnsureChild` returns the kept child when the slot is already taken, and fails when the only child is trashed.
+- Removed `PublishableChildIndex` and `index_rs_publishable_child_per_parent`. `DropPublishableChildPerParentIndex` drops that index. The dummy runs `recording_studio:single_child_index` and keeps `index_recording_studio_recordings_on_single_child`.
+- Development and dummy Gemfiles pin Accessible `v0.43.1`, Trashable `v0.16.1`, and Root Switchable `v0.15.1`. The dummy pins Admin `v2.16.0` and Internationalization `v0.2.3`. API, Attachable, Cache, Metrics, Logs, Moveable, and Icons stay on their current tags.
+- Dummy seeds create the workspace root with `RecordingStudio.create_root_recording!`. The workspace switcher still looks roots up with `root_recording_for`.
+
+### Upgrade Notes
+- Install Publishable `0.18.0` and Recording Studio `7.0.0` or newer, below 8. Copy migrations and migrate on a direct database connection. `DropPublishableChildPerParentIndex` drops `index_rs_publishable_child_per_parent` with `CONCURRENTLY`. Then run `bin/rails generate recording_studio:single_child_index` and migrate. Do not keep the old index beside core's. The generated index counts trashed rows. Seeds that created a root by calling `root_recording_for` now call `create_root_recording!`. Details are in `UPGRADING.md`.
+
 ## [0.17.0] - 2026-11-14
 
 ### Security
