@@ -1,5 +1,9 @@
 # Upgrading
 
+## 0.17.1 — Recording Studio below 8.0
+
+Install `recording_studio_publishable` 0.17.1. The gemspec allows Recording Studio `>= 6.14.0` and `< 8.0`. No migration. Publish behavior is unchanged. Development and the dummy stay on Recording Studio 6.14.0.
+
 ## 0.17.0 — Social images use Attachable upload routes
 
 Install `recording_studio_publishable` 0.17.0. No migration. Keep Active Storage installed so attachment bytes have a place to live. Publishable still does not depend on Attachable in the gemspec; the host that shows the social form already mounts Attachable.
