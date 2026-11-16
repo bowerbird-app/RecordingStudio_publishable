@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-11-16
+
+### Changed
+- The gemspec requires `recording_studio_api` `>= 1.1`, `< 2.0`. Recording Studio stays `>= 7.0`, `< 8.0`. API 1.1 requires Recording Studio `>= 7.1.0`, `< 8.0`.
+- Development and dummy Gemfiles pin API `v1.1.0`, Recording Studio `v7.1.0`, Flatpack `v0.1.376`, and Attachable `v0.31.0`. Attachable 0.31.0 requires API `>= 1.1.0`, `< 2.0`, Flatpack `>= 0.1.376`, and Metrics `>= 0.9.0`. Moveable `v5.0.0`, Trashable `v0.17.0`, Accessible `v0.44.0`, Logs `v0.8.0`, Metrics `v0.9.0`, Cache `v0.6.3`, Admin `v2.16.0`, Icons `v0.2.1`, Root Switchable `v0.15.1`, and Internationalization `v0.2.3` stay on their current tags.
+- Capability actions register on each API from `RecordingStudioApi.configuration.each_api`. The path that omitted `api:` is gone.
+- The dummy no longer defines `RecordingStudio::Access.roles` for API 0.5.6.
+- The social image modal passes `picker_url` into Attachable's image picker. Attachable uses that local as the search endpoint.
+
+### Upgrade Notes
+- Install Publishable `1.1.0`. Bump Recording Studio API to `1.1.0` or newer, below 2, and Recording Studio to `7.1.0` or newer, below 8. No Publishable migration.
+- API 1.1 still requires Accessible `>= 0.44.0`, `< 1.0`, Logs `>= 0.8.0`, `< 1.0`, Metrics `>= 0.9.0`, `< 1.0`, and Moveable `>= 5.0`, `< 6.0`. Trashable is `>= 0.17.0`, `< 2.0`. Publishable does not depend on those gems.
+- `publish`, `unpublish`, and `update_publishable` still read `context.recording`. API 0.26 resolves that recording before the handler runs. A trashed, foreign, or wrong-type id is 404.
+
 ## [1.0.0] - 2026-11-15
 
 ### Removed

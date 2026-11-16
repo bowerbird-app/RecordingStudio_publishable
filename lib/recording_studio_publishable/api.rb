@@ -76,11 +76,9 @@ module RecordingStudioPublishable
         end
 
         def each_surface
-          if named_api_registration_supported?
-            RecordingStudioApi.configuration.each_api { |definition| yield definition.name }
-          else
-            yield nil
-          end
+          return unless named_api_registration_supported?
+
+          RecordingStudioApi.configuration.each_api { |definition| yield definition.name }
         end
 
         def named_api_registration_supported?
@@ -107,19 +105,11 @@ module RecordingStudioPublishable
         end
 
         def existing_action(surface_name, action_name)
-          if surface_name
-            RecordingStudioApi.capability_action(action_name, api: surface_name)
-          else
-            RecordingStudioApi.capability_action(action_name)
-          end
+          RecordingStudioApi.capability_action(action_name, api: surface_name)
         end
 
         def register_new_action(surface_name, action_name, options)
-          if surface_name
-            RecordingStudioApi.register_capability_action(action_name, api: surface_name, **options)
-          else
-            RecordingStudioApi.register_capability_action(action_name, **options)
-          end
+          RecordingStudioApi.register_capability_action(action_name, api: surface_name, **options)
         end
 
         def action_options(action_name, contracts)

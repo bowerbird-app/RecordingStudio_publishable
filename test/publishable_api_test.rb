@@ -47,7 +47,7 @@ class PublishableApiTest < Minitest::Test
       assert_registered_action(api, :publish, :post)
       assert_registered_action(api, :unpublish, :post)
       assert_registered_action(api, :update_publishable, :patch)
-      api.registrations.each { |row| refute row.key?(:api) }
+      api.registrations.each { |row| assert_equal "public", row.fetch(:api) }
     end
   end
 
@@ -221,6 +221,8 @@ class PublishableApiTest < Minitest::Test
     assert_equal verb, row.fetch(:http_verb)
     assert_equal :member, row.fetch(:scope)
     assert_equal :edit, row.fetch(:required_role)
+    assert_equal [DESCRIPTIONS.fetch(name)], row.fetch(:version_notes)
+    assert_respond_to row.fetch(:openapi_for), :call
     assert_instance_of RecordingStudioPublishable::Api::Perform::Bound, row.fetch(:handler)
     assert_equal name, row.fetch(:handler).action_name
     assert_equal RecordingStudioPublishable::Api::PublishableSnapshot, row.fetch(:serializer)
@@ -253,7 +255,7 @@ class PublishableApiTest < Minitest::Test
     api.registrations.map { |row| [row.fetch(:api), row.fetch(:name)] }
   end
 
-  def with_fake_recording_studio_api(api_names: nil, existing_actions: {})
+  def with_fake_recording_studio_api(api_names: %w[public], existing_actions: {})
     api = Module.new
     serializers = Module.new
     serializers.const_set(:RecordingSerializer, Class.new)
@@ -262,25 +264,12 @@ class PublishableApiTest < Minitest::Test
     api.const_set(:UnsupportedActionError, Class.new(StandardError))
     api.const_set(:InvalidActionInputError, invalid_action_input_error_class)
     registrations = []
-    if api_names
-      install_named_api(api, registrations, existing_actions, api_names)
-    else
-      install_public_api(api, registrations, existing_actions)
-    end
+    install_named_api(api, registrations, existing_actions, api_names)
     api.define_singleton_method(:registrations) { registrations }
     Object.const_set(:RecordingStudioApi, api)
     yield api
   ensure
     remove_recording_studio_api!
-  end
-
-  def install_public_api(api, registrations, existing_actions)
-    api.define_singleton_method(:capability_action) do |name|
-      existing_actions[name] || registrations.find { |row| row.fetch(:name) == name }
-    end
-    api.define_singleton_method(:register_capability_action) do |name, **options|
-      registrations << options.merge(name: name)
-    end
   end
 
   def install_named_api(api, registrations, existing_actions, api_names)
