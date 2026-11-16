@@ -14,6 +14,8 @@ Registration rejects unknown keywords. Publishable passes `capability`, `version
 
 Delete a copied API 0.5.6 `RecordingStudio::Access.roles` shim. API 1.1 does not read it.
 
+A host that copied `app/views/recording_studio_publishable/publishables/social.html.erb` should pass `picker_url: recording_studio_attachable.recording_attachment_picker_path(publishable_recording)` into the attachment image picker modal. Attachable uses that local as the search endpoint.
+
 ## 1.0.0 — Core service hooks
 
 Install `recording_studio_publishable` 1.0.0. No migration. There is no alias and no compatibility shim.

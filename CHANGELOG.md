@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development and dummy Gemfiles pin API `v1.1.0`, Recording Studio `v7.1.0`, and Flatpack `v0.1.376`. Attachable has no release that allows API 1.1, so those Gemfiles pin branch `cursor/api-1x-b34b` (`v0.30.0` still requires API `< 1.0`). Moveable `v5.0.0`, Trashable `v0.17.0`, Accessible `v0.44.0`, Logs `v0.8.0`, Metrics `v0.9.0`, Cache `v0.6.3`, Admin `v2.16.0`, Icons `v0.2.1`, Root Switchable `v0.15.1`, and Internationalization `v0.2.3` stay on their current tags.
 - Capability actions register on each API from `RecordingStudioApi.configuration.each_api`. The path that omitted `api:` is gone.
 - The dummy no longer defines `RecordingStudio::Access.roles` for API 0.5.6.
+- The social image modal passes `picker_url` into Attachable's image picker. Attachable uses that local as the search endpoint.
 
 ### Upgrade Notes
 - Install Publishable `1.1.0`. Bump Recording Studio API to `1.1.0` or newer, below 2, and Recording Studio to `7.1.0` or newer, below 8. No Publishable migration.
