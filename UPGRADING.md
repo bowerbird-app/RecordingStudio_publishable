@@ -1,5 +1,19 @@
 # Upgrading
 
+## 1.1.0 — Recording Studio API 1.1
+
+Install `recording_studio_publishable` 1.1.0. Bump `recording_studio_api` to `1.1.0` or newer, below 2. Bump `recording_studio` to `7.1.0` or newer, below 8. No Publishable migration.
+
+Attachable `v0.30.0` still requires API `< 1.0`. A host that installs both needs an Attachable release that allows API `>= 1.1`, `< 2.0`. That release also requires Flatpack `>= 0.1.376`.
+
+API 1.0 removed `RecordingStudioApi::Hooks` and `RecordingStudioApi::Services::BaseService`. Publishable does not call them. Register service hooks on `RecordingStudio.configuration.hooks`.
+
+API 0.26 resolves a member action id through the grant's accessible recordings before the handler runs. A trashed, foreign, or wrong-type id returns 404. Publishable's handlers still use `context.recording` and write as `access_grant.actor`.
+
+Registration rejects unknown keywords. Publishable passes `capability`, `version`, `version_notes`, `http_verb`, `scope`, `required_role`, `handler`, `serializer`, `input_contract`, `openapi`, `openapi_for`, and `api`. Those keywords are accepted. Publishable does not declare `trashed_semantics`.
+
+Delete a copied API 0.5.6 `RecordingStudio::Access.roles` shim. API 1.1 does not read it.
+
 ## 1.0.0 — Core service hooks
 
 Install `recording_studio_publishable` 1.0.0. No migration. There is no alias and no compatibility shim.
