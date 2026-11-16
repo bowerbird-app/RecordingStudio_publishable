@@ -18,8 +18,7 @@ gem "view_component", "4.19.0"
 gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.44.0"
 gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v1.1.0",
                             require: false
-# v0.30.0 still requires recording_studio_api < 1.0. No release allows 1.1 yet.
-gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", branch: "cursor/api-1x-b34b"
+gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.31.0"
 gem "recording_studio_cache", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"
 # API depends on these. They are not published to RubyGems.
 gem "recording_studio_icons", github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1",
