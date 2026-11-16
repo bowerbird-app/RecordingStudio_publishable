@@ -10,8 +10,18 @@ recordable_types = [
   "RecordingStudioPublishable::Publishable",
   "RecordingStudioAttachable::Attachment"
 ]
+# recording_studio_api.rb sets admin_root_recordable_type_names after this file
+# loads. Register AdminApi only once that list is present.
 if defined?(RecordingStudioApi::Engine)
-  recordable_types << RecordingStudioApi::Engine::ADMIN_API_RECORDABLE_TYPE_NAME
+  Rails.application.config.to_prepare do
+    next unless RecordingStudioApi.configuration.admin_root_recordable_type_names.present?
+
+    admin_api = RecordingStudioApi::Engine::ADMIN_API_RECORDABLE_TYPE_NAME
+    registered = Array(RecordingStudio.configuration.recordable_types).map(&:to_s)
+    next if registered.include?(admin_api)
+
+    RecordingStudio.configuration.recordable_types = registered + [ admin_api ]
+  end
 end
 
 RecordingStudio.configure do |config|

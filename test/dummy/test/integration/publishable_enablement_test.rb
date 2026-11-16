@@ -46,15 +46,16 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     refute RecordingStudio.configuration.require_actor
   end
 
-  test "admin api recordable is registered without an admin root" do
+  test "admin api recordable stays unregistered without an admin root" do
     skip unless defined?(RecordingStudioApi)
 
     admin_api = "RecordingStudioApi::AdminApi".constantize
     registered = Array(RecordingStudio.configuration.recordable_types).map(&:to_s)
 
-    assert_includes registered, admin_api.name
+    assert_empty Array(RecordingStudioApi.configuration.admin_root_recordable_type_names)
+    refute_includes registered, admin_api.name
     refute_includes registered, "AdminRoot"
-    assert_empty RecordingStudio::RecordableDeclarations.declarations.fetch(admin_api.name).allowed_parent_types
+    refute RecordingStudio::RecordableDeclarations.declarations.key?(admin_api.name)
   end
 
   test "dummy uses core default layout rather than a custom sidebar shell" do
