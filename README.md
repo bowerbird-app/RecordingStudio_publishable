@@ -415,7 +415,7 @@ The etag is a digest of the policy `etag` and the publishable id, status, slug, 
 
 The public layout must not emit a per-request token on that response. Use `publishable_document_security_tags` in place of `csrf_meta_tags` and `csp_meta_tag`. It emits both tags for every other response, including preview and a recordable that did not opt in. A public policy also drops a nonce-based `Content-Security-Policy` response header and clears the nonce. A policy with no nonce is left in place.
 
-On a public policy the gem calls `PublishedController.skip_recording_studio_root_resolution(raise: false)`, so Root Switchable does not mint its device cookie for that response. `Set-Cookie` is still removed, which covers any other host cookie. A filter that changes the HTML per device still makes the cached page wrong, so skip that filter. The dummy `Article` opts in. `Page` does not, and its public show stays `private, no-store`.
+Host filters that set cookies are stripped on a public cached page. Skip those filters in the host's own setup when they also change the HTML. The dummy `Article` opts in. `Page` does not, and its public show stays `private, no-store`.
 
 ## Share button
 

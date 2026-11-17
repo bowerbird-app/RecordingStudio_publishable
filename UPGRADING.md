@@ -25,7 +25,7 @@ On a public policy the response is `Cache-Control: public, max-age=300, stale-wh
 
 The public layout has to stop emitting per-request tokens when the policy is public. Call `publishable_document_security_tags` instead of `csrf_meta_tags` and `csp_meta_tag`. It emits both tags on every other response. A public policy also drops a nonce-based `Content-Security-Policy` header and clears the nonce. A policy that does not use a nonce stays.
 
-A public policy calls `PublishedController.skip_recording_studio_root_resolution(raise: false)`, so Root Switchable does not mint its device cookie on that response. The gem still strips `Set-Cookie`. Another host filter that changes the HTML per visitor still needs to be skipped on `PublishedController`, because stripping the cookie does not undo a per-device render.
+Host filters that set cookies are stripped on a public cached page. Skip those filters in the host's own setup when they also change the HTML. Stripping the cookie does not undo a render that already varied by visitor.
 
 The share sheet id is `publishable-share-` plus the publishable recording id, or the parent recording id when that child is missing. It is stable across requests. Hosts that rewrote a random id can delete that rewrite.
 

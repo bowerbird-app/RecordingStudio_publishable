@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The gem calls that method only after the show is live. A missing, draft, scheduled, unpublished, or preview request does not call it. Those responses send `Cache-Control: private, no-store`.
 - A public policy sets `Cache-Control` (`public`, `max-age`, and `stale-while-revalidate` when that value is present), `Vary` (`Accept-Encoding` when `vary` is blank), and a strong `ETag`. The etag mixes the policy `etag` with the publishable id, status, slug, `publish_at`, `unpublish_at`, and `updated_at`. A matching `If-None-Match` returns 304 before the inner controller runs. The gem skips the session write and strips `Set-Cookie`.
 - A public policy drops a nonce-based `Content-Security-Policy` response header and the nonce. `publishable_document_security_tags` still omits `csrf_meta_tags` and `csp_meta_tag` on that response.
-- A public policy calls `PublishedController.skip_recording_studio_root_resolution(raise: false)`, so Root Switchable does not mint its device cookie. `Set-Cookie` stripping stays as a backstop.
+- A public policy strips `Set-Cookie`. Host filters that set cookies can be skipped in the host's own setup.
 
 ### Changed
 - The share sheet id is derived from the publishable recording id, or the parent recording id when there is no publishable child. It no longer uses a random value.
@@ -25,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Install Publishable `1.2.0`. No migration.
 - Define `publishable_http_cache` only on recordables whose public HTML is the same for every anonymous visitor. Return nil, or leave it undefined, and the response is `private, no-store`. Read `Current.actor` in the hook when a signed-in viewer should stay private.
 - In the public layout, replace `csrf_meta_tags` and `csp_meta_tag` with `publishable_document_security_tags`. A public policy also drops a nonce-based `Content-Security-Policy` response header.
-- The gem skips Root Switchable's device cookie when the policy is public, and still strips `Set-Cookie`. Other host filters that set cookies are stripped too, but they can still change the HTML. Skip those filters on `PublishedController`.
+- Host filters that set cookies are stripped on a public cached page. Skip those filters in the host's own setup when they also change the HTML.
 
 ## [1.1.0] - 2026-11-16
 

@@ -242,7 +242,7 @@ class PublishedHttpCacheTest < ActionDispatch::IntegrationTest
     refute_equal original, etag_header
   end
 
-  test "a public response strips a host cookie and skips root resolution" do
+  test "a public response strips a host cookie" do
     article = publish_article("Cookie article", slug: "cookie-article")
     Thread.current[:publishable_test_host_cookie] = true
     Thread.current[:publishable_root_resolution_calls] = 0

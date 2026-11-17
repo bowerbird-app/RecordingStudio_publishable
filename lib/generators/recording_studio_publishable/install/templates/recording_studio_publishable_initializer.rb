@@ -47,6 +47,6 @@ RecordingStudioPublishable.configure do |config|
   # Public show stays private, no-store unless the recordable defines
   # publishable_http_cache(request) and returns a public HttpCachePolicy.
   # The hook can read Current.actor. Use publishable_document_security_tags
-  # in the public layout. A public policy skips Root Switchable's device
-  # cookie and strips Set-Cookie. Skip any other filter that changes the HTML.
+  # in the public layout. A public policy strips Set-Cookie. Skip host
+  # filters that change the HTML in the host's own setup.
 end

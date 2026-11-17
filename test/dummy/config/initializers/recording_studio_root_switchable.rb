@@ -35,9 +35,24 @@ RecordingStudioRootSwitchable.configure do |config|
   end
 end
 
-# A public HttpCachePolicy skips root resolution itself, so this published
-# show does not mint a device cookie. Private shows still resolve the root.
-# Set-Cookie on a public response is stripped as a backstop.
+# Public cached pages skip the device cookie. Registered once when the
+# controller class loads. The condition runs per request and does not
+# change the callback chain.
+module DummyPublicHttpCacheRoot
+  def dummy_public_http_cache?
+    policy = RecordingStudioPublishable::HttpCache.fetch_policy(self)
+    policy.respond_to?(:public?) && policy.public?
+  end
+end
+
+Rails.application.config.to_prepare do
+  controller = RecordingStudioPublishable::PublishedController
+  next unless controller.respond_to?(:skip_recording_studio_root_resolution)
+  next if controller.include?(DummyPublicHttpCacheRoot)
+
+  controller.include(DummyPublicHttpCacheRoot)
+  controller.skip_recording_studio_root_resolution(raise: false, if: :dummy_public_http_cache?)
+end
 
 def internal_route?(path)
   routes = [
