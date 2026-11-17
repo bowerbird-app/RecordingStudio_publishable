@@ -9,6 +9,7 @@ DUMMY_TEST_FILES = %w[
   test/controllers/docs_controller_test.rb
   test/controllers/home_controller_test.rb
   test/controllers/published_controller_test.rb
+  test/controllers/published_http_cache_test.rb
   test/models/recording_studio_publishable/publishable_test.rb
   test/services/recording_studio_publishable/publications/ensure_child_test.rb
   test/services/recording_studio_publishable/publications/update_test.rb
@@ -23,6 +24,7 @@ ROOT_TEST_EXCLUSIONS = %w[
   test/controllers/docs_controller_test.rb
   test/controllers/home_controller_test.rb
   test/controllers/published_controller_test.rb
+  test/controllers/published_http_cache_test.rb
   test/models/recording_studio_publishable/publishable_test.rb
   test/services/recording_studio_publishable/publications/ensure_child_test.rb
   test/services/recording_studio_publishable/publications/update_test.rb

@@ -8,8 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="<%= publishable_t("layout.title", default: "Recording Studio Publishable") %>">
     <meta name="mobile-web-app-capable" content="yes">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
+    <%= publishable_document_security_tags %>
 
     <%= publishable_head_tags %>
     <%= yield :head %>

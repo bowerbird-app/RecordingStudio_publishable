@@ -35,11 +35,23 @@ RecordingStudioRootSwitchable.configure do |config|
   end
 end
 
-Rails.application.config.to_prepare do
-  next unless defined?(RecordingStudioPublishable::PublishedController)
-  next unless RecordingStudioPublishable::PublishedController.respond_to?(:skip_recording_studio_root_resolution)
+# Public cached pages skip the device cookie. Registered once when the
+# controller class loads. The condition runs per request and does not
+# change the callback chain.
+module DummyPublicHttpCacheRoot
+  def dummy_public_http_cache?
+    policy = RecordingStudioPublishable::HttpCache.fetch_policy(self)
+    policy.respond_to?(:public?) && policy.public?
+  end
+end
 
-  RecordingStudioPublishable::PublishedController.skip_recording_studio_root_resolution(raise: false)
+Rails.application.config.to_prepare do
+  controller = RecordingStudioPublishable::PublishedController
+  next unless controller.respond_to?(:skip_recording_studio_root_resolution)
+  next if controller.include?(DummyPublicHttpCacheRoot)
+
+  controller.include(DummyPublicHttpCacheRoot)
+  controller.skip_recording_studio_root_resolution(raise: false, if: :dummy_public_http_cache?)
 end
 
 def internal_route?(path)

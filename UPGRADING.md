@@ -1,5 +1,34 @@
 # Upgrading
 
+## 1.2.0 — Public HTTP cache
+
+Install `recording_studio_publishable` 1.2.0. No migration.
+
+The public show stays private until a recordable opts in. Define `publishable_http_cache(request)` and return `RecordingStudioPublishable::HttpCachePolicy`. Return nil, or leave the method off, and the response is `Cache-Control: private, no-store` with no strong ETag from this gem.
+
+The gem loads the session and sets `Current.actor` from the signed-in user when that attribute is still blank, then calls the hook. The hook can read `Current.actor`. Return nil for a signed-in viewer who should not share the public copy.
+
+```ruby
+def publishable_http_cache(_request)
+  RecordingStudioPublishable::HttpCachePolicy.new(
+    public: true,
+    max_age: 300,
+    stale_while_revalidate: 60,
+    etag: "#{id}:#{updated_at.to_i}"
+  )
+end
+```
+
+`vary` defaults to `Accept-Encoding`. The gem calls the method only after it has a live publishable. Draft, scheduled, unpublished, missing, and preview requests do not call it and send `Cache-Control: private, no-store`. Preview is never cached.
+
+On a public policy the response is `Cache-Control: public, max-age=300, stale-while-revalidate=60` (the last directive is omitted when `stale_while_revalidate` is nil), `Vary`, and a strong `ETag`. The etag is a digest of the policy `etag` plus the publishable id, status, slug, `publish_at`, `unpublish_at`, and `updated_at`. Unpublish, republish, and an edit that changes `updated_at` change the digest. Put the recordable's own version in `etag` when the page body changes without a publishable write. A matching `If-None-Match` returns 304 before the inner controller runs. The gem skips the session write and strips `Set-Cookie`.
+
+The public layout has to stop emitting per-request tokens when the policy is public. Call `publishable_document_security_tags` instead of `csrf_meta_tags` and `csp_meta_tag`. It emits both tags on every other response. A public policy also drops a nonce-based `Content-Security-Policy` header and clears the nonce. A policy that does not use a nonce stays.
+
+Host filters that set cookies are stripped on a public cached page. Skip those filters in the host's own setup when they also change the HTML. Stripping the cookie does not undo a render that already varied by visitor.
+
+The share sheet id is `publishable-share-` plus the publishable recording id, or the parent recording id when that child is missing. It is stable across requests. Hosts that rewrote a random id can delete that rewrite.
+
 ## 1.1.0 — Recording Studio API 1.1
 
 Install `recording_studio_publishable` 1.1.0. Bump `recording_studio_api` to `1.1.0` or newer, below 2. Bump `recording_studio` to `7.1.0` or newer, below 8. No Publishable migration.

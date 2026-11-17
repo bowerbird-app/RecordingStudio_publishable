@@ -31,10 +31,10 @@ module RecordingStudioPublishable
     end
 
     def preview
-      return head :not_found unless preview_authorized?
+      return private_not_found unless preview_authorized?
 
       publishable_recording = @parent_recording.publishable_child_recording
-      return head :not_found if publishable_recording.blank?
+      return private_not_found if publishable_recording.blank?
 
       render_public_publishable_page(publishable_recording, preview: true)
     end

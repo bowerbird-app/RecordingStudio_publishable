@@ -8,13 +8,23 @@ module RecordingStudioPublishable
 
     def render_public_publishable_page(publishable_recording, preview: false)
       assign_public_publishable(publishable_recording)
-      return head :not_found unless public_page_allowed?(preview)
+      return private_not_found unless public_page_allowed?(preview)
       return if redirect_stale_public_slug?(preview)
 
       @publishable_preview = preview
       assign_parent_recordable_context(publishable_recording)
+      # Published check above. Resolve the viewer, then the hook, then freshness.
+      RecordingStudioPublishable::HttpCache.prepare_viewer!(self)
+      return if RecordingStudioPublishable::HttpCache.apply(self, preview: preview) == :not_modified
+
       prepare_public_controller_context(public_renderer)
       render_public_template(public_template, public_layout)
+      RecordingStudioPublishable::HttpCache.reapply(self)
+    end
+
+    def private_not_found
+      head :not_found
+      RecordingStudioPublishable::HttpCache.deny!(self)
     end
 
     def assign_public_publishable(publishable_recording)

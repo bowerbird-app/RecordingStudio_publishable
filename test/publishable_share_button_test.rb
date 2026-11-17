@@ -301,6 +301,17 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     end
   end
 
+  test "modal id is stable and comes from the publishable id" do
+    recording = publish_page("Stable share", slug: "stable-share")
+    publishable_id = recording.publishable_child_recording.id
+    first = share_html(recording, mode: :modal)
+    second = share_html(recording, mode: :modal)
+
+    assert_equal first, second
+    assert_includes first, "publishable-share-#{publishable_id}"
+    refute_includes first, %(publishable-share-#{recording.id}")
+  end
+
   test "translates the modal copy label" do
     recording = publish_page("French modal", slug: "french-modal")
 

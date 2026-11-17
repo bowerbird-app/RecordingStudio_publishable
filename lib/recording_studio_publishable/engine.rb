@@ -2,6 +2,7 @@
 
 require_relative "../../app/helpers/recording_studio_publishable/copy_helper"
 require_relative "../../app/helpers/recording_studio_publishable/share_helper"
+require_relative "../../app/helpers/recording_studio_publishable/http_cache_helper"
 
 module RecordingStudioPublishable
   class Engine < ::Rails::Engine
@@ -12,7 +13,15 @@ module RecordingStudioPublishable
       ActiveSupport.on_load(:action_view) do
         include RecordingStudioPublishable::CopyHelper
         include RecordingStudioPublishable::ShareHelper
+        include RecordingStudioPublishable::HttpCacheHelper
       end
+    end
+
+    initializer "recording_studio_publishable.http_cache" do |app|
+      app.middleware.insert_before(
+        ActionDispatch::Cookies,
+        RecordingStudioPublishable::HttpCache::Commit
+      )
     end
 
     initializer "recording_studio_publishable.assets" do |app|
