@@ -8,4 +8,13 @@ class Article < ApplicationRecord
     schedule: true,
     seo: true
   )
+
+  def publishable_http_cache(_request)
+    RecordingStudioPublishable::HttpCachePolicy.new(
+      public: true,
+      max_age: 300,
+      stale_while_revalidate: 60,
+      etag: [id, updated_at&.utc&.iso8601(6), title].join(":")
+    )
+  end
 end

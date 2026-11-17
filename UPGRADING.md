@@ -1,5 +1,40 @@
 # Upgrading
 
+## 1.2.0 — Public HTTP cache
+
+Install `recording_studio_publishable` 1.2.0. No migration.
+
+The public show stays private until a recordable opts in. Define `publishable_http_cache(request)` and return `RecordingStudioPublishable::HttpCachePolicy`. Return nil, or leave the method off, and the response stays private with no strong ETag from this gem.
+
+```ruby
+def publishable_http_cache(_request)
+  RecordingStudioPublishable::HttpCachePolicy.new(
+    public: true,
+    max_age: 300,
+    stale_while_revalidate: 60,
+    etag: "#{id}:#{updated_at.to_i}"
+  )
+end
+```
+
+`vary` defaults to `Accept-Encoding`. The gem calls the method only after it has a live publishable. Draft, scheduled, unpublished, missing, and preview requests do not call it and send `Cache-Control: private, no-store`. Preview is never cached.
+
+On a public policy the response is `Cache-Control: public, max-age=300, stale-while-revalidate=60` (the last directive is omitted when `stale_while_revalidate` is nil), `Vary`, and a strong `ETag`. The etag is a digest of the policy `etag` plus the publishable id, status, slug, `publish_at`, `unpublish_at`, and `updated_at`. Unpublish, republish, and an edit that changes `updated_at` change the digest. Put the recordable's own version in `etag` when the page body changes without a publishable write. A matching `If-None-Match` returns 304 before render. The gem skips the session write and strips `Set-Cookie`.
+
+The public layout has to stop emitting per-request tokens when the policy is public. Call `publishable_document_security_tags` instead of `csrf_meta_tags` and `csp_meta_tag`. It emits both tags on every other response.
+
+A host `before_action` that sets a cookie still defeats a shared cache. The cookie is on the response, and the filter can change the HTML per device. Root Switchable reads and writes its device cookie from `resolve_recording_studio_root_switchable_current`. Skip that on the published controller:
+
+```ruby
+Rails.application.config.to_prepare do
+  RecordingStudioPublishable::PublishedController.skip_recording_studio_root_resolution(raise: false)
+end
+```
+
+The gem strips `Set-Cookie` when the policy is public. Skip the filter anyway so a cached page is not tied to a device or a session.
+
+The share sheet id is `publishable-share-` plus the publishable recording id, or the parent recording id when that child is missing. It is stable across requests. Hosts that rewrote a random id can delete that rewrite.
+
 ## 1.1.0 — Recording Studio API 1.1
 
 Install `recording_studio_publishable` 1.1.0. Bump `recording_studio_api` to `1.1.0` or newer, below 2. Bump `recording_studio` to `7.1.0` or newer, below 8. No Publishable migration.

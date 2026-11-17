@@ -17,3 +17,4 @@ Configuration notes:
 - Enable Publishable with `include RecordingStudio::Capabilities::Publishable.to(...)`.
 - `config.layout` controls the engine layout globally.
 - `config.register_public_renderer("Page", controller: "pages", action: :show)` overrides the default `Page -> pages#show` public rendering convention.
+- A recordable can opt into a shared cache of its live public show with `publishable_http_cache(request)`. See the README. Skip host filters that set cookies, such as Root Switchable's device cookie, on `PublishedController`.

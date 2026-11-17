@@ -43,4 +43,9 @@ RecordingStudioPublishable.configure do |config|
   # Share button on a live public page. Copies the absolute public URL.
   # Per-call arguments still win. Defaults are icon-only, secondary, md, arrow-up-tray.
   # config.share_button = { style: :primary, icon: "link", icon_only: false, mode: :modal }
+
+  # Public show stays private unless the recordable defines publishable_http_cache(request)
+  # and returns RecordingStudioPublishable::HttpCachePolicy.new(public: true, max_age: 300, etag: ...).
+  # Use publishable_document_security_tags in the public layout.
+  # Skip cookie filters on PublishedController (Root Switchable device cookie) or the cache will not stick.
 end

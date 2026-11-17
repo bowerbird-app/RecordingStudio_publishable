@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-17
+
+### Added
+- `publishable_http_cache(request)` on a recordable. Return nil to keep the private public page. Return `RecordingStudioPublishable::HttpCachePolicy` (`public`, `max_age`, `stale_while_revalidate`, `etag`, `vary`) to allow a shared cache of the live show.
+- The gem calls that method only after the show is live. A missing, draft, scheduled, unpublished, or preview request does not call it. Those responses send `Cache-Control: private, no-store`.
+- A public policy sets `Cache-Control` (`public`, `max-age`, and `stale-while-revalidate` when present), `Vary` (`Accept-Encoding` when `vary` is blank), and a strong `ETag`. The etag mixes the policy `etag` with the publishable id, status, slug, `publish_at`, `unpublish_at`, and `updated_at`. A matching `If-None-Match` returns 304 before the page renders. The gem skips the session write and strips `Set-Cookie`.
+- `publishable_document_security_tags` emits `csrf_meta_tags` and `csp_meta_tag` except when the policy is public.
+
+### Changed
+- The share sheet id is derived from the publishable recording id, or the parent recording id when there is no publishable child. It no longer uses a random value.
+- The gem layout and the dummy public layout call `publishable_document_security_tags`. The dummy `Article` opts into the cache. `Page` stays private.
+
+### Upgrade Notes
+- Install Publishable `1.2.0`. No migration.
+- Define `publishable_http_cache` only on recordables whose public HTML is the same for every anonymous visitor. Leave it undefined to keep today's private response.
+- In the public layout, replace `csrf_meta_tags` and `csp_meta_tag` with `publishable_document_security_tags`. A per-request token makes the cached HTML useless.
+- Skip host filters that set cookies before the published response is cached. Root Switchable's device cookie is the usual one: `RecordingStudioPublishable::PublishedController.skip_recording_studio_root_resolution(raise: false)`. The gem still strips `Set-Cookie` when the policy is public. Skip the filter so the page does not depend on a device.
+
 ## [1.1.0] - 2026-11-16
 
 ### Changed

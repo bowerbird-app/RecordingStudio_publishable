@@ -383,6 +383,46 @@ Scheduled go-live and expiry are **time-based reads**. `currently_published?` be
 
 Trash is not a Publishable write. If Trashable hides a published parent, listen to Trashable — this gem does not emit `unpublished` for that. Parent content `revise` (the page body, not the publishable child) also does not emit `revised`; that stays on `recordings.event_created`.
 
+## Public HTTP cache
+
+A published show stays private. Anonymous HTML can change per request (a session, a CSRF token, a CSP nonce, a device cookie), so a shared cache would store the wrong page.
+
+A recordable opts in with `publishable_http_cache(request)`. Return nil for the private response. Return a `RecordingStudioPublishable::HttpCachePolicy` when every anonymous visitor can share one copy:
+
+```ruby
+def publishable_http_cache(_request)
+  RecordingStudioPublishable::HttpCachePolicy.new(
+    public: true,
+    max_age: 300,
+    stale_while_revalidate: 60,
+    etag: "#{id}:#{updated_at.to_i}",
+    vary: "Accept-Encoding"
+  )
+end
+```
+
+The gem calls the method only after the show is live. It does not call it for a missing recording, a draft, a scheduled page, an unpublished page, or a preview. Those responses send `Cache-Control: private, no-store`. A preview is never cached, even when the recordable would opt in.
+
+A public policy sets:
+
+- `Cache-Control: public, max-age=<max_age>, stale-while-revalidate=<seconds>` (`stale-while-revalidate` is omitted when that value is nil)
+- `Vary` from `vary`, or `Accept-Encoding` when `vary` is blank
+- a strong `ETag`
+
+The etag is a digest of the policy `etag` and the publishable id, status, slug, `publish_at`, `unpublish_at`, and `updated_at`. Unpublish, republish, and an edit of the publishable change it. Put the recordable version in `etag` when the body changes on its own. A request whose `If-None-Match` matches that strong etag returns 304 before the template renders. The gem does not write the session and strips `Set-Cookie`.
+
+The public layout must not emit a per-request token on that response. Use `publishable_document_security_tags` in place of `csrf_meta_tags` and `csp_meta_tag`. It emits both tags for every other response, including preview and a recordable that did not opt in.
+
+Host filters that set cookies defeat the cache. Root Switchable's device cookie is set from `resolve_recording_studio_root_switchable_current` on the host `ApplicationController`, and the published controller inherits that filter. Skip it:
+
+```ruby
+Rails.application.config.to_prepare do
+  RecordingStudioPublishable::PublishedController.skip_recording_studio_root_resolution(raise: false)
+end
+```
+
+The gem still removes `Set-Cookie` when the policy is public. Skip the filter so the rendered page does not vary by device. The dummy skips root resolution on `PublishedController`. The dummy `Article` opts in. `Page` does not, and its public show stays private.
+
 ## Share button
 
 `publishable_share_button(recording, **overrides)` renders a Flatpack share control. The copied value, and every link in the share sheet, is the recording's absolute public page URL. The helper is mixed into every view, so a public page and an embed can both call it.
@@ -391,7 +431,7 @@ The button renders only when `recording.currently_published?` is true. That mean
 
 The URL comes from `publishable_public_path` / `publishable_public_url`. A path is joined to the request base URL. When that base URL is missing, the helper uses the configured host (`Rails.application.routes.default_url_options`). An absolute public URL is kept as-is. The current page URL, an embed URL, and a preview URL are not used.
 
-The built-in look matches an icon-only secondary md button with the `arrow-up-tray` icon. The label is `recording_studio.publishable.share.label` ("Share"). Icon-only, that label is the accessible name and the tooltip. After a click, Flatpack's clipboard copy shows its own "Copied" text.
+The built-in look matches an icon-only secondary md button with the `arrow-up-tray` icon. The label is `recording_studio.publishable.share.label` ("Share"). Icon-only, that label is the accessible name and the tooltip. After a click, Flatpack's clipboard copy shows its own "Copied" text. The share sheet id is `publishable-share-` plus the publishable recording id (or the parent recording id when the child is missing), so a cached page can include the sheet.
 
 Per-call arguments win over `config.share_button`, which wins over the built-in look. Arguments are `mode`, `modal_size`, `destinations`, `style` (or `variant`), `size`, `icon`, `label` (or `text`), `icon_only`, `class`, and other HTML options passed through to the trigger. `text:` sets the visible label. It does not change the copied URL. Style, icon, and label apply to the trigger in both modes.
 

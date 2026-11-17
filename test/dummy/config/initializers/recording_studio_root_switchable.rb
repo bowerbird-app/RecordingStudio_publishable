@@ -35,6 +35,8 @@ RecordingStudioRootSwitchable.configure do |config|
   end
 end
 
+# Root Switchable mints a device cookie on each request. That cookie makes a
+# public response uncacheable, so the published controller skips it.
 Rails.application.config.to_prepare do
   next unless defined?(RecordingStudioPublishable::PublishedController)
   next unless RecordingStudioPublishable::PublishedController.respond_to?(:skip_recording_studio_root_resolution)
