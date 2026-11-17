@@ -10,10 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2026-11-17
 
 ### Added
-- `publishable_http_cache(request)` on a recordable. Return nil to keep the private public page. Return `RecordingStudioPublishable::HttpCachePolicy` (`public`, `max_age`, `stale_while_revalidate`, `etag`, `vary`) to allow a shared cache of the live show.
+- `publishable_http_cache(request)` on a recordable. Return nil, or leave the method off, and the response is `Cache-Control: private, no-store`. Return `RecordingStudioPublishable::HttpCachePolicy` (`public`, `max_age`, `stale_while_revalidate`, `etag`, `vary`) to allow a shared cache of the live show.
+- The gem loads the session and sets `Current.actor` from the signed-in user when that attribute is still blank, then calls the hook. The hook can read `Current.actor`. It is nil for an anonymous request.
 - The gem calls that method only after the show is live. A missing, draft, scheduled, unpublished, or preview request does not call it. Those responses send `Cache-Control: private, no-store`.
-- A public policy sets `Cache-Control` (`public`, `max-age`, and `stale-while-revalidate` when present), `Vary` (`Accept-Encoding` when `vary` is blank), and a strong `ETag`. The etag mixes the policy `etag` with the publishable id, status, slug, `publish_at`, `unpublish_at`, and `updated_at`. A matching `If-None-Match` returns 304 before the page renders. The gem skips the session write and strips `Set-Cookie`.
-- `publishable_document_security_tags` emits `csrf_meta_tags` and `csp_meta_tag` except when the policy is public.
+- A public policy sets `Cache-Control` (`public`, `max-age`, and `stale-while-revalidate` when that value is present), `Vary` (`Accept-Encoding` when `vary` is blank), and a strong `ETag`. The etag mixes the policy `etag` with the publishable id, status, slug, `publish_at`, `unpublish_at`, and `updated_at`. A matching `If-None-Match` returns 304 before the inner controller runs. The gem skips the session write and strips `Set-Cookie`.
+- A public policy drops a nonce-based `Content-Security-Policy` response header and the nonce. `publishable_document_security_tags` still omits `csrf_meta_tags` and `csp_meta_tag` on that response.
+- A public policy calls `PublishedController.skip_recording_studio_root_resolution(raise: false)`, so Root Switchable does not mint its device cookie. `Set-Cookie` stripping stays as a backstop.
 
 ### Changed
 - The share sheet id is derived from the publishable recording id, or the parent recording id when there is no publishable child. It no longer uses a random value.
@@ -21,9 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Upgrade Notes
 - Install Publishable `1.2.0`. No migration.
-- Define `publishable_http_cache` only on recordables whose public HTML is the same for every anonymous visitor. Leave it undefined to keep today's private response.
-- In the public layout, replace `csrf_meta_tags` and `csp_meta_tag` with `publishable_document_security_tags`. A per-request token makes the cached HTML useless.
-- Skip host filters that set cookies before the published response is cached. Root Switchable's device cookie is the usual one: `RecordingStudioPublishable::PublishedController.skip_recording_studio_root_resolution(raise: false)`. The gem still strips `Set-Cookie` when the policy is public. Skip the filter so the page does not depend on a device.
+- Define `publishable_http_cache` only on recordables whose public HTML is the same for every anonymous visitor. Return nil, or leave it undefined, and the response is `private, no-store`. Read `Current.actor` in the hook when a signed-in viewer should stay private.
+- In the public layout, replace `csrf_meta_tags` and `csp_meta_tag` with `publishable_document_security_tags`. A public policy also drops a nonce-based `Content-Security-Policy` response header.
+- The gem skips Root Switchable's device cookie when the policy is public, and still strips `Set-Cookie`. Other host filters that set cookies are stripped too, but they can still change the HTML. Skip those filters on `PublishedController`.
 
 ## [1.1.0] - 2026-11-16
 

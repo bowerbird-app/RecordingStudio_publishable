@@ -44,8 +44,9 @@ RecordingStudioPublishable.configure do |config|
   # Per-call arguments still win. Defaults are icon-only, secondary, md, arrow-up-tray.
   # config.share_button = { style: :primary, icon: "link", icon_only: false, mode: :modal }
 
-  # Public show stays private unless the recordable defines publishable_http_cache(request)
-  # and returns RecordingStudioPublishable::HttpCachePolicy.new(public: true, max_age: 300, etag: ...).
-  # Use publishable_document_security_tags in the public layout.
-  # Skip cookie filters on PublishedController (Root Switchable device cookie) or the cache will not stick.
+  # Public show stays private, no-store unless the recordable defines
+  # publishable_http_cache(request) and returns a public HttpCachePolicy.
+  # The hook can read Current.actor. Use publishable_document_security_tags
+  # in the public layout. A public policy skips Root Switchable's device
+  # cookie and strips Set-Cookie. Skip any other filter that changes the HTML.
 end

@@ -21,23 +21,39 @@ module RecordingStudioPublishable
 
       def write(headers, decision)
         headers = Rack::Headers[headers] if defined?(Rack::Headers)
-        public_headers(headers, decision) || private_headers(headers, decision)
+        if decision[:public]
+          public_headers(headers, decision)
+        else
+          private_headers(headers)
+        end
         headers
       end
 
       def public_headers(headers, decision)
-        return unless decision[:public]
-
         strip_cookies(headers)
+        strip_nonce_csp(headers, decision)
         headers["Cache-Control"] = decision[:cache_control]
         headers["Vary"] = decision[:vary]
         headers["ETag"] = decision[:etag]
       end
 
-      def private_headers(headers, decision)
-        headers["Cache-Control"] = PRIVATE_CACHE_CONTROL unless decision[:strip_etag]
+      def private_headers(headers)
+        headers["Cache-Control"] = PRIVATE_CACHE_CONTROL
         headers.delete("ETag")
         headers.delete("etag")
+      end
+
+      def strip_nonce_csp(headers, decision)
+        return unless decision[:drop_nonce_csp] || nonce_csp_header?(headers)
+
+        headers.delete("Content-Security-Policy")
+        headers.delete("Content-Security-Policy-Report-Only")
+      end
+
+      def nonce_csp_header?(headers)
+        [headers["Content-Security-Policy"], headers["Content-Security-Policy-Report-Only"]].any? do |value|
+          value.to_s.include?("nonce-")
+        end
       end
 
       def strip_cookies(headers)

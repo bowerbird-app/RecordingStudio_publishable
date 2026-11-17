@@ -7,10 +7,54 @@ require "devise/test/integration_helpers"
 require "rails/test_help"
 require "securerandom"
 
+module PublishedHttpCacheProbes
+  def mint_publishable_cache_probe_cookie
+    return unless Thread.current[:publishable_test_host_cookie]
+
+    cookies[:host_marker] = "minted"
+  end
+
+  def install_publishable_cache_probe_csp
+    return unless Thread.current[:publishable_test_nonce_csp]
+
+    policy = ActionDispatch::ContentSecurityPolicy.new
+    policy.default_src :self
+    policy.script_src :self
+    request.content_security_policy = policy
+    request.content_security_policy_nonce_directives = %w[script-src]
+    request.content_security_policy_nonce_generator = ->(_request) { SecureRandom.base64(16) }
+  end
+
+  def resolve_recording_studio_root_switchable_current
+    Thread.current[:publishable_root_resolution_calls] =
+      Thread.current[:publishable_root_resolution_calls].to_i + 1
+    super
+  end
+end
+
+module ArticleShowProbe
+  def show
+    Thread.current[:publishable_article_shows] = Thread.current[:publishable_article_shows].to_i + 1
+    super
+  end
+end
+
+RecordingStudioPublishable::PublishedController.prepend(PublishedHttpCacheProbes)
+RecordingStudioPublishable::PublishedController.before_action :mint_publishable_cache_probe_cookie
+RecordingStudioPublishable::PublishedController.before_action :install_publishable_cache_probe_csp
+ArticlesController.prepend(ArticleShowProbe)
+
 class PublishedHttpCacheTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
 
   TEST_PASSWORD = "PublishableCachePassword!2026"
+
+  teardown do
+    Thread.current[:publishable_test_host_cookie] = nil
+    Thread.current[:publishable_test_nonce_csp] = nil
+    Thread.current[:publishable_root_resolution_calls] = nil
+    Thread.current[:publishable_article_shows] = nil
+  end
 
   test "default published page stays private with no etag" do
     page = publish_page("Private page", slug: "private-page")
@@ -20,10 +64,70 @@ class PublishedHttpCacheTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :success
-    assert_includes cache_control, "private"
-    refute_includes cache_control, "public"
+    assert_no_store
     assert_predicate etag_header, :blank?
     assert_includes response.body, "csrf-token"
+  end
+
+  test "a nil hook and a session viewer are no-store" do
+    page = publish_page("Session page", slug: "session-page")
+    path = "/published/#{page.fetch(:publishable).id}/session-page"
+
+    get path
+    assert_response :success
+    assert_no_store
+    assert_predicate etag_header, :blank?
+
+    sign_in_editor
+    get path
+    assert_response :success
+    assert_no_store
+    assert_predicate etag_header, :blank?
+
+    article = publish_article("Nil policy", slug: "nil-policy")
+    with_article_http_cache(->(_request) { nil }) do
+      get article_path(article)
+      assert_response :success
+      assert_no_store
+      assert_predicate etag_header, :blank?
+    end
+  end
+
+  test "the hook can read Current.actor and keep a signed-in viewer private" do
+    article = publish_article("Actor article", slug: "actor-article")
+    path = article_path(article)
+    policy = RecordingStudioPublishable::HttpCachePolicy.new(public: true, max_age: 30, etag: "actor")
+
+    with_article_http_cache(lambda { |_request|
+      Current.actor.present? ? nil : policy
+    }) do
+      get path
+      assert_response :success
+      assert_includes cache_control, "public"
+      assert_includes cache_control, "max-age=30"
+      refute_includes cache_control, "stale-while-revalidate"
+
+      sign_in_editor
+      get path
+      assert_response :success
+      assert_no_store
+      assert_predicate etag_header, :blank?
+    end
+  end
+
+  test "a custom max age omits stale while revalidate" do
+    article = publish_article("Short cache", slug: "short-cache")
+    policy = RecordingStudioPublishable::HttpCachePolicy.new(public: true, max_age: 45, etag: "short")
+
+    with_article_http_cache(->(_request) { policy }) do
+      get article_path(article)
+    end
+
+    assert_response :success
+    assert_includes cache_control, "public"
+    assert_includes cache_control, "max-age=45"
+    refute_includes cache_control, "stale-while-revalidate"
+    refute_includes cache_control, "private"
   end
 
   test "opted-in published page is public, stable, and returns 304 without a cookie" do
@@ -31,6 +135,7 @@ class PublishedHttpCacheTest < ActionDispatch::IntegrationTest
     path = article_path(article)
 
     with_forgery_protection do
+      Thread.current[:publishable_article_shows] = 0
       get path
       assert_response :success
       assert_public_cache
@@ -39,6 +144,7 @@ class PublishedHttpCacheTest < ActionDispatch::IntegrationTest
       first_body = response.body
       first_etag = etag_header
       refute_set_cookie
+      assert_equal 1, Thread.current[:publishable_article_shows]
 
       get path
       assert_response :success
@@ -46,12 +152,14 @@ class PublishedHttpCacheTest < ActionDispatch::IntegrationTest
       assert_equal first_body, response.body
       assert_public_cache
 
+      shows_before_not_modified = Thread.current[:publishable_article_shows]
       get path, headers: { "If-None-Match" => first_etag }
       assert_response :not_modified
       assert_equal first_etag, etag_header
       assert_public_cache
       refute_set_cookie
       refute_includes response.body.to_s, "Cached article"
+      assert_equal shows_before_not_modified, Thread.current[:publishable_article_shows]
     end
   end
 
@@ -134,6 +242,46 @@ class PublishedHttpCacheTest < ActionDispatch::IntegrationTest
     refute_equal original, etag_header
   end
 
+  test "a public response strips a host cookie and skips root resolution" do
+    article = publish_article("Cookie article", slug: "cookie-article")
+    Thread.current[:publishable_test_host_cookie] = true
+    Thread.current[:publishable_root_resolution_calls] = 0
+
+    get article_path(article)
+
+    assert_response :success
+    assert_public_cache
+    refute_set_cookie
+    assert_equal 0, Thread.current[:publishable_root_resolution_calls]
+  end
+
+  test "a private page still resolves the root" do
+    page = publish_page("Root page", slug: "root-page")
+    Thread.current[:publishable_root_resolution_calls] = 0
+
+    get "/published/#{page.fetch(:publishable).id}/root-page"
+
+    assert_response :success
+    assert_no_store
+    assert_operator Thread.current[:publishable_root_resolution_calls], :>=, 1
+  end
+
+  test "a public response drops a nonce content security policy" do
+    page = publish_page("Nonce page", slug: "nonce-page")
+    article = publish_article("Nonce article", slug: "nonce-article")
+    Thread.current[:publishable_test_nonce_csp] = true
+
+    get "/published/#{page.fetch(:publishable).id}/nonce-page"
+    assert_response :success
+    assert_includes csp_header, "nonce-"
+
+    get article_path(article)
+    assert_response :success
+    assert_public_cache
+    assert_predicate csp_header, :blank?
+    refute_includes response.body, "csp-nonce"
+  end
+
   private
 
   def publish_page(title, slug:)
@@ -167,8 +315,25 @@ class PublishedHttpCacheTest < ActionDispatch::IntegrationTest
     "/blogs/#{article.fetch(:publishable).id}/#{article.fetch(:publishable).recordable.slug}"
   end
 
+  def with_article_http_cache(implementation)
+    Article.class_eval do
+      alias_method :publishable_http_cache_original, :publishable_http_cache
+      define_method(:publishable_http_cache, &implementation)
+    end
+    yield
+  ensure
+    Article.class_eval do
+      alias_method :publishable_http_cache, :publishable_http_cache_original
+      remove_method :publishable_http_cache_original
+    end
+  end
+
   def cache_control
     response.headers["Cache-Control"].to_s
+  end
+
+  def csp_header
+    response.headers["Content-Security-Policy"].to_s
   end
 
   def etag_header

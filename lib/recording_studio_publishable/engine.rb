@@ -24,6 +24,14 @@ module RecordingStudioPublishable
       )
     end
 
+    initializer "recording_studio_publishable.public_root_resolution" do
+      engine = self
+
+      config.to_prepare do
+        engine.send(:skip_public_root_resolution!)
+      end
+    end
+
     initializer "recording_studio_publishable.assets" do |app|
       next unless app.config.respond_to?(:assets)
       next unless app.config.assets.respond_to?(:paths)
@@ -77,6 +85,15 @@ module RecordingStudioPublishable
     end
 
     private
+
+    def skip_public_root_resolution!
+      controller = RecordingStudioPublishable::PublishedController
+      return unless controller.respond_to?(:skip_recording_studio_root_resolution)
+      return if controller.instance_variable_defined?(:@publishable_public_root_skipped)
+
+      controller.skip_recording_studio_root_resolution(raise: false, if: :publishable_public_cache_response?)
+      controller.instance_variable_set(:@publishable_public_root_skipped, true)
+    end
 
     def register_publishable_recordable_type
       return unless publishable_parent_types_registered?

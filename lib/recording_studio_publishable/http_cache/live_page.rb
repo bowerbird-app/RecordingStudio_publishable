@@ -7,16 +7,16 @@ module RecordingStudioPublishable
 
       def cache_live_page(controller)
         publishable = controller.instance_variable_get(:@publishable)
-        return false unless live_publishable?(publishable)
+        return unless live_publishable?(publishable)
 
-        policy = policy_for(controller.instance_variable_get(:@parent_recordable), controller.request)
+        policy = fetch_policy(controller)
         return note_private(controller) unless public_policy?(policy)
 
         send_not_modified(controller, policy, publishable)
       end
 
       def note_private(controller)
-        remember!(controller.request, public: false, strip_etag: true)
+        deny!(controller)
         nil
       end
 
@@ -32,7 +32,7 @@ module RecordingStudioPublishable
 
       def remember_public(controller, policy, validator)
         controller.instance_variable_set(:@publishable_http_cache, policy)
-        decision = public_decision(policy, validator)
+        decision = drop_nonce_content_security_policy!(controller, public_decision(policy, validator))
         remember!(controller.request, **decision)
         write_public!(controller.response, decision)
         skip_session!(controller.request)

@@ -29,7 +29,7 @@ module RecordingStudioPublishable
 
     def reapply(controller)
       decision = decision_for(controller.request)
-      return if decision.blank? || decision[:strip_etag]
+      return if decision.blank?
 
       if decision[:public]
         write_public!(controller.response, decision)
@@ -46,3 +46,5 @@ module RecordingStudioPublishable
 end
 
 require_relative "http_cache/live_page"
+require_relative "http_cache/viewer"
+require_relative "http_cache/security"

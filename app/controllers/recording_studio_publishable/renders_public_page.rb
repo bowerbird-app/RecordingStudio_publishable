@@ -13,7 +13,8 @@ module RecordingStudioPublishable
 
       @publishable_preview = preview
       assign_parent_recordable_context(publishable_recording)
-      # Published check above. Freshness and the recordable hook run only here.
+      # Published check above. Resolve the viewer, then the hook, then freshness.
+      RecordingStudioPublishable::HttpCache.prepare_viewer!(self)
       return if RecordingStudioPublishable::HttpCache.apply(self, preview: preview) == :not_modified
 
       prepare_public_controller_context(public_renderer)

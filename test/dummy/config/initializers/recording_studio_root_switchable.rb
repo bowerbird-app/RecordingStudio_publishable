@@ -35,14 +35,9 @@ RecordingStudioRootSwitchable.configure do |config|
   end
 end
 
-# Root Switchable mints a device cookie on each request. That cookie makes a
-# public response uncacheable, so the published controller skips it.
-Rails.application.config.to_prepare do
-  next unless defined?(RecordingStudioPublishable::PublishedController)
-  next unless RecordingStudioPublishable::PublishedController.respond_to?(:skip_recording_studio_root_resolution)
-
-  RecordingStudioPublishable::PublishedController.skip_recording_studio_root_resolution(raise: false)
-end
+# A public HttpCachePolicy skips root resolution itself, so this published
+# show does not mint a device cookie. Private shows still resolve the root.
+# Set-Cookie on a public response is stripped as a backstop.
 
 def internal_route?(path)
   routes = [

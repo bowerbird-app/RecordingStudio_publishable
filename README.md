@@ -401,7 +401,9 @@ def publishable_http_cache(_request)
 end
 ```
 
-The gem calls the method only after the show is live. It does not call it for a missing recording, a draft, a scheduled page, an unpublished page, or a preview. Those responses send `Cache-Control: private, no-store`. A preview is never cached, even when the recordable would opt in.
+The gem loads the session first and sets `Current.actor` from the signed-in user when that attribute is still blank. The hook can read `Current.actor`. It is nil for an anonymous request. Return nil when a signed-in viewer should get a private page.
+
+The gem calls the method only after the show is live. It does not call it for a missing recording, a draft, a scheduled page, an unpublished page, or a preview. A nil hook, a missing hook, and those responses send `Cache-Control: private, no-store`. A preview is never cached, even when the recordable would opt in.
 
 A public policy sets:
 
@@ -409,19 +411,11 @@ A public policy sets:
 - `Vary` from `vary`, or `Accept-Encoding` when `vary` is blank
 - a strong `ETag`
 
-The etag is a digest of the policy `etag` and the publishable id, status, slug, `publish_at`, `unpublish_at`, and `updated_at`. Unpublish, republish, and an edit of the publishable change it. Put the recordable version in `etag` when the body changes on its own. A request whose `If-None-Match` matches that strong etag returns 304 before the template renders. The gem does not write the session and strips `Set-Cookie`.
+The etag is a digest of the policy `etag` and the publishable id, status, slug, `publish_at`, `unpublish_at`, and `updated_at`. Unpublish, republish, and an edit of the publishable change it. Put the recordable version in `etag` when the body changes on its own. A request whose `If-None-Match` matches that strong etag returns 304 before the inner controller runs. The gem does not write the session and strips `Set-Cookie`.
 
-The public layout must not emit a per-request token on that response. Use `publishable_document_security_tags` in place of `csrf_meta_tags` and `csp_meta_tag`. It emits both tags for every other response, including preview and a recordable that did not opt in.
+The public layout must not emit a per-request token on that response. Use `publishable_document_security_tags` in place of `csrf_meta_tags` and `csp_meta_tag`. It emits both tags for every other response, including preview and a recordable that did not opt in. A public policy also drops a nonce-based `Content-Security-Policy` response header and clears the nonce. A policy with no nonce is left in place.
 
-Host filters that set cookies defeat the cache. Root Switchable's device cookie is set from `resolve_recording_studio_root_switchable_current` on the host `ApplicationController`, and the published controller inherits that filter. Skip it:
-
-```ruby
-Rails.application.config.to_prepare do
-  RecordingStudioPublishable::PublishedController.skip_recording_studio_root_resolution(raise: false)
-end
-```
-
-The gem still removes `Set-Cookie` when the policy is public. Skip the filter so the rendered page does not vary by device. The dummy skips root resolution on `PublishedController`. The dummy `Article` opts in. `Page` does not, and its public show stays private.
+On a public policy the gem calls `PublishedController.skip_recording_studio_root_resolution(raise: false)`, so Root Switchable does not mint its device cookie for that response. `Set-Cookie` is still removed, which covers any other host cookie. A filter that changes the HTML per device still makes the cached page wrong, so skip that filter. The dummy `Article` opts in. `Page` does not, and its public show stays `private, no-store`.
 
 ## Share button
 
