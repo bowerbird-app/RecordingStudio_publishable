@@ -285,6 +285,8 @@ Publishable registers capability actions only when `RecordingStudioApi` is avail
 
 `publish` on an already live parent succeeds and leaves `publish_at` and `unpublish_at` unchanged. `unpublish` on an already draft, unscheduled parent succeeds with no write. It does not create a publishable child when none exists. A scheduled parent still unpublished to draft. `update_publishable` still saves when the payload is empty or unchanged.
 
+`publish`, `unpublish`, and `update_publishable` carry OpenAPI summaries, action descriptions, and (for `update_publishable`) input field descriptions for MCP pages. That wording talks about this recording, not a specific host type. Hosts can still override title and description per type with `override_openapi`.
+
 A host can override OpenAPI title and description for one recordable type without changing other types or the shared `ACTIONS` copy:
 
 ```ruby

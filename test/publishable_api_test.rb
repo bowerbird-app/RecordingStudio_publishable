@@ -3,16 +3,8 @@
 require "test_helper"
 
 class PublishableApiTest < Minitest::Test
-  SUMMARIES = {
-    publish: "Publish",
-    unpublish: "Unpublish",
-    update_publishable: "Update publishable"
-  }.freeze
-  DESCRIPTIONS = {
-    publish: "Publish the parent recording now.",
-    unpublish: "Return the parent recording to draft.",
-    update_publishable: "Update publishable columns on the child recording."
-  }.freeze
+  SUMMARIES = RecordingStudioPublishable::Api::ACTIONS.transform_values { |spec| spec.fetch(:summary) }.freeze
+  DESCRIPTIONS = RecordingStudioPublishable::Api::ACTIONS.transform_values { |spec| spec.fetch(:description) }.freeze
   SUCCESS_DESCRIPTIONS = {
     publish: "Recording published.",
     unpublish: "Recording unpublished.",
@@ -188,6 +180,27 @@ class PublishableApiTest < Minitest::Test
     end
   ensure
     RecordingStudioPublishable::Api.override_openapi(type: "Article", action: :publish)
+  end
+
+  def test_action_copy_names_this_recording_without_access_roles
+    forbidden = [/Access/i, /:edit/, /\bAdmin\b/, /\brole\b/i]
+
+    RecordingStudioPublishable::Api::ACTIONS.each do |name, spec|
+      blob = [spec.fetch(:summary), spec.fetch(:description)].join(" ")
+      assert_includes spec.fetch(:summary), "this recording"
+      assert_includes spec.fetch(:description), "this recording"
+      refute_includes blob, "Press Kit"
+      forbidden.each { |pattern| refute_match pattern, blob }
+      assert_equal spec.fetch(:summary), SUMMARIES.fetch(name)
+      assert_equal spec.fetch(:description), DESCRIPTIONS.fetch(name)
+    end
+
+    RecordingStudioPublishable::Api::PublishableSnapshot::FIELDS.each_value do |field|
+      description = field.fetch(:description)
+      forbidden.each { |pattern| refute_match pattern, description }
+      refute_includes description, "press kit"
+      refute_includes description, "Press Kit"
+    end
   end
 
   def test_update_contract_carries_approved_field_wording

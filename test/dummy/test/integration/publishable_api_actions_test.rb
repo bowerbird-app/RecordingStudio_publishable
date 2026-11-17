@@ -101,11 +101,49 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
 
     assert_equal "Article - Publish", article[:title] || article["title"]
     assert_equal "Publishes this article now.", article[:description] || article["description"]
-    assert_equal "Publish", page[:summary] || page["summary"]
-    assert_equal "Publish the parent recording now.", page[:description] || page["description"]
+    assert_equal RecordingStudioPublishable::Api::ACTIONS.fetch(:publish).fetch(:summary),
+                 page[:summary] || page["summary"]
+    assert_equal RecordingStudioPublishable::Api::ACTIONS.fetch(:publish).fetch(:description),
+                 page[:description] || page["description"]
     assert_nil page[:title] || page["title"]
   ensure
     RecordingStudioPublishable::Api.override_openapi(type: "Article", action: :publish)
+  end
+
+  test "capability registry exposes this gem's MCP copy without access roles" do
+    forbidden = [/Access/i, /:edit/, /\bAdmin\b/, /\brole\b/i]
+
+    %i[publish unpublish update_publishable].each do |name|
+      spec = RecordingStudioPublishable::Api::ACTIONS.fetch(name)
+      openapi = capability_openapi(name)
+
+      assert_equal spec.fetch(:summary), openapi.fetch(:summary)
+      assert_equal spec.fetch(:description), openapi.fetch(:description)
+      assert_includes openapi.fetch(:description), "this recording"
+      assert_includes openapi.fetch(:description), "rejected as not found"
+      assert_includes openapi.fetch(:description), "Returns this recording"
+      refute_includes openapi.fetch(:description), "Press Kit"
+      refute_includes openapi.fetch(:description), "Press kit"
+      blob = [openapi.fetch(:summary), openapi.fetch(:description)].join(" ")
+      forbidden.each { |pattern| refute_match pattern, blob }
+    end
+
+    assert_includes capability_openapi(:publish).fetch(:description), "already live"
+    assert_includes capability_openapi(:publish).fetch(:description), "leaves those times unchanged"
+    assert_includes capability_openapi(:unpublish).fetch(:description), "already draft"
+    assert_includes capability_openapi(:unpublish).fetch(:description), "no snapshot is created"
+
+    fields = capability_action(:update_publishable).input_contract.as_json
+    fields = fields.deep_symbolize_keys.fetch(:fields)
+    assert_includes fields.fetch(:status).fetch(:description), "nested snapshot"
+    assert_includes fields.fetch(:social_image_attachment_recording_id).fetch(:description),
+                    "direct child of this recording's nested publishable snapshot"
+    refute_includes fields.fetch(:social_image_attachment_recording_id).fetch(:description), "press kit"
+    fields.each_value do |field|
+      description = field.fetch(:description)
+      forbidden.each { |pattern| refute_match pattern, description }
+      refute_includes description, "Press Kit"
+    end
   end
 
   test "update_publishable openapi fields use the approved wording" do
@@ -259,6 +297,17 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
     ) || openapi_operation(path, verb).dig(
       "requestBody", "content", "application/json", "schema", "properties"
     )
+  end
+
+  def capability_action(name)
+    action = RecordingStudioApi.capability_action(name)
+    assert action, "expected RecordingStudioApi.capability_action(:#{name})"
+    action
+  end
+
+  def capability_openapi(name)
+    openapi = capability_action(name).openapi
+    openapi.respond_to?(:deep_symbolize_keys) ? openapi.deep_symbolize_keys : openapi.to_h.deep_symbolize_keys
   end
 
   def openapi_operation(path, verb)
