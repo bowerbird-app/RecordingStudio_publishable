@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-11-17
+
+### Changed
+- Public MCP copy for `publish`, `unpublish`, and `update_publishable`. Summaries, action descriptions, and `update_publishable` input field descriptions follow the Press Center MCP style. Action names, fields, and handlers did not change.
+
+### Upgrade notes
+- Bump to `1.2.1`. No migration. MCP and OpenAPI text for this gem's publish actions changed. Action names and fields did not.
+
 ## [1.2.0] - 2026-11-17
 
 ### Added

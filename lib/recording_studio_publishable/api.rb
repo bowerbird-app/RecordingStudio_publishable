@@ -13,16 +13,51 @@ module RecordingStudioPublishable
     ].freeze
     ACTIONS = {
       publish: {
-        http_verb: :post, summary: "Publish", description: "Publish the parent recording now.",
+        http_verb: :post,
+        summary: "Publish this recording now.",
+        description:
+          "Makes this recording live right away so visitors can see it. Publish settings (slug, schedule, search, " \
+          "and share fields) live on a nested snapshot for this recording. Run this on the recording you want live, " \
+          "not on that nested snapshot. The recording must already exist. Pass its id in the path; use the id from " \
+          "list or show for this type. Send no body fields. A missing, trashed, or wrong-type id is rejected as not " \
+          "found. Running this on the nested snapshot is rejected. A write the host refuses is rejected. If this " \
+          "recording is already live (published, go-live time blank or already due, unpublish time blank or still " \
+          "ahead), the call succeeds and leaves those times unchanged. If it is a draft, scheduled for later, or " \
+          "past its unpublish time, it becomes live now, go-live is set to now, and the unpublish time is cleared. " \
+          "Returns this recording with its publishable fields, including status published.",
         success: "Recording published.", contract: :empty, service: :transition, transition: "publish"
       }.freeze,
       unpublish: {
-        http_verb: :post, summary: "Unpublish", description: "Return the parent recording to draft.",
+        http_verb: :post,
+        summary: "Return this recording to draft.",
+        description:
+          "Takes this recording off the live public page. Draft means it is not live. Publish settings live on a " \
+          "nested snapshot for this recording. Run this on the recording you want as draft, not on that nested " \
+          "snapshot. The recording must already exist. Pass its id in the path; use the id from list or show for " \
+          "this type. Send no body fields. A missing, trashed, or wrong-type id is rejected as not found. Running " \
+          "this on the nested snapshot is rejected. A write the host refuses is rejected. If this recording is " \
+          "already draft, or has no nested snapshot yet, the call succeeds and nothing is written; no snapshot is " \
+          "created. If it is live or scheduled for later, it becomes draft and both go-live and unpublish times are " \
+          "cleared. Returns this recording with its publishable fields, including status draft. When there is no " \
+          "nested snapshot, publishable_recording_id is empty.",
         success: "Recording unpublished.", contract: :empty, service: :transition, transition: "unpublish"
       }.freeze,
       update_publishable: {
-        http_verb: :patch, summary: "Update publishable",
-        description: "Update publishable columns on the child recording.",
+        http_verb: :patch,
+        summary: "Update the publish settings on this recording.",
+        description:
+          "Writes slug, schedule, search, and share fields on this recording's nested publishable snapshot. Use " \
+          "this to schedule a go-live, change the public slug, or edit search and share text, without using " \
+          "publish or unpublish. Run this on the recording whose settings you want to change, not on that nested " \
+          "snapshot. The recording must already exist. Pass its id in the path; use the id from list or show for " \
+          "this type. Send only the fields you want to change. A missing, trashed, or wrong-type id is rejected as " \
+          "not found. Running this on the nested snapshot is rejected. Unknown fields, an invalid slug, an invalid " \
+          "date or time, an unpublish time that is not later than go-live when both are set and the record is " \
+          "published, or a social image id that is not an image attachment on that nested snapshot, are rejected. " \
+          "A write the host refuses is rejected. If the payload is empty or unchanged, the call still saves. When " \
+          "scheduling is off for this type, publish_at, unpublish_at, and time_zone are not stored. When search " \
+          "fields are off for this type, seo_title and seo_description are not stored. Returns this recording with " \
+          "its publishable fields.",
         success: "Publishable updated.", contract: :update, service: :update
       }.freeze
     }.freeze

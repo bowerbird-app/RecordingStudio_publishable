@@ -4,7 +4,10 @@ require "test_helper"
 
 class RecordingStudioPublishableTest < Minitest::Test
   def test_version_exists
-    refute_nil ::RecordingStudioPublishable::VERSION
+    changelog = File.read(File.expand_path("../CHANGELOG.md", __dir__))
+
+    assert_equal "1.2.1", ::RecordingStudioPublishable::VERSION
+    assert_includes changelog, "## [1.2.1]"
   end
 
   def test_readme_describes_publishable_addon

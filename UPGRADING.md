@@ -1,5 +1,9 @@
 # Upgrading
 
+## 1.2.1 — Publish MCP copy
+
+Install `recording_studio_publishable` 1.2.1. No migration. `publish`, `unpublish`, and `update_publishable` OpenAPI summaries, descriptions, and `update_publishable` field wording changed. Action names and fields did not.
+
 ## 1.2.0 — Public HTTP cache
 
 Install `recording_studio_publishable` 1.2.0. No migration.
