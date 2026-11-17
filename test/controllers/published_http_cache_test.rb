@@ -85,7 +85,7 @@ class PublishedHttpCacheTest < ActionDispatch::IntegrationTest
     assert_predicate etag_header, :blank?
 
     article = publish_article("Nil policy", slug: "nil-policy")
-    with_article_http_cache(->(_request) { nil }) do
+    with_article_http_cache(->(_request) {}) do
       get article_path(article)
       assert_response :success
       assert_no_store
