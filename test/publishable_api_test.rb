@@ -195,6 +195,13 @@ class PublishableApiTest < Minitest::Test
       assert_equal spec.fetch(:description), DESCRIPTIONS.fetch(name)
     end
 
+    %i[publish unpublish update_publishable].each do |name|
+      description = RecordingStudioPublishable::Api::ACTIONS.fetch(name).fetch(:description)
+      assert_includes description, "public_path"
+      assert_includes description, "public_url"
+      assert_includes description, "default_url_options"
+    end
+
     RecordingStudioPublishable::Api::PublishableSnapshot::FIELDS.each_value do |field|
       description = field.fetch(:description)
       forbidden.each { |pattern| refute_match pattern, description }
@@ -218,6 +225,8 @@ class PublishableApiTest < Minitest::Test
         ),
         fields.dig(:social_image_attachment_recording_id, :description)
       )
+      refute fields.key?(:public_path)
+      refute fields.key?(:public_url)
     end
   end
 
@@ -253,6 +262,12 @@ class PublishableApiTest < Minitest::Test
     assert_equal "date-time", properties.dig(:created_at, :format)
     assert_equal true, properties.dig(:parent_id, :nullable)
     assert_equal({ type: "string" }, properties.fetch(:publishable_recording_id))
+    assert_equal "string", properties.dig(:public_path, :type)
+    assert_equal true, properties.dig(:public_path, :nullable)
+    assert_includes properties.dig(:public_path, :description), "nested snapshot id"
+    assert_equal "string", properties.dig(:public_url, :type)
+    assert_equal true, properties.dig(:public_url, :nullable)
+    assert_includes properties.dig(:public_url, :description), "default_url_options"
     assert_equal %w[draft published scheduled], properties.dig(:status, :enum)
     assert_equal(
       RecordingStudioPublishable::Api::PublishableSnapshot::FIELDS.dig(:status, :description),

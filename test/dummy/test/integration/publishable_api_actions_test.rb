@@ -128,6 +128,9 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
       forbidden.each { |pattern| refute_match pattern, blob }
     end
 
+    assert_includes capability_openapi(:publish).fetch(:description), "public_path"
+    assert_includes capability_openapi(:publish).fetch(:description), "public_url"
+    assert_includes capability_openapi(:update_publishable).fetch(:description), "default_url_options"
     assert_includes capability_openapi(:publish).fetch(:description), "already live"
     assert_includes capability_openapi(:publish).fetch(:description), "leaves those times unchanged"
     assert_includes capability_openapi(:unpublish).fetch(:description), "already draft"
@@ -259,6 +262,37 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
     publishable = @article.reload.current_publishable
     assert_equal "Launch", publishable.seo_title
     assert_equal "Share launch", publishable.social_title
+  end
+
+  test "publish unpublish and update_publishable json includes the public link" do
+    previous = Rails.application.routes.default_url_options.dup
+    Rails.application.routes.default_url_options = { host: "press.test", protocol: "https" }
+
+    post action_path(@article, "publish"), headers: bearer_headers, as: :json
+    assert_response :success
+    published = JSON.parse(response.body)
+    child_id = @article.reload.publishable_child_recording.id
+    assert_equal "/blogs/#{child_id}/launch", published.fetch("public_path")
+    assert_equal "https://press.test/blogs/#{child_id}/launch", published.fetch("public_url")
+    assert_equal "published", published.fetch("status")
+
+    post action_path(@article, "unpublish"), headers: bearer_headers, as: :json
+    assert_response :success
+    drafted = JSON.parse(response.body)
+    assert_nil drafted.fetch("public_path")
+    assert_nil drafted.fetch("public_url")
+    assert_equal "draft", drafted.fetch("status")
+
+    patch action_path(@article, "update_publishable"),
+          params: { slug: "live-launch", status: "published", time_zone: "UTC" },
+          headers: bearer_headers,
+          as: :json
+    assert_response :success
+    updated = JSON.parse(response.body)
+    assert_equal "/blogs/#{child_id}/live-launch", updated.fetch("public_path")
+    assert_equal "https://press.test/blogs/#{child_id}/live-launch", updated.fetch("public_url")
+  ensure
+    Rails.application.routes.default_url_options = previous
   end
 
   private

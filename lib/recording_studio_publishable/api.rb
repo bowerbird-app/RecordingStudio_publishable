@@ -7,6 +7,10 @@ require "recording_studio_publishable/api/publishable_snapshot"
 module RecordingStudioPublishable
   module Api
     ACTION_VERSION = "1.0.0"
+    PUBLIC_PAGE_RESULT =
+      "When this recording is live, public_path is the public page path, using the nested snapshot id and slug, " \
+      "and public_url is the absolute URL for that path when Rails.application.routes.default_url_options has a " \
+      "host. public_url is empty when that host is missing. Both are empty unless this recording is live."
     NON_INPUT_KEYS = [
       :api_key, :api_version, "api_key", "api_version",
       :member_action, "member_action"
@@ -24,7 +28,7 @@ module RecordingStudioPublishable
           "recording is already live (published, go-live time blank or already due, unpublish time blank or still " \
           "ahead), the call succeeds and leaves those times unchanged. If it is a draft, scheduled for later, or " \
           "past its unpublish time, it becomes live now, go-live is set to now, and the unpublish time is cleared. " \
-          "Returns this recording with its publishable fields, including status published.",
+          "Returns this recording with its publishable fields, including status published. #{PUBLIC_PAGE_RESULT}",
         success: "Recording published.", contract: :empty, service: :transition, transition: "publish"
       }.freeze,
       unpublish: {
@@ -39,7 +43,7 @@ module RecordingStudioPublishable
           "already draft, or has no nested snapshot yet, the call succeeds and nothing is written; no snapshot is " \
           "created. If it is live or scheduled for later, it becomes draft and both go-live and unpublish times are " \
           "cleared. Returns this recording with its publishable fields, including status draft. When there is no " \
-          "nested snapshot, publishable_recording_id is empty.",
+          "nested snapshot, publishable_recording_id is empty. #{PUBLIC_PAGE_RESULT}",
         success: "Recording unpublished.", contract: :empty, service: :transition, transition: "unpublish"
       }.freeze,
       update_publishable: {
@@ -57,7 +61,7 @@ module RecordingStudioPublishable
           "A write the host refuses is rejected. If the payload is empty or unchanged, the call still saves. When " \
           "scheduling is off for this type, publish_at, unpublish_at, and time_zone are not stored. When search " \
           "fields are off for this type, seo_title and seo_description are not stored. Returns this recording with " \
-          "its publishable fields.",
+          "its publishable fields. #{PUBLIC_PAGE_RESULT}",
         success: "Publishable updated.", contract: :update, service: :update
       }.freeze
     }.freeze
