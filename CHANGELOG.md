@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-11-18
+
+### Changed
+- `config/importmap.rb` pins `publishable_share_controller` and `publishable_quick_actions_controller` with `preload: "application"`. The `application` entry still modulepreloads both controllers. Another entry, such as `landing`, does not.
+
+### Upgrade notes
+- Bump to `1.3.1`. No migration. No public API change.
+- Hosts that load the `application` entry keep the same modulepreload links for these two controllers. A host entry other than `application` no longer modulepreloads them. The pins stay in the import map. An application page that eager-loads `controllers` still fetches them.
+
 ## [1.3.0] - 2026-11-18
 
 ### Added
