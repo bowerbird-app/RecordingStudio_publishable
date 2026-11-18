@@ -275,6 +275,43 @@ module RecordingStudioPublishable
         assert_nil child.reload.publishable_child_recording
       end
 
+      test "publish unpublish and update_publishable snapshots include the public link" do
+        previous = Rails.application.routes.default_url_options.dup
+        Rails.application.routes.default_url_options = { host: "press.test", protocol: "https" }
+
+        published = perform(:publish)
+        child = published.child_recording
+        published_body = PublishableSnapshot.call(published)
+        assert_equal "/blogs/#{child.id}/landing", published_body.fetch(:public_path)
+        assert_equal "https://press.test/blogs/#{child.id}/landing", published_body.fetch(:public_url)
+        assert_equal "published", published_body.fetch(:status)
+
+        drafted = perform(:unpublish)
+        drafted_body = PublishableSnapshot.call(drafted)
+        assert_nil drafted_body.fetch(:public_path)
+        assert_nil drafted_body.fetch(:public_url)
+        assert_equal "draft", drafted_body.fetch(:status)
+
+        updated = perform(:update_publishable, params: { slug: "live-landing", status: "published", time_zone: "UTC" })
+        updated_body = PublishableSnapshot.call(updated)
+        assert_equal "/blogs/#{updated.child_recording.id}/live-landing", updated_body.fetch(:public_path)
+        assert_equal "https://press.test/blogs/#{updated.child_recording.id}/live-landing",
+                     updated_body.fetch(:public_url)
+
+        scheduled = perform(:update_publishable, params: {
+                              slug: "later-landing",
+                              status: "scheduled",
+                              publish_at: 2.days.from_now.iso8601,
+                              time_zone: "UTC"
+                            })
+        scheduled_body = PublishableSnapshot.call(scheduled)
+        assert_equal "scheduled", scheduled_body.fetch(:status)
+        assert_nil scheduled_body.fetch(:public_path)
+        assert_nil scheduled_body.fetch(:public_url)
+      ensure
+        Rails.application.routes.default_url_options = previous
+      end
+
       private
 
       def perform(action_name, recording: @parent_recording, params: {}, api_client: nil, access_grant: nil)

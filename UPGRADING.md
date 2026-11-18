@@ -1,5 +1,17 @@
 # Upgrading
 
+## 1.3.0 — Public link on the publish snapshot
+
+Install `recording_studio_publishable` 1.3.0. No migration.
+
+`publish`, `unpublish`, and `update_publishable` add `public_path` and `public_url` to the 200 body. Both are empty unless the recording is live. `public_url` is an absolute URL when `Rails.application.routes.default_url_options` has a host, and empty when that host is missing.
+
+```ruby
+Rails.application.routes.default_url_options = { host: "press.example.com", protocol: "https" }
+```
+
+Mailer `default_url_options` is a separate setting. Show and list payloads can call `recording.publishable_public_read` for `status`, `slug`, `publish_at`, `unpublish_at`, `public_path`, and `public_url`.
+
 ## 1.2.1 — Publish MCP copy
 
 Install `recording_studio_publishable` 1.2.1. No migration. `publish`, `unpublish`, and `update_publishable` OpenAPI summaries, descriptions, and `update_publishable` field wording changed. Action names and fields did not.

@@ -156,6 +156,20 @@ page_recording.current_publishable
 page_recording.publishable_child_recording
 page_recording.currently_published?
 page_recording.publishable_public_path
+page_recording.publishable_public_read
+```
+
+`publishable_public_read` is the public read for one recording. `PublishableSnapshot` uses it for `publish`, `unpublish`, and `update_publishable`. Press kits and press centers can merge the same hash into show and list payloads.
+
+The hash has `status`, `slug`, `publish_at`, `unpublish_at`, `public_path`, and `public_url`. `status` is `draft`, `published`, or `scheduled`. `publish_at` and `unpublish_at` are ISO 8601 strings, or empty. `public_path` is the public page path when the recording is live. The path uses the publishable child recording id and the slug. The default template is `/published/:uuid/:slug`. A type that set `path:` uses that template instead.
+
+`public_url` is that path as an absolute URL when `Rails.application.routes.default_url_options` has a host. When that host is missing, `public_url` is empty. `public_path` and `public_url` are both empty unless the recording is live. A draft, a future `publish_at`, an `unpublish_at` that has arrived (including a time equal to now), and a trashed parent or publishable child leave both empty. `publish_at` equal to now is live.
+
+Set the host on `Rails.application.routes.default_url_options`, for example `{ host: "press.example.com", protocol: "https" }`. Mailer `default_url_options` is a separate setting. Outside a request, `Routing` builds an absolute URL from that routes host.
+
+```ruby
+page_recording.publishable_public_read
+# status, slug, publish_at, unpublish_at, public_path, public_url
 ```
 
 ## Layout
@@ -341,6 +355,8 @@ The social image id must be an image attachment recording that is a direct child
 - `social_image_attachment_recording_id`
 
 `status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. Field wording for these inputs lives in `PublishableSnapshot::FIELDS`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
+
+The 200 body also includes `public_path` and `public_url`. They are output fields. `update_publishable` does not accept them. Both come from `publishable_public_read`. `public_path` is the public page path when the recording is live. `public_url` is the absolute URL when `Rails.application.routes.default_url_options` has a host, and empty when that host is missing. Both are empty unless the recording is live. The `publish` and `update_publishable` descriptions name these fields for MCP and OpenAPI.
 
 ## Lifecycle notifications
 
