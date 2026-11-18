@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-18
+
+### Added
+- `Recording#publishable_public_read` returns `status`, `slug`, `publish_at`, `unpublish_at`, `public_path`, and `public_url`.
+- `publish`, `unpublish`, and `update_publishable` include `public_path` and `public_url` on the snapshot. The snapshot reads those fields from `publishable_public_read`.
+- `public_path` is the public page path for a live recording. It uses the publishable child recording id and the slug.
+- `public_url` is the absolute URL for that path when `Rails.application.routes.default_url_options` has a host. It is empty when that host is missing.
+- `public_path` and `public_url` are empty unless the recording is live. A draft, a future `publish_at`, an `unpublish_at` that has arrived, and a trashed parent or publishable child leave both empty.
+
+### Upgrade notes
+- Bump to `1.3.0`. No migration. The 200 bodies for `publish`, `unpublish`, and `update_publishable` gain `public_path` and `public_url`. Input fields are unchanged.
+- Set `Rails.application.routes.default_url_options` to a host, for example `{ host: "press.example.com", protocol: "https" }`, so `public_url` is absolute outside a request. Mailer `default_url_options` is a separate setting.
+- Show and list payloads can call `recording.publishable_public_read` for the same six fields.
+
 ## [1.2.1] - 2026-11-17
 
 ### Changed
