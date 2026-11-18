@@ -6,8 +6,8 @@ class RecordingStudioPublishableTest < Minitest::Test
   def test_version_exists
     changelog = File.read(File.expand_path("../CHANGELOG.md", __dir__))
 
-    assert_equal "1.2.1", ::RecordingStudioPublishable::VERSION
-    assert_includes changelog, "## [1.2.1]"
+    assert_equal "1.3.0", ::RecordingStudioPublishable::VERSION
+    assert_includes changelog, "## [1.3.0]"
   end
 
   def test_readme_describes_publishable_addon
@@ -18,6 +18,8 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes readme_source, "RecordingStudio::Capabilities::Publishable.to"
     assert_includes readme_source, "published.recording_studio_publishable"
     assert_includes readme_source, "RecordingStudioPublishable.subscribe"
+    assert_includes readme_source, "publishable_public_read"
+    assert_includes readme_source, "Rails.application.routes.default_url_options"
     refute_includes readme_source, "# GemTemplate"
     refute_includes readme_source, "recording_studio_publishable("
     refute_includes readme_source, "ParentRecordable"
