@@ -1,5 +1,11 @@
 # Upgrading
 
+## 1.3.1 — Controller modulepreload follows the application entry
+
+Install `recording_studio_publishable` 1.3.1. No migration.
+
+`config/importmap.rb` pins `publishable_share_controller` and `publishable_quick_actions_controller` with `preload: "application"`. The `application` entry still modulepreloads both controllers. Another entry, such as `landing`, keeps both pins in the import map and does not modulepreload them. importmap-rails 2.2.2, the version in the dummy lockfile, accepts that preload value. The gemspec does not gain an `importmap-rails` dependency.
+
 ## 1.3.0 — Public link on the publish snapshot
 
 Install `recording_studio_publishable` 1.3.0. No migration.
