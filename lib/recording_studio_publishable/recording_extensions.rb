@@ -91,5 +91,9 @@ module RecordingStudioPublishable
       effective_protocol = protocol.presence || "https"
       "#{effective_protocol}://#{host}#{path}"
     end
+
+    def publishable_public_read
+      RecordingStudioPublishable::PublicRead.for(self)
+    end
   end
 end
