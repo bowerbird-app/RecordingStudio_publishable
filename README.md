@@ -145,6 +145,20 @@ RecordingStudio::Recording.currently_published.limit(12)
 
 `publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title. On Preview it emits only `noindex,nofollow`.
 
+A recordable can define `publishable_description`. Return a plain string, or nil when that recordable has nothing to add. Leave the method off and Publishable does not guess which field holds the body. The gem reads it with `try`. It strips HTML tags, squishes whitespace, and truncates the text to 160 characters on a word boundary. A blank result is omitted. A raised error is treated as nil. Preview, draft, scheduled, and unpublished pages return before the gem calls the method.
+
+The meta description is emitted only when SEO is enabled for that type. The order is the `description:` argument, then `seo_description`, then `publishable_description`.
+
+`og:description` and `twitter:description` use the `social_description:` argument, then `social_description`, then `seo_description`, then `publishable_description`. `SharePreview` uses that same order. It has no keyword argument, so it starts at `social_description`.
+
+The dummy `Article` returns `excerpt`.
+
+```ruby
+def publishable_description
+  excerpt
+end
+```
+
 Canonical URL is an optional override on the SEO screen, under Advanced. Leave it blank to use the public URL. Fill it only when another address should be the preferred URL. noindex is on that same Advanced panel. It asks search engines not to index the page. The page stays live. The SEO screen and the Update service both accept those fields, including when SEO tags are turned off for that type.
 
 SEO title is capped at 60 characters and social title at 70. Both fields use Flatpack `TextInput` with a live character count and `maxlength` as the hard stop. The description fields already counted that way. Counter copy is Flatpack English (`12/60 characters`). Hosts add the Flatpack locale key if they need another language.
@@ -449,7 +463,7 @@ Per-call arguments win over `config.share_button`, which wins over the built-in 
 
 `mode: :copy` is the default. The trigger is a copy button.
 
-`mode: :modal` opens a `FlatPack::Modal` at `size: :sm`. Pass `modal_size:` (`sm`, `md`, `lg`, `xl`, or `2xl`) per call or in `config.share_button` to use another Flatpack modal size. The trigger, tooltip, copy button, destination buttons, preview heading, and preview text are Flatpack components. The preview title is the publishable social title, then the SEO title, then the recordable title. The preview description is the social description, then the SEO description. The sheet then shows, in the configured order, a full-width primary "Copy link" button, a device share button (hidden until the browser supports `navigator.share`), and secondary full-width LinkedIn, X, Facebook, and Email buttons. Those links use the standard share endpoints with `URI.encode_www_form`. The default destination list is `copy`, `native`, `linkedin`, `x`, `facebook`, `email`. Pass `destinations:` to narrow or reorder it.
+`mode: :modal` opens a `FlatPack::Modal` at `size: :sm`. Pass `modal_size:` (`sm`, `md`, `lg`, `xl`, or `2xl`) per call or in `config.share_button` to use another Flatpack modal size. The trigger, tooltip, copy button, destination buttons, preview heading, and preview text are Flatpack components. The preview title is the publishable social title, then the SEO title, then the recordable title. The preview description is the social description, then the SEO description, then `publishable_description`. The sheet then shows, in the configured order, a full-width primary "Copy link" button, a device share button (hidden until the browser supports `navigator.share`), and secondary full-width LinkedIn, X, Facebook, and Email buttons. Those links use the standard share endpoints with `URI.encode_www_form`. The default destination list is `copy`, `native`, `linkedin`, `x`, `facebook`, `email`. Pass `destinations:` to narrow or reorder it.
 
 ```erb
 <%= publishable_share_button(recording) %>
