@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "action_view"
+require "loofah"
 
 module RecordingStudioPublishable
   class Description
@@ -48,10 +49,16 @@ module RecordingStudioPublishable
       raw = recordable_description_value
       return if raw.nil?
 
-      text = ActionView::Base.full_sanitizer.sanitize(raw.to_s).squish
+      text = ActionView::Base.full_sanitizer.sanitize(without_hidden_markup(raw)).squish
       return if text.blank?
 
       text.truncate(LENGTH, separator: /\s/, omission: "")
+    end
+
+    def without_hidden_markup(raw)
+      fragment = Loofah.fragment(raw.to_s)
+      fragment.css("script, style").remove
+      fragment.to_html
     end
 
     def recordable_description_value

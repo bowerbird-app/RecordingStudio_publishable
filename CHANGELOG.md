@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A recordable may define `publishable_description`. Head tags and `SharePreview` use it when the saved description fields are blank. Publishable does not guess which field holds the body.
 - The meta description, when SEO is enabled for that type, uses the `description:` argument, then `seo_description`, then `publishable_description`.
 - `og:description`, `twitter:description`, and `SharePreview` use the `social_description:` argument, then `social_description`, then `seo_description`, then `publishable_description`. `SharePreview` has no keyword argument, so it starts at `social_description`.
-- The recordable string is stripped of HTML tags, squished, and truncated to 160 characters on a word boundary. A blank result or a raised error becomes no description.
+- The recordable string drops `script` and `style` text, then the remaining HTML tags. It is squished and truncated to 160 characters on a word boundary. A blank result or a raised error becomes no description.
 - The dummy `Article` returns `excerpt` from `publishable_description`.
 
 ### Upgrade notes

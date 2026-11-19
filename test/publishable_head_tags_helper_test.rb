@@ -328,6 +328,7 @@ class PublishableHeadTagsHelperTest < Minitest::Test
     html, recording = render_head(publishable: publishable, recordable: recordable)
 
     assert_equal "Hello there", tag_content(html, "description")
+    refute_includes tag_content(html, "description"), "nope"
     assert_social_description html, recording, "Hello there"
   end
 

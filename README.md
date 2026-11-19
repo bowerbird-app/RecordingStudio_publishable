@@ -145,7 +145,7 @@ RecordingStudio::Recording.currently_published.limit(12)
 
 `publishable_head_tags` emits description, canonical, robots, and social tags for live pages. It does not emit `<title>` and does not take a `title:` argument. Layouts should yield `publishable_document_title` as the single document title. On Preview it emits only `noindex,nofollow`.
 
-A recordable can define `publishable_description`. Return a plain string, or nil when that recordable has nothing to add. Leave the method off and Publishable does not guess which field holds the body. The gem reads it with `try`. It strips HTML tags, squishes whitespace, and truncates the text to 160 characters on a word boundary. A blank result is omitted. A raised error is treated as nil. Preview, draft, scheduled, and unpublished pages return before the gem calls the method.
+A recordable can define `publishable_description`. Return a plain string, or nil when that recordable has nothing to add. Leave the method off and Publishable does not guess which field holds the body. The gem reads it with `try`. It removes `script` and `style` text, strips the remaining HTML tags, squishes whitespace, and truncates the text to 160 characters on a word boundary. A blank result is omitted. A raised error is treated as nil. Preview, draft, scheduled, and unpublished pages return before the gem calls the method.
 
 The meta description is emitted only when SEO is enabled for that type. The order is the `description:` argument, then `seo_description`, then `publishable_description`.
 

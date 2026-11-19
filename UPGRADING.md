@@ -14,7 +14,7 @@ class Article < ApplicationRecord
 end
 ```
 
-Publishable strips HTML tags, squishes whitespace, and truncates the string to 160 characters on a word boundary. A blank result is omitted. A raised error is treated as nil.
+Publishable removes `script` and `style` text, strips the remaining HTML tags, squishes whitespace, and truncates the string to 160 characters on a word boundary. A blank result is omitted. A raised error is treated as nil.
 
 The meta description is emitted only when SEO is enabled for that type. The order is the `description:` argument, then `seo_description`, then `publishable_description`.
 
