@@ -9,6 +9,10 @@ class Article < ApplicationRecord
     seo: true
   )
 
+  def publishable_description
+    excerpt
+  end
+
   def publishable_http_cache(_request)
     RecordingStudioPublishable::HttpCachePolicy.new(
       public: true,

@@ -1,13 +1,16 @@
 # frozen_string_literal: true
 
+require_relative "description"
+
 module RecordingStudioPublishable
   class SharePreview
     def self.for(recording)
       publishable = recording.respond_to?(:current_publishable) ? recording.current_publishable : nil
       recordable = recording.respond_to?(:recordable) ? recording.recordable : nil
+      description = Description.for(publishable: publishable, recordable: recordable).social
       new(
         title: text(publishable&.try(:social_title), publishable&.try(:seo_title), recordable&.try(:title)),
-        description: text(publishable&.try(:social_description), publishable&.try(:seo_description))
+        description: description.to_s
       )
     end
 

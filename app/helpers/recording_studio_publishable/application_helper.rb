@@ -32,15 +32,19 @@ module RecordingStudioPublishable
 
       seo_enabled = seo_enabled_for_publishable?(publishable_recording: publishable_recording)
       robots = robots_content_for(publishable)
+      descriptions = RecordingStudioPublishable::Description.for(
+        publishable: publishable,
+        recordable: parent_recordable
+      )
 
       if seo_enabled
-        description ||= publishable.seo_description.presence
+        description = descriptions.meta(explicit: description)
         canonical_url ||= canonical_url_for(publishable: publishable, public_url: public_url)
       end
 
       social_title ||= publishable.social_title.presence || parent_recordable&.try(:title).presence ||
                        Copy.t("fallbacks.published_page")
-      social_description ||= publishable.social_description.presence
+      social_description = descriptions.social(explicit: social_description)
       social_image_url ||= resolved_social_image_url(publishable: publishable)
 
       if social_image_url.present?

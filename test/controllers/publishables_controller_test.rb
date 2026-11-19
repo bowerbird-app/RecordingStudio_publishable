@@ -94,6 +94,31 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     refute parent_recording.reload.current_publishable.currently_published?
   end
 
+  test "preview does not render the recordable description" do
+    parent_recording = build_publishable_parent(title: "Spring Release Notes")
+    Article.where(id: parent_recording.recordable_id).update_all(excerpt: "zz-private-excerpt-9f3a")
+    RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      actor: @user,
+      attributes: {
+        slug: "spring-release-notes",
+        status: "draft",
+        seo_description: "Saved search line",
+        social_description: "Saved card line"
+      }
+    ).value!
+
+    get recording_studio_publishable.preview_recording_publishable_path(recording_id: parent_recording.id)
+
+    assert_response :success
+    assert_includes response.body, '<meta name="robots" content="noindex,nofollow">'
+    refute_includes response.body, "zz-private-excerpt-9f3a"
+    refute_includes response.body, 'name="description"'
+    refute_includes response.body, "og:description"
+    refute_includes response.body, "twitter:description"
+    refute_includes response.body, "Saved card line"
+  end
+
   test "preview returns not found when logged out" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
     RecordingStudioPublishable::Services::Publishables::Update.call(

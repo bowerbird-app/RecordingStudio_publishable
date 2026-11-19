@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-19
+
+### Added
+- A recordable may define `publishable_description`. Head tags and `SharePreview` use it when the saved description fields are blank. Publishable does not guess which field holds the body.
+- The meta description, when SEO is enabled for that type, uses the `description:` argument, then `seo_description`, then `publishable_description`.
+- `og:description`, `twitter:description`, and `SharePreview` use the `social_description:` argument, then `social_description`, then `seo_description`, then `publishable_description`. `SharePreview` has no keyword argument, so it starts at `social_description`.
+- The recordable string drops `script` and `style` text, then the remaining HTML tags. It is squished and truncated to 160 characters on a word boundary. A blank result or a raised error becomes no description.
+- The dummy `Article` returns `excerpt` from `publishable_description`.
+
+### Upgrade notes
+- Bump to `1.4.0`. No migration. The method is optional.
+- A type that does not define `publishable_description` keeps the same head tags when `social_description` is present. It still omits description tags when `social_description` and `seo_description` are both blank.
+- `og:description` and `twitter:description` now fall back to `seo_description` when `social_description` is blank. `SharePreview` already did that, and now also falls back to `publishable_description`.
+- Preview, draft, scheduled, and unpublished pages do not call `publishable_description`.
+
 ## [1.3.2] - 2026-11-19
 
 ### Changed
@@ -558,7 +573,8 @@ fetch at Build.
 - Comprehensive README and documentation
 - Basic test suite with Minitest
 
-[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.3.2...HEAD
+[Unreleased]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.3.2...v1.4.0
 [1.3.2]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.3.1...v1.3.2
 [0.13.2]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.13.1...v0.13.2
 [0.13.1]: https://github.com/bowerbird-app/recording_studio_publishable/compare/v0.13.0...v0.13.1

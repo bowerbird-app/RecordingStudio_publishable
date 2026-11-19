@@ -130,6 +130,9 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Rendered through the parent type&#39;s conventional public template."
     assert_includes response.body, "Page title:"
     assert_includes response.body, "Public page"
+    refute_includes response.body, 'name="description"'
+    refute_includes response.body, 'property="og:description"'
+    refute_includes response.body, 'name="twitter:description"'
   end
 
   test "published page keeps the seo title in the document title" do
@@ -256,5 +259,75 @@ class PublishedControllerTest < ActionDispatch::IntegrationTest
     get "/published/#{publishable_recording.id}/scheduled-page"
 
     assert_response :not_found
+  end
+
+  test "published article uses the excerpt when saved descriptions are blank" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    article = Article.create!(title: "Blog post", excerpt: "<p>Launch notes for the press kit.</p>")
+    parent_recording = RecordingStudio::Recording.create!(recordable: article, parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: { slug: "blog-post", status: "published" }
+    ).value
+
+    get "/blogs/#{publishable_recording.id}/blog-post"
+
+    assert_response :success
+    assert_includes response.body, 'name="description" content="Launch notes for the press kit."'
+    assert_includes response.body, 'property="og:description" content="Launch notes for the press kit."'
+    assert_includes response.body, 'name="twitter:description" content="Launch notes for the press kit."'
+    refute_includes response.body, "<p>Launch notes"
+  end
+
+  test "published article keeps saved descriptions ahead of the excerpt" do
+    root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+    article = Article.create!(title: "Blog post", excerpt: "Excerpt that should wait")
+    parent_recording = RecordingStudio::Recording.create!(recordable: article, parent_recording: root)
+    publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+      parent_recording: parent_recording,
+      attributes: {
+        slug: "blog-post",
+        status: "published",
+        seo_description: "Saved search line",
+        social_description: "Saved card line"
+      }
+    ).value
+
+    get "/blogs/#{publishable_recording.id}/blog-post"
+
+    assert_response :success
+    assert_includes response.body, 'name="description" content="Saved search line"'
+    assert_includes response.body, 'property="og:description" content="Saved card line"'
+    refute_includes response.body, "Excerpt that should wait"
+  end
+
+  test "draft scheduled and unpublished articles do not publish the excerpt" do
+    secret = "zz-private-excerpt-9f3a"
+    pages = [
+      { slug: "draft-notes", status: "draft" },
+      { slug: "later-notes", status: "published", publish_at: 2.days.from_now, time_zone: "UTC" },
+      {
+        slug: "expired-notes",
+        status: "published",
+        publish_at: 2.days.ago,
+        unpublish_at: 1.day.ago,
+        time_zone: "UTC"
+      }
+    ]
+
+    pages.each do |attributes|
+      root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Public workspace"))
+      article = Article.create!(title: "Hidden notes", excerpt: secret)
+      parent_recording = RecordingStudio::Recording.create!(recordable: article, parent_recording: root)
+      publishable_recording = RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: parent_recording,
+        attributes: attributes
+      ).value
+
+      get "/blogs/#{publishable_recording.id}/#{attributes.fetch(:slug)}"
+
+      assert_response :not_found, attributes.fetch(:slug)
+      refute_includes response.body, secret
+    end
   end
 end

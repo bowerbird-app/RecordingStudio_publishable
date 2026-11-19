@@ -1,5 +1,29 @@
 # Upgrading
 
+## 1.4.0 — Description from the recordable
+
+Install `recording_studio_publishable` 1.4.0. No migration.
+
+Define `publishable_description` on a recordable when a published page should have a description before the SEO or social fields are filled in. Return a string, or nil. Leave the method undefined and Publishable does not read a body field.
+
+```ruby
+class Article < ApplicationRecord
+  def publishable_description
+    excerpt
+  end
+end
+```
+
+Publishable removes `script` and `style` text, strips the remaining HTML tags, squishes whitespace, and truncates the string to 160 characters on a word boundary. A blank result is omitted. A raised error is treated as nil.
+
+The meta description is emitted only when SEO is enabled for that type. The order is the `description:` argument, then `seo_description`, then `publishable_description`.
+
+`og:description`, `twitter:description`, and the share preview use the `social_description:` argument, then `social_description`, then `seo_description`, then `publishable_description`. The share preview has no keyword argument, so it starts at `social_description`.
+
+`og:description` and `twitter:description` now use `seo_description` when `social_description` is blank. They did not do that before. The share preview already did.
+
+Preview, a draft, a scheduled page, and an unpublished page do not call the method.
+
 ## 1.3.2 — Dependency pins
 
 Install `recording_studio_publishable` 1.3.2. No Publishable migration.
