@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require_relative "../../../support/flatpack_icon_assertions"
 
 class PublishableShareButtonPageTest < ActionDispatch::IntegrationTest
+  include FlatpackIconAssertions
   test "published page shows a share button that copies the public url" do
     root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Share page workspace"))
     recording = RecordingStudio::Recording.create!(
@@ -24,7 +26,7 @@ class PublishableShareButtonPageTest < ActionDispatch::IntegrationTest
     assert_equal expected, copied
     assert_includes response.body, 'aria-label="Share"'
     assert_includes response.body, "Copy link"
-    assert_includes response.body, "arrow-up-tray"
+    assert_rendered_icon(response.body, "arrow-up-tray")
     refute_includes copied.to_s, "/embeds/"
   end
 end

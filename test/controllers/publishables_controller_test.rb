@@ -9,9 +9,11 @@ require "nokogiri"
 require "open3"
 require "devise/test/integration_helpers"
 require "rails/test_help"
+require_relative "../support/flatpack_icon_assertions"
 
 class PublishablesControllerTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
+  include FlatpackIconAssertions
 
   TEST_PASSWORD = "PublishablesTestPassword!2026"
 
@@ -303,10 +305,11 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     document = Nokogiri::HTML(response.body)
     state = document.at_css("span[data-style='danger']")
-    icon = state.at_css("svg[data-flat-pack--icon-name-value='bell']")
+    icon = rendered_icon_node(state, "bell", variant: :solid)
 
     assert_equal "raised", state["data-press"]
-    assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "0 0 24 24", icon["viewbox"]
+    assert_equal "currentColor", icon["fill"]
     assert_equal "success", icon["data-icon-style"]
     assert_equal "host-publish-button", document.at_css("input[name='button_class']")["value"]
     assert_equal "host-publish-menu", document.at_css("input[name='menu_class']")["value"]
@@ -331,7 +334,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
 
     assert_includes button["class"], "config-publish-button"
     assert_equal "danger", button["data-fp-style"]
-    assert_equal "bell", button.at_css("svg")["data-flat-pack--icon-name-value"]
+    rendered_icon_node(button, "bell")
     assert_includes menu["class"], "config-publish-menu"
   ensure
     RecordingStudioPublishable.configuration.quick_actions_button_class = nil
@@ -367,7 +370,7 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "update", alert_stream["action"]
     assert_includes list_html, "fp-menu-collapse__label"
     assert_includes list_html, "Published"
-    assert_includes list_html, "check-circle"
+    assert_rendered_icon(list_html, "check-circle")
     refute_includes list_html, "publishable-quick-actions-alert"
     renderers = document.css("input[name='quick_actions_renderer']").map { |node| node["value"] }
     assert_includes renderers, "dropdown"

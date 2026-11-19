@@ -7,9 +7,11 @@ require_relative "../dummy/config/environment"
 require "nokogiri"
 require "devise/test/integration_helpers"
 require "rails/test_help"
+require_relative "../support/flatpack_icon_assertions"
 
 class QuickActionsComponentTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
+  include FlatpackIconAssertions
 
   TEST_PASSWORD = "QuickActionsComponentPassword!2026"
 
@@ -38,9 +40,9 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     section = wrapper_html(recording)
     assert_inline_trigger(section)
     assert_includes section, "Draft"
-    assert_includes section, "pencil-square"
+    assert_rendered_icon(section, "pencil-square")
     assert_includes section, "Publish now"
-    assert_includes section, "rocket-launch"
+    assert_rendered_icon(section, "rocket-launch")
     assert_includes section, "Schedule"
     assert_publish_form(section, recording, size: "sm")
     refute_includes section, "Back to draft"
@@ -90,11 +92,12 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     section = wrapper_html(recording)
     assert_inline_trigger(section)
     button = Nokogiri::HTML(section).at_css("button")
-    icon = button.at_css("svg[data-flat-pack--icon-name-value='check-circle']")
+    icon = rendered_icon_node(button, "check-circle", variant: :solid)
 
     assert_includes section, "Published"
     assert_equal "default", button["data-fp-style"]
-    assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "0 0 24 24", icon["viewbox"]
+    assert_equal "currentColor", icon["fill"]
     assert_equal "success", icon["data-icon-style"]
     assert_includes icon["class"], "fp-button-icon"
     refute_includes section, 'data-fp-style="success"'
@@ -134,7 +137,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
       assert_includes section, 'data-fp-style="default"'
       refute_includes section, 'data-fp-style="warning"'
       assert_includes section, "Publish now"
-      assert_includes section, "rocket-launch"
+      assert_rendered_icon(section, "rocket-launch")
       assert_includes section, "Unpublish"
       refute_includes section, "Back to draft"
       assert_nil schedule_menu_link(section)
@@ -180,7 +183,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes button["class"], "inline-flex"
     assert_includes button["class"], "host-publish-button"
     assert_equal "danger", button["data-fp-style"]
-    assert_equal "bell", button.at_css("svg")["data-flat-pack--icon-name-value"]
+    rendered_icon_node(button, "bell")
     assert_equal "Publish status", button["title"]
     assert_equal "1", button["data-publishable-host"]
     assert_includes menu["class"], "fixed"
@@ -205,7 +208,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes button["class"], "config-publish-button"
     assert_includes button["class"], "fp-button"
     assert_equal "warning", button["data-fp-style"]
-    assert_equal "clock", button.at_css("svg")["data-flat-pack--icon-name-value"]
+    rendered_icon_node(button, "clock")
     assert_includes menu["class"], "config-publish-menu"
 
     overridden = render_quick_actions(recording, class: "host-publish-button", states: { draft: { style: :danger } })
@@ -214,7 +217,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     assert_includes button["class"], "config-publish-button"
     assert_includes button["class"], "host-publish-button"
     assert_equal "danger", button["data-fp-style"]
-    assert_equal "clock", button.at_css("svg")["data-flat-pack--icon-name-value"]
+    rendered_icon_node(button, "clock")
   ensure
     reset_quick_actions_style!
   end
@@ -241,19 +244,20 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
     configuration.quick_actions_states = { draft: { icon_variant: :mini, icon_style: :warning } }
 
     configured = render_quick_actions(recording)
-    icon = Nokogiri::HTML(configured).at_css("button svg[data-flat-pack--icon-name-value='pencil-square']")
+    icon = rendered_icon_node(Nokogiri::HTML(configured), "pencil-square", variant: :mini)
 
     assert_equal "secondary", Nokogiri::HTML(configured).at_css("button")["data-fp-style"]
-    assert_equal "mini", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "0 0 20 20", icon["viewbox"]
     assert_equal "warning", icon["data-icon-style"]
 
     overridden = render_quick_actions(
       recording,
       states: { draft: { icon_variant: :solid, icon_style: :danger } }
     )
-    icon = Nokogiri::HTML(overridden).at_css("button svg[data-flat-pack--icon-name-value='pencil-square']")
+    icon = rendered_icon_node(Nokogiri::HTML(overridden), "pencil-square", variant: :solid)
 
-    assert_equal "solid", icon["data-flat-pack--icon-variant-value"]
+    assert_equal "0 0 24 24", icon["viewbox"]
+    assert_equal "currentColor", icon["fill"]
     assert_equal "danger", icon["data-icon-style"]
   ensure
     reset_quick_actions_style!
@@ -364,7 +368,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
   private
 
-  def assert_list_collapse(wrapper, title:, icon:)
+  def assert_list_collapse(wrapper, title:, icon:, variant: :outline)
     collapse = wrapper.at_css("[data-controller~='flat-pack--menu-collapse']")
     header = collapse.at_css("button.fp-menu-collapse__button")
     panel = collapse.at_css(".fp-menu-collapse__panel")
@@ -372,7 +376,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
 
     assert_equal "false", collapse["data-flat-pack--menu-collapse-open-value"]
     assert_equal title, header.at_css(".fp-menu-collapse__label").text
-    assert_equal icon, header.at_css(".fp-menu-collapse__icon svg")["data-flat-pack--icon-name-value"]
+    rendered_icon_node(header.at_css(".fp-menu-collapse__icon"), icon, variant: variant)
     assert_equal "false", header["aria-expanded"]
     assert panel["hidden"]
     assert_equal "form", items.element_children.first.name
@@ -432,7 +436,7 @@ class QuickActionsComponentTest < ActionDispatch::IntegrationTest
   def assert_page_link(section, recording, text:, icon:, public:)
     link = menu_link(section, text)
     assert link
-    assert_includes section, icon
+    assert_rendered_icon(section, icon)
     assert_equal "_blank", link["target"]
     assert_includes link["rel"].to_s, "noopener"
     assert_equal "false", link["data-turbo"]

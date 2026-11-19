@@ -1,5 +1,17 @@
 # Upgrading
 
+## 1.5.0 — Recording Studio 7.8 and Flatpack 0.2
+
+Install `recording_studio_publishable` 1.5.0. No Publishable migration.
+
+Development and dummy Gemfiles pin Recording Studio `~> 7.8` (`v7.8.0`), Flatpack `~> 0.2` (`v0.2.0`), API `~> 1.21` (`v1.21.2`), Accessible `~> 0.58` (`v0.58.0`), Attachable `~> 0.34` (`v0.34.0`), Cache `~> 0.8` (`v0.8.0`), Icons `~> 0.5` (`v0.5.0`), Logs `~> 0.9` (`v0.9.0`), Metrics `~> 0.10` (`v0.10.0`), Moveable `~> 6.1` (`v6.1.0`), Root Switchable `~> 0.17` (`v0.17.0`), and Trashable `~> 1.3` (`v1.3.0`). The dummy also pins Admin `~> 2.20` (`v2.20.0`). Internationalization stays `v0.3.1`. `view_component` stays `~> 4.19`. Gemspec floors are unchanged.
+
+Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not.
+
+flat_pack 0.2.0 is supported; hosts moving to 0.2 must remove the manual `flat_pack/heroicons` importmap pin and any `flat-pack--icon` controller registration.
+
+Compare [v1.4.0...v1.5.0](https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.4.0...v1.5.0).
+
 ## 1.4.0 — Description from the recordable
 
 Install `recording_studio_publishable` 1.4.0. No migration.

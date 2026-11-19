@@ -6,7 +6,11 @@ class RecordingStudioPublishableTest < Minitest::Test
   def test_version_exists
     changelog = File.read(File.expand_path("../CHANGELOG.md", __dir__))
 
-    assert_equal "1.4.0", ::RecordingStudioPublishable::VERSION
+    assert_equal "1.5.0", ::RecordingStudioPublishable::VERSION
+    assert_includes changelog, "## [1.5.0]"
+    assert_includes changelog, "Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not."
+    assert_includes changelog, "flat_pack 0.2.0 is supported"
+    assert_includes changelog, "compare/v1.4.0...v1.5.0"
     assert_includes changelog, "## [1.4.0]"
     assert_includes changelog, "No migration."
     assert_includes changelog, "publishable_description"

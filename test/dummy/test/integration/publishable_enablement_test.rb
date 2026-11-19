@@ -119,7 +119,7 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     controllers = File.read(Rails.root.join("app/javascript/controllers/index.js"))
 
     assert_includes importmap, "controllers/flat_pack"
-    assert_includes importmap, "flat_pack/heroicons"
+    refute_includes importmap, "flat_pack/heroicons"
     assert_includes importmap, "preload: false"
     assert_includes controllers, 'lazyLoadControllersFrom("controllers"'
     refute_includes controllers, "eagerLoadControllersFrom"
@@ -182,29 +182,43 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     gemfile = File.read(Rails.root.join("Gemfile"))
     root_gemfile = File.read(Rails.root.join("../../Gemfile"))
 
-    assert_includes gemfile, 'tag: "v7.7.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.55.0"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.33.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_cache", tag: "v0.7.1"'
-    assert_includes gemfile, '">= 0.1.331"'
-    assert_includes gemfile, 'tag: "v0.1.380"'
-    assert_includes gemfile, 'tag: "v1.19.0"'
-    assert_includes gemfile, 'tag: "v2.19.1"'
-    assert_includes gemfile, 'tag: "v0.3.1"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.8.2"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.0.3"'
-    assert_includes gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.4.2"'
     assert_includes gemfile,
-                    'github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.16.1"'
+                    'gem "recording_studio", "~> 7.8", github: "bowerbird-app/RecordingStudio", tag: "v7.8.0"'
+    assert_includes gemfile,
+                    'gem "recording_studio_accessible", "~> 0.58", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.58.0"'
+    assert_includes gemfile,
+                    'gem "recording_studio_attachable", "~> 0.34", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.34.0"'
+    assert_includes gemfile,
+                    'gem "recording_studio_cache", "~> 0.8", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.8.0"'
+    assert_includes gemfile,
+                    'gem "flat_pack", "~> 0.2", github: "bowerbird-app/flatpack", tag: "v0.2.0"'
+    assert_includes gemfile,
+                    'gem "recording_studio_api", "~> 1.21", github: "bowerbird-app/RecordingStudio_api", tag: "v1.21.2"'
+    assert_includes gemfile,
+                    'gem "recording_studio_admin", "~> 2.20", github: "bowerbird-app/RecordingStudio_admin", tag: "v2.20.0"'
+    assert_includes gemfile, <<~PIN.chomp
+      gem "recording_studio_internationalization",
+          github: "bowerbird-app/RecordingStudio_Internationalization", tag: "v0.3.1"
+      PIN
+    assert_includes gemfile,
+                    'gem "recording_studio_logs", "~> 0.9", github: "bowerbird-app/RecordingStudio_logs", tag: "v0.9.0"'
+    assert_includes gemfile,
+                    'gem "recording_studio_moveable", "~> 6.1", github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.1.0"'
+    assert_includes gemfile,
+                    'gem "recording_studio_icons", "~> 0.5", github: "bowerbird-app/RecordingStudio_icons", tag: "v0.5.0"'
+    assert_includes gemfile,
+                    'gem "recording_studio_root_switchable", "~> 0.17", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.17.0"'
     refute File.exist?(Rails.root.join("config/initializers/flatpack_removed_kwargs.rb"))
     refute File.exist?(Rails.root.join("../support/widen_recording_studio_requirement.rb"))
     refute_includes gemfile, "widen_recording_studio_requirement"
-    assert_includes gemfile,
-                    'github: "bowerbird-app/RecordingStudio_metrics",'
-    assert_includes gemfile, 'tag: "v0.9.2", require: false'
-    assert_includes gemfile,
-                    'github: "bowerbird-app/RecordingStudio_trashable",'
-    assert_includes gemfile, 'tag: "v1.2.3", require: false'
+    assert_includes gemfile, <<~PIN.chomp
+      gem "recording_studio_metrics", "~> 0.10", github: "bowerbird-app/RecordingStudio_metrics",
+                                      tag: "v0.10.0", require: false
+      PIN
+    assert_includes gemfile, <<~PIN.chomp
+      gem "recording_studio_trashable", "~> 1.3", github: "bowerbird-app/RecordingStudio_trashable",
+                                        tag: "v1.3.0", require: false
+      PIN
     assert_includes gemfile, 'gem "view_component", "~> 4.19"'
     assert File.exist?(Rails.root.join("config/recording_studio_api.yml"))
     assert_includes File.read(Rails.root.join("config/initializers/recording_studio_trashable.rb")),
@@ -226,19 +240,52 @@ class PublishableDummyEnablementTest < ActionDispatch::IntegrationTest
     ].each do |migration_name|
       assert_empty Dir.glob(Rails.root.join("db/migrate/*#{migration_name}*").to_s)
     end
-    assert_includes root_gemfile, 'tag: "v7.7.2"'
-    assert_includes root_gemfile, 'tag: "v1.19.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_logs", tag: "v0.8.2"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.0.3"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_icons", tag: "v0.4.2"'
-    assert_includes root_gemfile, 'tag: "v0.1.380"'
-    assert_includes root_gemfile, 'tag: "v0.55.0"'
-    assert_includes root_gemfile, 'github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.33.2"'
-    assert_includes root_gemfile, 'tag: "v0.7.1"'
-    assert_includes root_gemfile, 'tag: "v0.9.2", require: false'
-    assert_includes root_gemfile, 'tag: "v0.16.1"'
-    assert_includes root_gemfile, 'tag: "v1.2.3", require: false'
-    assert_includes root_gemfile, 'gem "view_component", "~> 4.19"'
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio", "~> 7.8", github: "bowerbird-app/RecordingStudio", tag: "v7.8.0"
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_api", "~> 1.21", github: "bowerbird-app/RecordingStudio_api", tag: "v1.21.2",
+                                             require: false
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_logs", "~> 0.9", github: "bowerbird-app/RecordingStudio_logs", tag: "v0.9.0",
+                                             require: false
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_moveable", "~> 6.1", github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.1.0",
+                                                 require: false
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_icons", "~> 0.5", github: "bowerbird-app/RecordingStudio_icons", tag: "v0.5.0",
+                                              require: false
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "flat_pack", "~> 0.2", github: "bowerbird-app/flatpack", tag: "v0.2.0"
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_accessible", "~> 0.58", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.58.0"
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_attachable", "~> 0.34", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.34.0"
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_cache", "~> 0.8", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.8.0"
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_metrics", "~> 0.10", github: "bowerbird-app/RecordingStudio_metrics",
+                                                 tag: "v0.10.0", require: false
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_root_switchable", "~> 0.17",
+          github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.17.0"
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "recording_studio_trashable", "~> 1.3", github: "bowerbird-app/RecordingStudio_trashable",
+                                                  tag: "v1.3.0", require: false
+      PIN
+    assert_includes root_gemfile, <<~PIN.chomp
+      gem "view_component", "~> 4.19"
+      PIN
     refute_includes root_gemfile, "widen_recording_studio_requirement"
     assert File.exist?(
       Rails.root.join(
