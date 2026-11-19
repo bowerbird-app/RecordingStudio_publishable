@@ -10,7 +10,6 @@ pin_all_from "app/javascript/controllers", under: "controllers"
 
 # Pin FlatPack controllers. preload: false matches gem_template so Stimulus lazy-loads them.
 pin_all_from FlatPack::Engine.root.join("app/javascript/flat_pack/controllers"), under: "controllers/flat_pack", to: "flat_pack/controllers", preload: false
-pin "flat_pack/heroicons", to: "flat_pack/heroicons.js", preload: false
 pin "flat_pack/tiptap/addon_registry", to: "flat_pack/tiptap/addon_registry.js", preload: false
 
 pin "@rails/activestorage", to: "activestorage.esm.js"

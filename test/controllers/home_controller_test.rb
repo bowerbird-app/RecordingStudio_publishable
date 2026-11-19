@@ -7,9 +7,11 @@ require_relative "../dummy/config/environment"
 require "devise/test/integration_helpers"
 require "nokogiri"
 require "rails/test_help"
+require_relative "../support/flatpack_icon_assertions"
 
 class HomeControllerTest < ActionDispatch::IntegrationTest
   include Devise::Test::IntegrationHelpers
+  include FlatpackIconAssertions
 
   TEST_PASSWORD = "HomeTestPassword!2026"
 
@@ -45,7 +47,7 @@ class HomeControllerTest < ActionDispatch::IntegrationTest
     assert_select "html[lang='en']"
     assert_includes response.body, "Pages"
     assert_includes response.body, ">Page<"
-    assert_includes response.body, "icon-name-value=\"plus\""
+    assert_rendered_icon(response.body, "plus")
     refute_includes response.body, "Add page"
     assert_select "h1", text: "Pages"
     assert_includes response.body, "Sign out"

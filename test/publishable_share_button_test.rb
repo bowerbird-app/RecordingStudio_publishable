@@ -4,8 +4,11 @@ ENV["RAILS_ENV"] = "test"
 require_relative "test_helper"
 require_relative "dummy/config/environment"
 require "rails/test_help"
+require_relative "support/flatpack_icon_assertions"
 
 class PublishableShareButtonTest < ActiveSupport::TestCase
+  include FlatpackIconAssertions
+
   setup do
     @previous_share_button = RecordingStudioPublishable.configuration.share_button
     @previous_url_options = Rails.application.routes.default_url_options.dup
@@ -29,7 +32,7 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     refute_includes copied, "/embeds/"
     refute_equal request.original_url, copied
     assert_includes html, 'aria-label="Share"'
-    assert_includes html, "arrow-up-tray"
+    assert_rendered_icon(html, "arrow-up-tray")
     assert_includes html, 'data-fp-style="secondary"'
     assert_includes html, 'role="tooltip"'
     assert_includes html, ">Share<"
@@ -129,7 +132,7 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     default_html = share_html(recording)
 
     assert_includes default_html, 'data-fp-style="secondary"'
-    assert_includes default_html, "arrow-up-tray"
+    assert_rendered_icon(default_html, "arrow-up-tray")
     assert_includes default_html, 'aria-label="Share"'
 
     RecordingStudioPublishable.configuration.share_button = {
@@ -141,7 +144,7 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     configured = share_html(recording)
 
     assert_includes configured, 'data-fp-style="primary"'
-    assert_includes configured, 'data-flat-pack--icon-name-value="link"'
+    assert_rendered_icon(configured, "link")
     assert_includes configured, ">Send<"
     refute_includes configured, 'role="tooltip"'
 
@@ -155,7 +158,7 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     )
 
     assert_includes overridden, 'data-fp-style="danger"'
-    assert_includes overridden, 'data-flat-pack--icon-name-value="paper-airplane"'
+    assert_rendered_icon(overridden, "paper-airplane")
     assert_includes overridden, 'aria-label="Pass it on"'
     assert_includes overridden, "share-custom"
     refute_includes overridden, ">Send<"
@@ -265,7 +268,7 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     assert_includes modal_html, "max-w-sm"
     refute_includes modal_html, "max-w-2xl"
     assert_includes modal_html, 'data-fp-style="danger"'
-    assert_includes modal_html, 'data-flat-pack--icon-name-value="paper-airplane"'
+    assert_rendered_icon(modal_html, "paper-airplane")
     assert_includes modal_html, 'aria-label="Pass it on"'
     assert_includes modal_html, "data-modal-id="
   end
