@@ -1,5 +1,17 @@
 # Upgrading
 
+## 1.3.2 — Dependency pins
+
+Install `recording_studio_publishable` 1.3.2. No Publishable migration.
+
+Development and dummy Gemfiles pin Recording Studio `v7.7.2`, Flatpack `v0.1.380`, API `v1.19.0`, Accessible `v0.55.0`, Attachable `v0.33.2`, Cache `v0.7.1`, Icons `v0.4.2`, Logs `v0.8.2`, Metrics `v0.9.2`, Moveable `v6.0.3`, Root Switchable `v0.16.1`, and Trashable `v1.2.3`. The dummy also pins Admin `v2.19.1` and Internationalization `v0.3.1`. Gemspec floors are unchanged.
+
+Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations.
+
+Hosts that hide trashed rows through `kept` load `recording_studio_trashable/query` (or the Trashable engine). Recording Studio 7.7 does not apply that filter on its own.
+
+Compare [v1.3.1...v1.3.2](https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.3.1...v1.3.2).
+
 ## 1.3.1 — Controller modulepreload follows the application entry
 
 Install `recording_studio_publishable` 1.3.1. No migration.

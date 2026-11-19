@@ -6,32 +6,32 @@ source "https://rubygems.org"
 gemspec
 
 # recording_studio is not published to RubyGems; resolve the gemspec pin from GitHub.
-gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v7.1.0"
+gem "recording_studio", github: "bowerbird-app/RecordingStudio", tag: "v7.7.2"
 
 gem "devise"
-gem "flat_pack", ">= 0.1.331", github: "bowerbird-app/flatpack", tag: "v0.1.376"
+gem "flat_pack", ">= 0.1.331", github: "bowerbird-app/flatpack", tag: "v0.1.380"
 gem "pg", "~> 1.1"
 gem "puma"
 gem "sprockets-rails"
-gem "view_component", "4.19.0"
+gem "view_component", "~> 4.19"
 
-gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.44.0"
-gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v1.1.0",
+gem "recording_studio_accessible", github: "bowerbird-app/RecordingStudio_accessible", tag: "v0.55.0"
+gem "recording_studio_api", github: "bowerbird-app/RecordingStudio_api", tag: "v1.19.0",
                             require: false
-gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.31.0"
-gem "recording_studio_cache", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.6.3"
+gem "recording_studio_attachable", github: "bowerbird-app/RecordingStudio_attachable", tag: "v0.33.2"
+gem "recording_studio_cache", github: "bowerbird-app/RecordingStudio_cache", tag: "v0.7.1"
 # API depends on these. They are not published to RubyGems.
-gem "recording_studio_icons", github: "bowerbird-app/RecordingStudio_icons", tag: "v0.2.1",
+gem "recording_studio_icons", github: "bowerbird-app/RecordingStudio_icons", tag: "v0.4.2",
                               require: false
-gem "recording_studio_logs", github: "bowerbird-app/RecordingStudio_logs", tag: "v0.8.0",
+gem "recording_studio_logs", github: "bowerbird-app/RecordingStudio_logs", tag: "v0.8.2",
                              require: false
 gem "recording_studio_metrics", github: "bowerbird-app/RecordingStudio_metrics",
-                                tag: "v0.9.0", require: false
-gem "recording_studio_moveable", github: "bowerbird-app/RecordingStudio_moveable", tag: "v5.0.0",
+                                tag: "v0.9.2", require: false
+gem "recording_studio_moveable", github: "bowerbird-app/RecordingStudio_moveable", tag: "v6.0.3",
                                  require: false
-gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.15.1"
+gem "recording_studio_root_switchable", github: "bowerbird-app/RecordingStudio_root_switchable", tag: "v0.16.1"
 gem "recording_studio_trashable", github: "bowerbird-app/RecordingStudio_trashable",
-                                  tag: "v0.17.0", require: false
+                                  tag: "v1.2.3", require: false
 
 group :development, :test do
   gem "debug"

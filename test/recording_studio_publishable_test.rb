@@ -6,8 +6,10 @@ class RecordingStudioPublishableTest < Minitest::Test
   def test_version_exists
     changelog = File.read(File.expand_path("../CHANGELOG.md", __dir__))
 
-    assert_equal "1.3.1", ::RecordingStudioPublishable::VERSION
-    assert_includes changelog, "## [1.3.1]"
+    assert_equal "1.3.2", ::RecordingStudioPublishable::VERSION
+    assert_includes changelog, "## [1.3.2]"
+    assert_includes changelog, "Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations."
+    assert_includes changelog, "compare/v1.3.1...v1.3.2"
   end
 
   def test_readme_describes_publishable_addon
