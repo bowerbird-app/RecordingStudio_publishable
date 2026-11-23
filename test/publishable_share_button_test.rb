@@ -41,7 +41,6 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
   test "uses the configured host when the request has no base url" do
     Rails.application.routes.default_url_options = { host: "public.test", protocol: "https" }
     recording = publish_page("Hosted share", slug: "hosted-share")
-    forget_public_url(recording)
 
     html, = render_share(recording, base: :none)
     copied = clipboard_text(html)
@@ -54,7 +53,6 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
   test "keeps an absolute public url when the current request is an embed on another host" do
     Rails.application.routes.default_url_options = { host: "public.test", protocol: "https" }
     recording = publish_page("Canonical share", slug: "canonical-share")
-    forget_public_url(recording)
 
     html, request = render_share(recording, host: "press.example", path: "/embeds/#{recording.id}")
 
@@ -209,7 +207,6 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
   test "modal links keep the configured public host when the request is an embed" do
     Rails.application.routes.default_url_options = { host: "public.test", protocol: "https" }
     recording = publish_page("Modal host", slug: "modal-host")
-    forget_public_url(recording)
 
     html, = render_share(
       recording,
@@ -378,13 +375,6 @@ class PublishableShareButtonTest < ActiveSupport::TestCase
     view = controller.view_context
     view.extend(RecordingStudioPublishable::ShareHelper)
     [view.publishable_share_button(recording, **overrides).to_s, request]
-  end
-
-  def forget_public_url(recording)
-    recordable = recording.recordable
-    return unless recordable.instance_variable_defined?(:@published_url)
-
-    recordable.remove_instance_variable(:@published_url)
   end
 
   def expose_path_unless_live(recording)

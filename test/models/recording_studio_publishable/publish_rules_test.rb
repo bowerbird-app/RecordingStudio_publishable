@@ -132,7 +132,6 @@ module RecordingStudioPublishable
 
     test "indexable keeps a row whose public url does not resolve" do
       page = publish_page("unrouted", status: "published", slug: "unrouted-page").fetch(:page)
-      page.remove_instance_variable(:@published_url) if page.instance_variable_defined?(:@published_url)
 
       RecordingStudioPublishable::Routing.stub(:url_for, nil) do
         assert_includes Page.indexable.ids, page.id

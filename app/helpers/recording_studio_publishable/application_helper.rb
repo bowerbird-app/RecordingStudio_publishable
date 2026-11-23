@@ -158,11 +158,7 @@ module RecordingStudioPublishable
         parent_recordable_type: parent_recordable_type || publishable_recording&.parent_recording&.recordable_type
       )
 
-      return path if path.blank?
-
-      return path unless respond_to?(:request) && request.respond_to?(:base_url) && request.base_url.present?
-
-      "#{request.base_url}#{path}"
+      absolute_url_for(path)
     rescue StandardError
       path
     end
@@ -188,7 +184,7 @@ module RecordingStudioPublishable
     end
 
     def absolute_url_for(path)
-      return if path.blank?
+      return path if path.blank?
       return path if path.to_s.match?(%r{\Ahttps?://}i)
 
       return path unless respond_to?(:request) && request.respond_to?(:base_url) && request.base_url.present?

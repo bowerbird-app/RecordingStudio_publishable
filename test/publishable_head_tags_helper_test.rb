@@ -423,6 +423,39 @@ class PublishableHeadTagsHelperTest < Minitest::Test
     refute_includes html, "twitter:description"
   end
 
+  def test_publishable_public_url_prefixes_a_relative_path_and_keeps_absolute_and_blank
+    publishable = Publishable.new("SEO headline", nil, nil, nil, nil, "launch")
+    view = ViewContext.new(Struct.new(:base_url).new("https://example.test"))
+    relative = public_url_view(view, publishable, "/kits/launch")
+    absolute = public_url_view(view, publishable, "https://press.example/kits/launch")
+    missing = public_url_view(view, publishable, nil)
+    empty = public_url_view(view, publishable, "")
+
+    assert_equal "https://example.test/kits/launch", relative
+    assert_equal "https://press.example/kits/launch", absolute
+    assert_nil missing
+    assert_equal "", empty
+  end
+
+  def test_head_tags_do_not_repeat_the_host_when_the_public_url_is_absolute
+    parent_recordable = Struct.new(:title).new("Launch Kit")
+    parent_recordable.define_singleton_method(:published_url) { "https://press.example/kits/launch" }
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
+    publishable = Publishable.new("SEO headline", "Search-friendly description", nil, nil, nil, "launch")
+    publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
+    view = ViewContext.new(Struct.new(:base_url).new("https://example.test"))
+
+    html = view.publishable_head_tags(
+      publishable_recording: publishable_recording,
+      publishable: publishable,
+      parent_recordable: parent_recordable
+    )
+
+    assert_includes html, '<link rel="canonical" href="https://press.example/kits/launch">'
+    assert_includes html, '<meta property="og:url" content="https://press.example/kits/launch">'
+    refute_includes html, "example.test"
+  end
+
   def test_recordable_without_publishable_description_keeps_existing_head_tags
     recordable = Struct.new(:title).new("Launch Checklist")
     publishable = live_publishable(
@@ -479,6 +512,19 @@ class PublishableHeadTagsHelperTest < Minitest::Test
       text.respond_to?(:call) ? text.call : text
     end
     [recordable, -> { calls }]
+  end
+
+  def public_url_view(view, publishable, path)
+    parent_recordable = Struct.new(:title).new("Launch Kit")
+    parent_recording = ParentRecording.new("Folder", parent_recordable)
+    publishable_recording = PublishableRecording.new("123", publishable, parent_recording)
+    RecordingStudioPublishable::Routing.stub(:url_for, path) do
+      view.send(
+        :publishable_public_url,
+        publishable_recording: publishable_recording,
+        publishable: publishable
+      )
+    end
   end
 
   def render_head(publishable:, recordable:, preview: false, **)

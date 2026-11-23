@@ -147,27 +147,22 @@ module RecordingStudio
         end
 
         def published_url
-          return @published_url if instance_variable_defined?(:@published_url)
+          parent_recording = RecordingStudioPublishable::PublishRules.newest_kept_parent(self)
+          return if parent_recording.blank?
 
-          @published_url = begin
-            parent_recording = RecordingStudioPublishable::PublishRules.newest_kept_parent(self)
-            if parent_recording.present?
-              publishable_recording = if parent_recording.respond_to?(:publishable_child_recording)
-                                        parent_recording.publishable_child_recording
-                                      end
-              publishable = publishable_recording&.recordable
+          publishable_recording = if parent_recording.respond_to?(:publishable_child_recording)
+                                    parent_recording.publishable_child_recording
+                                  end
+          publishable = publishable_recording&.recordable
+          return if publishable.blank? || !publishable.currently_published?
 
-              if publishable.present? && publishable.currently_published?
-                RecordingStudioPublishable::Routing.url_for(
-                  publishable_recording: publishable_recording,
-                  publishable: publishable,
-                  parent_recordable_type: self.class.name
-                )
-              end
-            end
-          rescue StandardError
-            nil
-          end
+          RecordingStudioPublishable::Routing.url_for(
+            publishable_recording: publishable_recording,
+            publishable: publishable,
+            parent_recordable_type: self.class.name
+          )
+        rescue StandardError
+          nil
         end
 
         def current_publishable_for_index
