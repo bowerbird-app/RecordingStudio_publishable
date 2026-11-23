@@ -16,8 +16,9 @@ module RecordingStudioPublishable
         ),
         slug: entry(
           description: "The public URL slug for this recording. Optional. Leave it out to keep the current slug " \
-                       "from the nested snapshot. Must be lowercase URL-safe segments (letters, numbers, and " \
-                       "hyphens). An invalid slug is rejected.",
+                       "from the nested snapshot. The saved slug is cleaned into lowercase URL-safe segments " \
+                       "(letters, numbers, and hyphens). For example, My Slug is saved as my-slug. A slug is not " \
+                       "rejected.",
           contract: TEXT_CONTRACT,
           schema: { type: "string" }
         ),

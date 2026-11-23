@@ -53,6 +53,9 @@ module RecordingStudioPublishable
 
     DEFAULT_ROBOTS = "index,follow"
 
+    def self.clean_slug(raw, parent_recording_id:) =
+      raw.to_s.parameterize.presence || "recording-#{parent_recording_id.to_s.first(8)}"
+
     def published_state?
       status == self.class.statuses[:published]
     end

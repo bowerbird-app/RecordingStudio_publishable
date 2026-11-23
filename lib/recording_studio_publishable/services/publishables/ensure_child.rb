@@ -57,7 +57,7 @@ module RecordingStudioPublishable
                         parent_recording.recordable.name
                       end
 
-          candidate.to_s.parameterize.presence || "recording-#{parent_recording.id.to_s.first(8)}"
+          Publishable.clean_slug(candidate, parent_recording_id: parent_recording.id)
         end
       end
     end

@@ -64,8 +64,10 @@ module RecordingStudioPublishable
             publishable.public_send("#{attribute}=", normalized_attributes[attribute])
           end
 
-          publishable.slug = publishable.slug.to_s.parameterize.presence ||
-                             "recording-#{parent_recording.id.to_s.first(8)}"
+          publishable.slug = Publishable.clean_slug(
+            publishable.slug,
+            parent_recording_id: parent_recording.id
+          )
         end
 
         def permitted_attributes
@@ -194,6 +196,12 @@ module RecordingStudioPublishable
           return unless publishable&.persisted?
 
           persisted_attributes = validated_attributes.slice(*permitted_attributes)
+          if persisted_attributes.key?(:slug)
+            persisted_attributes[:slug] = Publishable.clean_slug(
+              persisted_attributes[:slug],
+              parent_recording_id: parent_recording.id
+            )
+          end
           persisted_attributes[:updated_at] = Time.current if publishable.respond_to?(:updated_at)
 
           return unless persisted_attributes.present?

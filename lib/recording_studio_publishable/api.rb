@@ -55,8 +55,9 @@ module RecordingStudioPublishable
           "publish or unpublish. Run this on the recording whose settings you want to change, not on that nested " \
           "snapshot. The recording must already exist. Pass its id in the path; use the id from list or show for " \
           "this type. Send only the fields you want to change. A missing, trashed, or wrong-type id is rejected as " \
-          "not found. Running this on the nested snapshot is rejected. Unknown fields, an invalid slug, an invalid " \
-          "date or time, an unpublish time that is not later than go-live when both are set and the record is " \
+          "not found. Running this on the nested snapshot is rejected. A slug is cleaned into lowercase " \
+          "URL-safe segments and is not rejected. Unknown fields, an invalid date or time, an unpublish time " \
+          "that is not later than go-live when both are set and the record is " \
           "published, or a social image id that is not an image attachment on that nested snapshot, are rejected. " \
           "A write the host refuses is rejected. If the payload is empty or unchanged, the call still saves. When " \
           "scheduling is off for this type, publish_at, unpublish_at, and time_zone are not stored. When search " \
