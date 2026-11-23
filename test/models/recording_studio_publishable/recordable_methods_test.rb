@@ -176,6 +176,116 @@ module RecordingStudioPublishable
       assert_equal "/published/#{publishable_recording.id}/published-url-page", page.published_url
     end
 
+    test "published_url follows publish state on the same recordable" do
+      root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Held URL workspace"))
+      page = Page.create!(title: "Held URL page")
+      recording = RecordingStudio::Recording.create!(recordable: page, parent_recording: root)
+
+      assert_nil page.published_url
+
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: recording,
+        attributes: { slug: "held-url-page", status: "draft" }
+      ).value!
+      child = recording.reload.publishable_child_recording
+      expected = "/published/#{child.id}/held-url-page"
+
+      assert_nil page.published_url
+
+      RecordingStudioPublishable::Services::Publishables::Transition.call(
+        parent_recording: recording,
+        transition: "publish"
+      ).value!
+
+      assert_equal expected, page.published_url
+      assert_equal expected, page.indexable_url
+
+      RecordingStudioPublishable::Services::Publishables::Transition.call(
+        parent_recording: recording,
+        transition: "unpublish"
+      ).value!
+
+      assert_nil page.published_url
+      assert_nil page.indexable_url
+
+      expiry = 2.hours.from_now.change(usec: 0)
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: recording,
+        attributes: {
+          status: "published",
+          publish_at: 1.hour.ago,
+          unpublish_at: expiry,
+          time_zone: "UTC"
+        }
+      ).value!
+      stored_expiry = recording.reload.current_publishable.unpublish_at
+
+      assert_equal expected, page.published_url
+
+      travel_to stored_expiry do
+        assert_nil page.published_url
+      end
+
+      travel_to stored_expiry + 1.minute do
+        assert_nil page.published_url
+      end
+
+      future = 4.hours.from_now.change(usec: 0)
+      RecordingStudioPublishable::Services::Publishables::Update.call(
+        parent_recording: recording,
+        attributes: {
+          status: "published",
+          publish_at: future,
+          unpublish_at: nil,
+          time_zone: "UTC"
+        }
+      ).value!
+      stored_publish = recording.reload.current_publishable.publish_at
+
+      assert_nil page.published_url
+
+      travel_to stored_publish - 1.second do
+        assert_nil page.published_url
+      end
+
+      travel_to stored_publish do
+        assert_equal expected, page.published_url
+      end
+
+      travel_to stored_publish + 1.minute do
+        assert_equal expected, page.published_url
+      end
+
+      assert_nil page.published_url
+
+      RecordingStudioPublishable::Services::Publishables::Transition.call(
+        parent_recording: recording,
+        transition: "publish"
+      ).value!
+
+      assert_equal expected, page.published_url
+
+      begin
+        RecordingStudio.register_recording_filter(
+          :trashed,
+          sql: ->(table) { "#{table}.trashed_at IS NULL" }
+        ) { |recordings| recordings.where(trashed_at: nil) }
+        RecordingStudio::Recording.where(id: recording.id).update_all(trashed_at: Time.current)
+
+        assert_nil page.published_url
+
+        RecordingStudio::Recording.where(id: recording.id).update_all(trashed_at: nil)
+
+        assert_equal expected, page.published_url
+
+        RecordingStudio::Recording.where(id: child.id).update_all(trashed_at: Time.current)
+
+        assert_nil page.published_url
+      ensure
+        RecordingStudio.unregister_recording_filter(:trashed)
+      end
+    end
+
     test "published_url returns nil for non-published recordables" do
       root = RecordingStudio::Recording.create!(recordable: Workspace.create!(name: "Draft URL workspace"))
       page = Page.create!(title: "Draft URL page")
