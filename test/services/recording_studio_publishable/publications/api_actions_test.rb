@@ -38,6 +38,16 @@ module RecordingStudioPublishable
         assert_nil outcome.publishable.publish_at
       end
 
+      test "update_publishable persists a cleaned slug" do
+        perform(:update_publishable, params: { slug: "My Slug" })
+
+        assert_equal "my-slug", stored_slug
+
+        perform(:update_publishable, params: { slug: "Bad Slug!!" })
+
+        assert_equal "bad-slug", stored_slug
+      end
+
       test "update_publishable writes publishable columns" do
         attachment = image_attachment_for_parent
         outcome = perform(:update_publishable, params: written_columns(attachment))
@@ -441,6 +451,12 @@ module RecordingStudioPublishable
         yield
       ensure
         RecordingStudio.set_capability_options(:publishable, on: recordable_class, **previous) if previous
+      end
+
+      def stored_slug
+        RecordingStudioPublishable::Publishable.where(
+          id: @parent_recording.reload.current_publishable.id
+        ).pick(:slug)
       end
 
       def written_columns(attachment)
