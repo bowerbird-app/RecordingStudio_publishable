@@ -368,7 +368,7 @@ The social image id must be an image attachment recording that is a direct child
 - `social_description`
 - `social_image_attachment_recording_id`
 
-`status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. Field wording for these inputs lives in `PublishableSnapshot::FIELDS`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
+`status` is `draft`, `published`, or `scheduled`. `scheduled` is stored as `published`. `slug` is cleaned into lowercase URL-safe segments before it is saved. `My Slug` is stored as `my-slug`. A slug is not rejected. Field wording for these inputs lives in `PublishableSnapshot::FIELDS`. `Update` remains the source of truth for schedule and SEO flags. When schedule is off for the parent type, `Update` does not store `publish_at`, `unpublish_at`, or `time_zone`. When SEO is off, `Update` does not store `seo_title` or `seo_description`.
 
 The 200 body also includes `public_path` and `public_url`. They are output fields. `update_publishable` does not accept them. Both come from `publishable_public_read`. `public_path` is the public page path when the recording is live. `public_url` is the absolute URL when `Rails.application.routes.default_url_options` has a host, and empty when that host is missing. Both are empty unless the recording is live. The `publish` and `update_publishable` descriptions name these fields for MCP and OpenAPI.
 

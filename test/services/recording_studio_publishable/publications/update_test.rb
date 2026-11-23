@@ -64,6 +64,26 @@ module RecordingStudioPublishable
           assert_nil cleared.value.recordable.canonical_url
         end
 
+        test "persists a spaced slug as the cleaned url slug" do
+          result = Update.call(
+            parent_recording: @parent_recording,
+            attributes: { slug: "My Slug" }
+          )
+
+          assert result.success?
+          assert_equal "my-slug", stored_slug(result)
+        end
+
+        test "persists a punctuated slug as the cleaned url slug" do
+          result = Update.call(
+            parent_recording: @parent_recording,
+            attributes: { slug: "Bad Slug!!" }
+          )
+
+          assert result.success?
+          assert_equal "bad-slug", stored_slug(result)
+        end
+
         test "creates a revised publishable recordable with provided attributes" do
           result = Update.call(
             parent_recording: @parent_recording,
@@ -315,6 +335,10 @@ module RecordingStudioPublishable
         end
 
         private
+
+        def stored_slug(result)
+          RecordingStudioPublishable::Publishable.where(id: result.value.recordable.id).pick(:slug)
+        end
 
         def create_attachment_recording(parent_recording:)
           blob = ActiveStorage::Blob.create_and_upload!(

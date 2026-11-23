@@ -6,7 +6,10 @@ class RecordingStudioPublishableTest < Minitest::Test
   def test_version_exists
     changelog = File.read(File.expand_path("../CHANGELOG.md", __dir__))
 
-    assert_equal "1.6.1", ::RecordingStudioPublishable::VERSION
+    assert_equal "1.6.2", ::RecordingStudioPublishable::VERSION
+    assert_includes changelog, "## [1.6.2]"
+    assert_includes changelog, "My Slug"
+    assert_includes changelog, "compare/v1.6.1...v1.6.2"
     assert_includes changelog, "## [1.6.1]"
     assert_includes changelog, "Bump to `1.6.1`. No migration."
     assert_includes changelog, "compare/v1.6.0...v1.6.1"

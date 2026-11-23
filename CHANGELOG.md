@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.2] - 2026-11-23
+
+### Fixed
+- `Publishables::Update` saves a cleaned slug. `My Slug` is stored as `my-slug`. `Bad Slug!!` is stored as `bad-slug`. When cleaning leaves nothing, the slug is `recording-` plus the first 8 characters of the parent recording id. The web form and `update_publishable` both use this write. A slug is not rejected.
+
+### Upgrade notes
+- Bump to `1.6.2`. No migration. Slugs already stored stay as they are until the next update.
+- Compare [v1.6.1...v1.6.2](https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.6.1...v1.6.2).
+
 ## [1.6.1] - 2026-11-23
 
 ### Fixed
