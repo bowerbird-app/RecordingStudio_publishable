@@ -223,6 +223,46 @@ class ConfigurationTest < Minitest::Test
     assert_equal({ icon_variant: :solid, icon_style: :success }, published)
   end
 
+  def test_warnings_for_returns_empty_array_when_nothing_is_registered
+    recording = Object.new
+
+    assert_nil RecordingStudioPublishable.configuration.warnings_for
+    assert_equal [], RecordingStudioPublishable.warnings_for(recording: recording, action: "publish")
+    assert_equal [], RecordingStudioPublishable.configuration.collect_warnings(recording: recording, action: :publish)
+  end
+
+  def test_warnings_for_returns_registered_strings
+    recording = Object.new
+    RecordingStudioPublishable.configuration.warnings_for = lambda do |recording:, action:|
+      next [] unless action == "publish"
+
+      ["#{recording.object_id} is hidden until the embargo lifts."]
+    end
+
+    assert_equal(
+      ["#{recording.object_id} is hidden until the embargo lifts."],
+      RecordingStudioPublishable.warnings_for(recording: recording, action: :publish)
+    )
+    assert_equal [], RecordingStudioPublishable.warnings_for(recording: recording, action: "unpublish")
+  end
+
+  def test_warnings_for_treats_a_string_blanks_and_errors_as_empty_or_wrapped
+    recording = Object.new
+    RecordingStudioPublishable.configuration.warnings_for = ->(**) { "Hold the homepage." }
+
+    warnings = RecordingStudioPublishable.warnings_for(recording: recording, action: "publish")
+    assert_equal ["Hold the homepage."], warnings
+
+    RecordingStudioPublishable.configuration.warnings_for = ->(**) { ["", "  ", nil] }
+    assert_equal [], RecordingStudioPublishable.warnings_for(recording: recording, action: "publish")
+
+    RecordingStudioPublishable.configuration.warnings_for = ->(**) { { text: "nope" } }
+    assert_equal [], RecordingStudioPublishable.warnings_for(recording: recording, action: "publish")
+
+    RecordingStudioPublishable.configuration.warnings_for = ->(**) { raise "boom" }
+    assert_equal [], RecordingStudioPublishable.warnings_for(recording: recording, action: "publish")
+  end
+
   def test_configuration_has_no_hook_registry
     configuration = RecordingStudioPublishable.configuration
 

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-11-23
+
+### Added
+- Optional `config.warnings_for` callback. It receives `recording:` and `action:` and returns an array of strings. With nothing registered, `RecordingStudioPublishable.warnings_for` returns `[]`.
+- A successful `publish`, `unpublish`, or `update_publishable` API or MCP response includes a `warnings` key only when that array is not empty. Other payload keys are unchanged.
+- The publish UI shows those strings on the JSON transition response, the status-updated notice, the inline and turbo-stream success path, and the published success page.
+
+### Upgrade notes
+- Bump to `1.6.0`. No migration. No change unless a type or host gem sets `config.warnings_for`.
+- Leave the callback unset and notices, redirects, and JSON bodies stay the same.
+- Compare [v1.5.0...v1.6.0](https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.5.0...v1.6.0).
+
 ## [1.5.0] - 2026-11-19
 
 ### Changed

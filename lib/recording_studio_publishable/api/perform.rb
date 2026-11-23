@@ -3,7 +3,16 @@
 module RecordingStudioPublishable
   module Api
     module Perform
-      Outcome = Data.define(:parent, :child_recording, :publishable)
+      Outcome = Data.define(:parent, :child_recording, :publishable, :warnings) do
+        def initialize(parent:, child_recording:, publishable:, warnings: [])
+          super(
+            parent: parent,
+            child_recording: child_recording,
+            publishable: publishable,
+            warnings: Array(warnings).map(&:to_s).freeze
+          )
+        end
+      end
 
       class Bound
         def initialize(action_name)
@@ -21,7 +30,7 @@ module RecordingStudioPublishable
         def apply(context, action_name)
           refuse_child!(context, action_name)
           result = call_service(Api::ACTIONS.fetch(action_name), context)
-          return success_outcome(context, result) if result.success?
+          return success_outcome(context, result, action_name) if result.success?
 
           message = result.error.to_s
           Api.invalid_input!(message, details: failure_details(result, message))
@@ -52,9 +61,15 @@ module RecordingStudioPublishable
           )
         end
 
-        def success_outcome(context, result)
+        def success_outcome(context, result, action_name)
           child = result.value
-          Outcome.new(parent: context.recording, child_recording: child, publishable: child&.recordable)
+          parent = context.recording
+          Outcome.new(
+            parent: parent,
+            child_recording: child,
+            publishable: child&.recordable,
+            warnings: RecordingStudioPublishable.warnings_for(recording: parent, action: action_name)
+          )
         end
 
         def failure_details(result, message)

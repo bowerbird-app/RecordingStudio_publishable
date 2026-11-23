@@ -179,6 +179,13 @@ class DocsController < ApplicationController
         RUBY
       },
       {
+        title: "RecordingStudioPublishable.warnings_for(recording:, action:)",
+        subtitle: "Returns warning strings for a successful publish transition. Empty when no callback is registered.",
+        code: <<~RUBY
+          RecordingStudioPublishable.warnings_for(recording: recording, action: "publish")
+        RUBY
+      },
+      {
         title: "Recordable.published_url",
         subtitle: "Returns the canonical published URL path for one Recordable, or nil when it is not currently published.",
         code: <<~RUBY

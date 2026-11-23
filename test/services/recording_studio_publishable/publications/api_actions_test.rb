@@ -275,6 +275,42 @@ module RecordingStudioPublishable
         assert_nil child.reload.publishable_child_recording
       end
 
+      test "snapshot omits warnings when nothing is registered" do
+        outcome = perform(:publish)
+        body = PublishableSnapshot.call(outcome)
+
+        assert_equal [], outcome.warnings
+        refute body.key?(:warnings)
+      end
+
+      test "snapshot includes warnings only when the callback returns strings" do
+        with_warnings_for(lambda { |recording:, action:|
+          ["#{recording.recordable_type} #{action} is hidden until the embargo lifts."]
+        }) do
+          published = perform(:publish)
+          published_body = PublishableSnapshot.call(published)
+          assert_equal ["Article publish is hidden until the embargo lifts."], published.warnings
+          assert_equal ["Article publish is hidden until the embargo lifts."], published_body.fetch(:warnings)
+
+          drafted = perform(:unpublish)
+          drafted_body = PublishableSnapshot.call(drafted)
+          assert_equal ["Article unpublish is hidden until the embargo lifts."], drafted_body.fetch(:warnings)
+
+          updated = perform(:update_publishable, params: { slug: "held" })
+          updated_body = PublishableSnapshot.call(updated)
+          assert_equal ["Article update_publishable is hidden until the embargo lifts."],
+                       updated_body.fetch(:warnings)
+        end
+      end
+
+      test "snapshot omits warnings when the callback returns an empty array" do
+        with_warnings_for(->(**) { [] }) do
+          body = PublishableSnapshot.call(perform(:publish))
+
+          refute body.key?(:warnings)
+        end
+      end
+
       test "publish unpublish and update_publishable snapshots include the public link" do
         previous = Rails.application.routes.default_url_options.dup
         Rails.application.routes.default_url_options = { host: "press.test", protocol: "https" }
@@ -373,6 +409,14 @@ module RecordingStudioPublishable
       def snapshot_id_and_status(outcome)
         body = PublishableSnapshot.call(outcome)
         [body.fetch(:id), body.fetch(:status)]
+      end
+
+      def with_warnings_for(callback)
+        previous = RecordingStudioPublishable.configuration.warnings_for
+        RecordingStudioPublishable.configuration.warnings_for = callback
+        yield
+      ensure
+        RecordingStudioPublishable.configuration.warnings_for = previous
       end
 
       def with_transition_capture

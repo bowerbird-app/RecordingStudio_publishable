@@ -50,6 +50,10 @@ module RecordingStudioPublishable
       @configuration = Configuration.new
     end
 
+    def warnings_for(recording:, action:)
+      configuration.collect_warnings(recording: recording, action: action)
+    end
+
     def subscribe(name, &)
       LifecycleNotifications.subscribe(name, &)
     end

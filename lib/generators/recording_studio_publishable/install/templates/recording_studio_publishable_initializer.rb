@@ -40,6 +40,13 @@ RecordingStudioPublishable.configure do |config|
   #   published: { icon_variant: :solid, icon_style: :success }
   # }
 
+  # Optional warnings on a successful publish transition. Return an array of
+  # strings. Leave unset and RecordingStudioPublishable.warnings_for returns [].
+  # API and MCP add a warnings key only when the array is not empty.
+  # config.warnings_for = lambda do |recording:, action:|
+  #   []
+  # end
+
   # Share button on a live public page. Copies the absolute public URL.
   # Per-call arguments still win. Defaults are icon-only, secondary, md, arrow-up-tray.
   # config.share_button = { style: :primary, icon: "link", icon_only: false, mode: :modal }

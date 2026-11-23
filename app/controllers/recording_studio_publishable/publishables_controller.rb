@@ -42,6 +42,7 @@ module RecordingStudioPublishable
     def success
       return redirect_to_edit unless flash[:publishable_success]
 
+      @publishable_warnings = Array(flash[:publishable_warnings])
       assign_publishable_success_state
     end
 
@@ -89,8 +90,7 @@ module RecordingStudioPublishable
         return render json: { error: Copy.t("flashes.not_found") }, status: :unprocessable_entity if publishable.blank?
 
         scheduled = publishable.scheduled_for_future?
-
-        return render json: {
+        payload = {
           status: publishable.published_state? ? "published" : "draft",
           timing_copy: timing_copy_for(publishable),
           scheduled_for_future: scheduled,
@@ -98,16 +98,22 @@ module RecordingStudioPublishable
           unpublish_at_input_value: datetime_input_value_for(publishable.unpublish_at, publishable),
           time_zone: publishable.time_zone
         }
+        warnings = transition_warnings
+        payload[:warnings] = warnings if warnings.any?
+
+        return render json: payload
       end
 
       publishable = @parent_recording.reload.publishable_child_recording&.recordable
-      return respond_inline_transition(result, publishable) if inline_transition?
+      warnings = result.success? ? transition_warnings : []
+      return respond_inline_transition(result, publishable, warnings: warnings) if inline_transition?
 
       return redirect_to_edit(alert: Copy.t("flashes.not_found")) if publishable.blank?
 
-      return redirect_to_publish_success if publish_success_transition?(previous_publishable, publishable)
+      return redirect_to_publish_success(warnings: warnings) if publish_success_transition?(previous_publishable,
+                                                                                            publishable)
 
-      redirect_to_edit(notice: transition_notice(result), alert: transition_alert(result))
+      redirect_to_edit(notice: transition_notice(result, warnings: warnings), alert: transition_alert(result))
     end
 
     private
@@ -249,29 +255,32 @@ module RecordingStudioPublishable
       request.get_header("HTTP_ACCEPT").to_s.include?("text/vnd.turbo-stream.html")
     end
 
-    def respond_inline_transition(result, publishable)
+    def respond_inline_transition(result, publishable, warnings: [])
       if result.failure? || publishable.blank?
         message = result.error.presence || Copy.t("flashes.update_failed")
         return render_inline_transition(alert: message, status: :unprocessable_entity)
       end
 
-      render_inline_transition
+      render_inline_transition(warnings: warnings)
     end
 
-    def render_inline_transition(alert: nil, status: :ok)
+    def render_inline_transition(alert: nil, status: :ok, warnings: [])
       if turbo_stream_request?
         @transition_alert = alert
+        @transition_warnings = warnings
         @quick_actions_options = RecordingStudioPublishable::QuickActions::Appearance.options_from_transition_params(params)
         @quick_actions_presenter = quick_actions_presenter_for(@quick_actions_options)
         return render :transition, formats: [:turbo_stream], status: status
       end
 
-      redirect_back(
+      redirect_args = {
         fallback_location: inline_fallback_location,
         alert: alert,
         status: :see_other,
         allow_other_host: false
-      )
+      }
+      redirect_args[:notice] = warnings.join("\n") if warnings.any?
+      redirect_back(**redirect_args)
     end
 
     def quick_actions_presenter_for(options)
@@ -315,8 +324,9 @@ module RecordingStudioPublishable
       )
     end
 
-    def redirect_to_publish_success
+    def redirect_to_publish_success(warnings: [])
       flash[:publishable_success] = true
+      flash[:publishable_warnings] = warnings if warnings.any?
       redirect_to publishable_success_path(recording_id: @parent_recording.id), status: :see_other
     end
 
@@ -346,8 +356,17 @@ module RecordingStudioPublishable
       }
     end
 
-    def transition_notice(result)
-      result.success? ? Copy.t("flashes.status_updated") : nil
+    def transition_notice(result, warnings: [])
+      return unless result.success?
+
+      notice = Copy.t("flashes.status_updated")
+      return notice if warnings.empty?
+
+      [notice, *warnings].join("\n")
+    end
+
+    def transition_warnings
+      RecordingStudioPublishable.warnings_for(recording: @parent_recording, action: params[:transition])
     end
 
     def transition_alert(result)

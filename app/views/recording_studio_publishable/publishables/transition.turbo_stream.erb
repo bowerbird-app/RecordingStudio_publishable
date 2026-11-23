@@ -6,6 +6,9 @@
     <% if presenter.alert.present? %>
       <%= render FlatPack::Alert::Component.new(description: presenter.alert, style: :danger, class: "mb-2") %>
     <% end %>
+    <% Array(@transition_warnings).each do |warning| %>
+      <%= render FlatPack::Alert::Component.new(description: warning, style: :warning, class: "mb-2") %>
+    <% end %>
   </template>
 </turbo-stream>
 <turbo-stream action="replace" targets="<%= dropdown.targets_selector(:state) %>">

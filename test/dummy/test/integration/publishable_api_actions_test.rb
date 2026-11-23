@@ -43,6 +43,32 @@ class PublishableApiActionsTest < ActionDispatch::IntegrationTest
     assert_equal %w[draft published scheduled], properties.dig("status", "enum")
   end
 
+  test "post publish omits warnings when the dummy registry has no callback" do
+    assert_nil RecordingStudioPublishable.configuration.warnings_for
+
+    post action_path(@article, "publish"), headers: bearer_headers, as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "published", body.fetch("status")
+    refute body.key?("warnings")
+  end
+
+  test "post publish includes warnings from the dummy registry" do
+    previous = RecordingStudioPublishable.configuration.warnings_for
+    RecordingStudioPublishable.configuration.warnings_for = lambda do |recording:, action:|
+      ["#{recording.recordable_type} #{action} is hidden until the embargo lifts."]
+    end
+
+    post action_path(@article, "publish"), headers: bearer_headers, as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal ["Article publish is hidden until the embargo lifts."], body.fetch("warnings")
+  ensure
+    RecordingStudioPublishable.configuration.warnings_for = previous
+  end
+
   test "post publish publishes the parent through the api route" do
     path = action_path(@article, "publish")
 
