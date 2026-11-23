@@ -20,7 +20,8 @@ module RecordingStudioPublishable
                   :default_time_zone,
                   :canonical_redirect_status,
                   :quick_actions_button_class,
-                  :quick_actions_menu_class
+                  :quick_actions_menu_class,
+                  :warnings_for
     attr_reader :public_path_configs, :public_renderer_configs, :quick_actions_states, :layout, :share_button
 
     def initialize
@@ -30,6 +31,7 @@ module RecordingStudioPublishable
       @default_time_zone = default_rails_time_zone
       @layout = nil
       @canonical_redirect_status = :found
+      @warnings_for = nil
       assign_view_defaults
       @public_path_configs = {}
       @public_renderer_configs = {}
@@ -157,6 +159,15 @@ module RecordingStudioPublishable
 
     def actor_for(controller: nil)
       resolve_callable(current_actor_resolver, controller: controller)
+    end
+
+    def collect_warnings(recording:, action:)
+      return [] unless warnings_for.respond_to?(:call)
+
+      raw = resolve_callable(warnings_for, recording: recording, action: action.to_s)
+      normalize_warnings(raw)
+    rescue StandardError
+      []
     end
 
     def management_close_url_for(controller:, recording: nil)
@@ -298,6 +309,16 @@ module RecordingStudioPublishable
         action: :show,
         layout: nil
       )
+    end
+
+    def normalize_warnings(raw)
+      return [] if raw.nil?
+      return [] unless raw.is_a?(Array) || raw.is_a?(String)
+
+      Array(raw).filter_map do |item|
+        text = item.to_s.strip
+        text unless text.empty?
+      end.freeze
     end
 
     def resolve_callable(callable, **kwargs)

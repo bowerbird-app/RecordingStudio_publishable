@@ -43,6 +43,7 @@
         <p><strong>layout</strong> (optional) is nil, false, a layout name, or a <code>-&gt;(controller:)</code> callable. Nil uses <code>RecordingStudio.configuration.layout</code>, then <code>recording_studio/default_layout</code>. False renders no layout.</p>
         <p><strong>default_time_zone</strong> (optional) sets the fallback time zone used for publish/unpublish scheduling.</p>
         <p><strong>canonical_redirect_status</strong> (optional) sets the status code for stale slug redirects (default: <code>:moved_permanently</code>).</p>
+        <p><strong>warnings_for</strong> (optional) is a callable with <code>recording:</code> and <code>action:</code>. It returns an array of warning strings for a successful publish transition. Leave it unset and <code>RecordingStudioPublishable.warnings_for</code> returns an empty array. API, MCP, and UI add a <code>warnings</code> key or show the strings only when that array is not empty.</p>
       </div>
     </section>
 

@@ -8,6 +8,9 @@
 ) %>
 
 <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
+  <% Array(@publishable_warnings).each do |warning| %>
+    <%= render FlatPack::Alert::Component.new(description: warning, style: :warning) %>
+  <% end %>
   <div class="flex max-w-md flex-col gap-3">
     <%= render FlatPack::Button::Component.new(
       text: publishable_t("success.copy_link"),

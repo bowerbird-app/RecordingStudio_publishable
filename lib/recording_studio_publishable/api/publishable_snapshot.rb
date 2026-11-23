@@ -68,6 +68,15 @@ module RecordingStudioPublishable
         )
         { publishable_recording_id: outcome.child_recording&.id&.to_s }
           .merge(column_fields(outcome.publishable, read))
+          .merge(warnings_fields(outcome))
+      end
+
+      def self.warnings_fields(outcome)
+        warnings = outcome.respond_to?(:warnings) ? Array(outcome.warnings) : []
+        warnings = warnings.map(&:to_s).reject(&:empty?)
+        return {} if warnings.empty?
+
+        { warnings: warnings }
       end
 
       def self.column_fields(publishable, read)
@@ -99,7 +108,7 @@ module RecordingStudioPublishable
         schema
       end
       private_class_method :entry
-      private_class_method :document_fields, :column_fields, :column_value
+      private_class_method :document_fields, :column_fields, :column_value, :warnings_fields
       private_class_method :field_schema_properties, :schema_for
     end
   end

@@ -178,6 +178,151 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     assert_nil parent_recording.reload.publishable_child_recording
   end
 
+  test "json publish omits warnings when nothing is registered" do
+    parent_recording = build_publishable_parent(title: "Json Publish Page")
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "publish"
+    ), as: :json
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "published", body.fetch("status")
+    refute body.key?("warnings")
+  end
+
+  test "json publish includes warnings when the callback returns strings" do
+    parent_recording = build_publishable_parent(title: "Json Warn Page")
+
+    with_warnings_for(lambda { |recording:, action:|
+      ["#{recording.recordable_type} #{action} is hidden until the embargo lifts."]
+    }) do
+      patch recording_studio_publishable.transition_recording_publishable_path(
+        recording_id: parent_recording.id,
+        transition: "publish"
+      ), as: :json
+    end
+
+    assert_response :success
+    body = JSON.parse(response.body)
+    assert_equal "published", body.fetch("status")
+    assert_equal ["Article publish is hidden until the embargo lifts."], body.fetch("warnings")
+  end
+
+  test "draft notice stays the stock string when nothing is registered" do
+    parent_recording = build_publishable_parent(title: "Draft Notice Page")
+    publish_parent_recording!(parent_recording)
+
+    patch recording_studio_publishable.transition_recording_publishable_path(recording_id: parent_recording.id,
+                                                                             transition: "draft")
+
+    assert_redirected_to recording_studio_publishable.edit_recording_publishable_path(recording_id: parent_recording.id)
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "Publishable status updated"
+    refute_includes response.body, "embargo"
+  end
+
+  test "draft notice appends warnings when the callback returns strings" do
+    parent_recording = build_publishable_parent(title: "Draft Warn Page")
+    publish_parent_recording!(parent_recording)
+
+    with_warnings_for(->(**) { ["Hidden until the embargo lifts."] }) do
+      patch recording_studio_publishable.transition_recording_publishable_path(recording_id: parent_recording.id,
+                                                                               transition: "draft")
+    end
+
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "Publishable status updated"
+    assert_includes response.body, "Hidden until the embargo lifts."
+  end
+
+  test "inline html publish has no notice when nothing is registered" do
+    parent_recording = build_publishable_parent(title: "Inline Quiet Page")
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "publish",
+      inline: 1
+    ), headers: { "HTTP_REFERER" => "http://www.example.com/" }
+
+    assert_redirected_to "http://www.example.com/"
+    assert_nil flash[:notice]
+  end
+
+  test "inline html publish sets notice when the callback returns strings" do
+    parent_recording = build_publishable_parent(title: "Inline Warn Page")
+
+    with_warnings_for(->(**) { ["Hidden until the embargo lifts."] }) do
+      patch recording_studio_publishable.transition_recording_publishable_path(
+        recording_id: parent_recording.id,
+        transition: "publish",
+        inline: 1
+      ), headers: { "HTTP_REFERER" => "http://www.example.com/" }
+    end
+
+    assert_redirected_to "http://www.example.com/"
+    assert_equal "Hidden until the embargo lifts.", flash[:notice]
+  end
+
+  test "turbo stream publish has no warning alert when nothing is registered" do
+    parent_recording = build_publishable_parent(title: "Stream Quiet Page")
+
+    patch recording_studio_publishable.transition_recording_publishable_path(
+      recording_id: parent_recording.id,
+      transition: "publish",
+      inline: 1
+    ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+
+    assert_response :success
+    refute_includes response.body, "embargo"
+  end
+
+  test "turbo stream publish shows warnings when the callback returns strings" do
+    parent_recording = build_publishable_parent(title: "Stream Warn Page")
+
+    with_warnings_for(->(**) { ["Hidden until the embargo lifts."] }) do
+      patch recording_studio_publishable.transition_recording_publishable_path(
+        recording_id: parent_recording.id,
+        transition: "publish",
+        inline: 1
+      ), headers: { "Accept" => "text/vnd.turbo-stream.html" }
+    end
+
+    assert_response :success
+    assert_includes response.body, "Hidden until the embargo lifts."
+  end
+
+  test "publish success page has no warning when nothing is registered" do
+    parent_recording = build_publishable_parent(title: "Success Quiet Page")
+
+    patch recording_studio_publishable.transition_recording_publishable_path(recording_id: parent_recording.id,
+                                                                             transition: "publish")
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "Published!"
+    refute_includes response.body, "embargo"
+  end
+
+  test "publish success page shows warnings when the callback returns strings" do
+    parent_recording = build_publishable_parent(title: "Success Warn Page")
+
+    with_warnings_for(->(**) { ["Hidden until the embargo lifts."] }) do
+      patch recording_studio_publishable.transition_recording_publishable_path(recording_id: parent_recording.id,
+                                                                               transition: "publish")
+    end
+    follow_redirect!
+
+    assert_response :success
+    assert_includes response.body, "Published!"
+    assert_includes response.body, "Hidden until the embargo lifts."
+  end
+
   test "published to draft does not show the success page" do
     parent_recording = build_publishable_parent(title: "Spring Release Notes")
     publish_parent_recording!(parent_recording)
@@ -920,6 +1065,14 @@ class PublishablesControllerTest < ActionDispatch::IntegrationTest
     parts.each do |part|
       assert_includes response.body, %(targets="#{presenter.targets_selector(recording, part)}")
     end
+  end
+
+  def with_warnings_for(callback)
+    previous = RecordingStudioPublishable.configuration.warnings_for
+    RecordingStudioPublishable.configuration.warnings_for = callback
+    yield
+  ensure
+    RecordingStudioPublishable.configuration.warnings_for = previous
   end
 
   def grant_edit_access!(root_recording)

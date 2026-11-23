@@ -372,6 +372,40 @@ The social image id must be an image attachment recording that is a direct child
 
 The 200 body also includes `public_path` and `public_url`. They are output fields. `update_publishable` does not accept them. Both come from `publishable_public_read`. `public_path` is the public page path when the recording is live. `public_url` is the absolute URL when `Rails.application.routes.default_url_options` has a host, and empty when that host is missing. Both are empty unless the recording is live. The `publish` and `update_publishable` descriptions name these fields for MCP and OpenAPI.
 
+## Transition warnings
+
+A type or host gem can attach warning strings to a successful publish transition. Press kits use this when a kit is published while an embargo still hides it.
+
+Register one callback on this gem's configuration. Recording Studio core `before_service` and `after_service` hooks do not carry response warnings. Do not put this callback on those.
+
+```ruby
+RecordingStudioPublishable.configure do |config|
+  config.warnings_for = lambda do |recording:, action:|
+    next [] unless action.to_s == "publish"
+    next [] unless recording.recordable_type == "PressKit"
+    next [] unless recording.recordable.try(:hidden_during_embargo?)
+
+    ["This kit is hidden until the embargo lifts."]
+  end
+end
+```
+
+Signature. `recording:` is the parent recording (the page, article, or kit). `action:` is a string. API and MCP pass `publish`, `unpublish`, or `update_publishable`. The UI passes the transition name (`publish`, `draft`, `schedule`, `unpublish`).
+
+Return value. Return an array of strings. A single string is wrapped. `nil`, blanks, and a raised error become `[]`.
+
+Call `RecordingStudioPublishable.warnings_for(recording:, action:)` to run the callback. With `config.warnings_for` unset, that method returns `[]`.
+
+Where the strings show up when the array is not empty:
+
+- API and MCP. `PublishableSnapshot` adds a `warnings` key on the 200 body for `publish`, `unpublish`, and `update_publishable`. The key is omitted when the array is empty. Other keys stay the same.
+- UI JSON for `#transition`. Same `warnings` key, omitted when empty.
+- UI notice after a non-success-page transition. The strings are appended to `Publishable status updated`.
+- Inline HTML and turbo-stream success. The strings show as warning alerts. HTML redirect uses `flash[:notice]` only when there is at least one string.
+- Published success page. The strings show as warning alerts.
+
+Leave the callback unset and every payload, notice, and redirect stays the same as 1.5.0.
+
 ## Lifecycle notifications
 
 Other gems subscribe to publish visibility without Publishable knowing they exist. Do not add a Downloadable or Presskits hook here.

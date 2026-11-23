@@ -6,7 +6,10 @@ class RecordingStudioPublishableTest < Minitest::Test
   def test_version_exists
     changelog = File.read(File.expand_path("../CHANGELOG.md", __dir__))
 
-    assert_equal "1.5.0", ::RecordingStudioPublishable::VERSION
+    assert_equal "1.6.0", ::RecordingStudioPublishable::VERSION
+    assert_includes changelog, "## [1.6.0]"
+    assert_includes changelog, "config.warnings_for"
+    assert_includes changelog, "compare/v1.5.0...v1.6.0"
     assert_includes changelog, "## [1.5.0]"
     assert_includes changelog, "Hosts MUST run the Recording Studio 7.4, 7.5 and 7.7 migrations if they have not."
     assert_includes changelog, "flat_pack 0.2.0 is supported"
@@ -28,6 +31,8 @@ class RecordingStudioPublishableTest < Minitest::Test
     assert_includes readme_source, "published.recording_studio_publishable"
     assert_includes readme_source, "RecordingStudioPublishable.subscribe"
     assert_includes readme_source, "publishable_public_read"
+    assert_includes readme_source, "config.warnings_for"
+    assert_includes readme_source, "RecordingStudioPublishable.warnings_for"
     assert_includes readme_source, "Rails.application.routes.default_url_options"
     refute_includes readme_source, "# GemTemplate"
     refute_includes readme_source, "recording_studio_publishable("

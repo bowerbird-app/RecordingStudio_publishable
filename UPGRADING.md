@@ -1,5 +1,17 @@
 # Upgrading
 
+## 1.6.0 — Publish transition warnings
+
+Install `recording_studio_publishable` 1.6.0. No migration.
+
+A type or host gem can attach warning strings to a successful publish transition. Set `RecordingStudioPublishable.configuration.warnings_for` to a callable with `recording:` and `action:`. Return an array of strings. Return `[]` when there is nothing to say.
+
+`RecordingStudioPublishable.warnings_for(recording:, action:)` runs that callable. With nothing registered it returns `[]`.
+
+When the array has strings, they appear as `warnings` on the `publish`, `unpublish`, and `update_publishable` snapshot, and in the publish UI JSON, notice, inline success, and success page. When the array is empty, those surfaces stay as they were in 1.5.0.
+
+Compare [v1.5.0...v1.6.0](https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.5.0...v1.6.0).
+
 ## 1.5.0 — Recording Studio 7.8 and Flatpack 0.2
 
 Install `recording_studio_publishable` 1.5.0. No Publishable migration.
