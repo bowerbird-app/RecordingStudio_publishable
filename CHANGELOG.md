@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-11-23
+
+### Fixed
+- Canonical and `og:url` keep an absolute public URL. A relative path still gets the request host. A blank URL stays blank.
+- `published_url` is computed on each call. A held recordable returns nil, then the URL after publish, then nil after unpublish, expiry, or trash. A future `publish_at` stays nil until that time.
+
+### Upgrade notes
+- Bump to `1.6.1`. No migration.
+- Compare [v1.6.0...v1.6.1](https://github.com/bowerbird-app/recording_studio_publishable/compare/v1.6.0...v1.6.1).
+
 ## [1.6.0] - 2026-11-23
 
 ### Added
